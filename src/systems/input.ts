@@ -17,6 +17,11 @@
  * }
  */
 export default class Input {
+	/** Keys whose default browser action (page scrolling) is suppressed. */
+	private static readonly BLOCKED_KEYS = new Set([
+		'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space',
+	]);
+
 	/** `KeyboardEvent.code` values of all keys currently held down. */
 	private keysDown = new Set<string>();
 
@@ -29,6 +34,7 @@ export default class Input {
 
 	/** Marks a key as held down. */
 	private onKeyDown = (e: KeyboardEvent) => {
+		if (Input.BLOCKED_KEYS.has(e.code)) e.preventDefault();
 		this.keysDown.add(e.code);
 	}
 

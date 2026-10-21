@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import Input from './input.ts';
+import Input from '../../src/systems/input.ts';
 
 function press(code: string) {
 	window.dispatchEvent(new KeyboardEvent('keydown', { code }));
@@ -81,5 +81,20 @@ describe('Input', () => {
 		const other = new Input();
 		expect(other.isKeyDown('KeyA')).toBe(false);
 		other.destroy();
+	});
+
+	it.each(['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'])(
+		'prevents page scrolling for %s',
+		(code) => {
+			const e = new KeyboardEvent('keydown', { code, cancelable: true });
+			window.dispatchEvent(e);
+			expect(e.defaultPrevented).toBe(true);
+		},
+	);
+
+	it('does not block default behavior for other keys', () => {
+		const e = new KeyboardEvent('keydown', { code: 'KeyA', cancelable: true });
+		window.dispatchEvent(e);
+		expect(e.defaultPrevented).toBe(false);
 	});
 });
