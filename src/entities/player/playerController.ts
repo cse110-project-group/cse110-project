@@ -1,5 +1,6 @@
 import Input from '../../systems/input.ts';
 import PlayerModel from './playerModel.ts';
+import { BoundingBox, resolveHorizontalMovement } from '../../systems/collision.ts';
 
 /**
  * Moves the player in response to keyboard input.
@@ -9,40 +10,45 @@ import PlayerModel from './playerModel.ts';
  * Holding both directions at once cancels out.
  */
 export default class PlayerController {
-	private input: Input;
-	private model: PlayerModel;
-	/** Horizontal movement speed, in pixels per second. */
-	private speed: number;
+    private input: Input;
+    private model: PlayerModel;
+    /** Horizontal movement speed, in pixels per second. */
+    private speed: number;
 
-	/**
-	 * @param input - Shared input tracker to poll each frame.
-	 * @param model - The player model whose sprite this controller moves.
-	 */
-	constructor(input: Input, model: PlayerModel) {
-		this.input = input;
-		this.model = model;
-		this.speed = 200;
-	}
+    /**
+     * @param input Shared input tracker to poll each frame.
+     * @param model The player model whose sprite this controller moves.
+     */
+    constructor(input: Input, model: PlayerModel) {
+        this.input = input;
+        this.model = model;
+        this.speed = 200;
+    }
 
-	/**
-	 * Applies one frame of movement.
-	 *
-	 * @param dt - Seconds elapsed since the last frame. Movement is scaled by
-	 *   this so speed stays the same regardless of frame rate.
-	 */
-	public update(dt: number) {
-		if(this.input.isKeyDown('KeyA')
-		   || this.input.isKeyDown('ArrowLeft')) {
-			   this.model.getSprite().x(
-				   this.model.getSprite().x() - this.speed * dt
-			   );
-		}
+    /**
+     * Applies one frame of movement.
+     *
+     * @param dt Seconds elapsed since the last frame. Movement is scaled by
+     *   this so speed stays the same regardless of frame rate.
+     * @param obstacles Optional collection of solid bounding boxes to clamp against.
+     */
+    public update(dt: number, obstacles: BoundingBox[] = []) {
+        let dx = 0;
 
-		if(this.input.isKeyDown('KeyD')
-		   || this.input.isKeyDown('ArrowRight')) {
-			   this.model.getSprite().x(
-				   this.model.getSprite().x() + this.speed * dt
-			   );
-		}
-	}
+        if (this.input.isKeyDown('KeyA')
+            || this.input.isKeyDown('ArrowLeft')) {
+            dx -= this.speed * dt;
+        }
+
+        if (this.input.isKeyDown('KeyD')
+            || this.input.isKeyDown('ArrowRight')) {
+            dx += this.speed * dt;
+        }
+
+        if (dx !== 0) {
+            const currentBox = this.model.getBoundingBox();
+            const safeX = resolveHorizontalMovement(currentBox, dx, obstacles);
+            this.model.getSprite().x(safeX + this.model.getSprite().radiusX());
+        }
+    }
 }
