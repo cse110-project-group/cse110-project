@@ -49,9 +49,6 @@ export function resolveHorizontalMovement(
 ): number {
   let targetX = box.x + dx;
 
-  // Prevent walking off the left edge of the screen
-  targetX = Math.max(0, targetX);
-
   if (dx > 0) {
     // Moving RIGHT: sweep box from original position to intended target
     const sweepBox: BoundingBox = {
@@ -84,10 +81,8 @@ export function resolveHorizontalMovement(
     }
   }
 
-  // Final clamp against screen left edge
-  return Math.max(0, targetX);
+  return targetX;
 }
-
 /**
  * Checks if the player has completely run off the right edge of the stage.
  */

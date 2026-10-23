@@ -43,28 +43,10 @@ export default class Game {
 
         this.input = new Input();
         this.player = new Player(
-            this.input, this.stage.width() / 4, this.stage.height() / 2
+            this.input, this.stage.width() / 2, this.stage.height() / 2
         );
 
         this.gameLayer.add(this.player.getSprite());
-
-        // --- Temporary Test Wall ---
-        // Places a brown obstacle block directly in the center path
-        const wall = new kv.Rect({
-            x: this.stage.width() / 2,
-            y: this.stage.height() / 2 - 50,
-            width: 50,
-            height: 100,
-            fill: '#8b5a2b',
-        });
-        this.gameLayer.add(wall);
-        this.obstacles.push({
-            x: wall.x(),
-            y: wall.y(),
-            width: wall.width(),
-            height: wall.height()
-        });
-        // ---------------------------
 
         this.gameLayer.draw();
     }
