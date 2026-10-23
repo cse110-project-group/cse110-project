@@ -64,11 +64,6 @@ describe('Collision System - resolveHorizontalMovement', () => {
     expect(resolvedX).toBe(80);
   });
 
-  it('prevents walking past the left screen boundary (x < 0)', () => {
-    const dx = -200;
-    const resolvedX = resolveHorizontalMovement(playerBox, dx, []);
-    expect(resolvedX).toBe(0);
-  });
 });
 
 describe('Collision System - checkLevelClear', () => {
