@@ -13,8 +13,15 @@ import { BoundingBox, resolveHorizontalMovement } from '../../systems/collision.
 export default class PlayerController {
 	private input: Input;
 	private model: PlayerModel;
-	/** Horizontal movement speed, in pixels per second. */
-	private speed: number;
+	/** Horizontal movement speed, in pixels per second. 
+	 * (Note: Should probably be a constant but keeping this here for now.)
+	*/
+	private max_speed: number; 
+	private curr_speed: number;
+	/** Acceleration / deceleration for horizontal movement. 
+	 * (Note: Should be relatively large to ensure snappy movement.)
+	*/
+	private acceleration: number;
 
 	/**
 	 * @param input - Shared input manager to poll key frame.
@@ -23,7 +30,9 @@ export default class PlayerController {
 	constructor(input: Input, model: PlayerModel) {
 		this.input = input;
 		this.model = model;
-		this.speed = 200;
+		this.max_speed = 200;
+		this.curr_speed = 0;
+		this.acceleration = 800;
 	}
 
 	/**
@@ -63,5 +72,41 @@ export default class PlayerController {
 
 		const deltaApplied = safeTopLeftX - playerBox.x;
 		sprite.x(sprite.x() + deltaApplied);
+	}
+	
+	private move(dt: number){
+		/** If both directions are pressed, decelerate. */
+		if((this.input.isKeyDown('KeyA') 
+		    || this.input.isKeyDown('ArrowLeft'))
+			&& (this.input.isKeyDown('KeyD') 
+				|| this.input.isKeyDown('ArrowRight'))){
+				this.curr_speed = Math.sign(this.curr_speed) 
+								  * Math.max(0, Math.abs(this.curr_speed) 
+								  - this.acceleration * dt);
+		}
+		/** If only left is pressed, go left. */
+		else if(this.input.isKeyDown('KeyA')
+		   		|| this.input.isKeyDown('ArrowLeft')) {
+			this.curr_speed = Math.max(- this.max_speed, 
+									 	   this.curr_speed 
+										   - this.acceleration * dt);
+		}
+		/** If only right is pressed, go right. */
+		else if(this.input.isKeyDown('KeyD')
+		   		|| this.input.isKeyDown('ArrowRight')) {
+			this.curr_speed = Math.min(this.max_speed, 
+										this.curr_speed 
+										+ this.acceleration * dt);
+		}
+		/** Otherwise, decelerate. */
+		else{
+			this.curr_speed = Math.sign(this.curr_speed) 
+							  * Math.max(0, Math.abs(this.curr_speed) 
+							  - this.acceleration * dt);
+		}
+
+		this.model.getSprite().x(
+			this.model.getSprite().x() + this.curr_speed * dt
+		);
 	}
 }
