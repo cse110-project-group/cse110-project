@@ -1,7 +1,6 @@
 import Input from './systems/input.ts';
 import kv from 'konva';
 import Player from './entities/player/player.ts';
-import { BoundingBox, checkLevelClear } from './systems/collision.ts';
 
 /**
  * Top-level game object. Creates the Konva stage, owns the shared
@@ -26,8 +25,6 @@ export default class Game {
     private stage: kv.Stage;
     private gameLayer: kv.Layer;
     private player: Player;
-    /** Collection of solid bounding boxes for platforms/walls in the level. */
-    private obstacles: BoundingBox[] = [];
     /** Timestamp of the previous frame, in milliseconds. */
     private lastTime = 0;
 
@@ -47,7 +44,6 @@ export default class Game {
         );
 
         this.gameLayer.add(this.player.getSprite());
-
         this.gameLayer.draw();
     }
 
@@ -66,13 +62,7 @@ export default class Game {
         );
         this.lastTime = time;
 
-        // 1. Move player and resolve collisions against obstacles
-        this.player.update(deltaTime, this.obstacles);
-
-        // 2. Check if player has run past the right side of the screen
-        if (checkLevelClear(this.player.getBoundingBox(), this.stage.width())) {
-            console.log('Level Complete! Player reached the right edge.');
-        }
+        this.player.update(deltaTime, this.gameLayer.getChildren());
 
         requestAnimationFrame(this.gameLoop);
     }

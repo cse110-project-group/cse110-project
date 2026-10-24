@@ -1,24 +1,10 @@
-/**
- * Represents an unrotated rectangular boundary in 2D coordinate space.
- */
-export interface BoundingBox {
-  /** Top-left X coordinate, in pixels. */
-  x: number;
-  /** Top-left Y coordinate, in pixels. */
-  y: number;
-  /** Horizontal span of the box, in pixels. */
-  width: number;
-  /** Vertical span of the box, in pixels. */
-  height: number;
-}
+import kv from 'konva';
 
-/**
- * Platform validation rules to prevent "cheesing" levels.
- */
-export interface PlatformConstraints {
-  maxWidth: number;
-  startZoneRightEdge: number;
-  exitZoneLeftEdge: number;
+export interface BoundingBox {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
 }
 
 /**
@@ -34,71 +20,50 @@ export function checkAABBCollision(a: BoundingBox, b: BoundingBox): boolean {
 }
 
 /**
- * Calculates a player's new horizontal position, clamping the value against
- * obstacle boundaries and the left screen edge (x = 0).
+ * Calculates a player's new horizontal position using Konva's getClientRect(),
+ * clamping the value against obstacles to prevent moving through solid objects.
  *
- * @param box Current top-left bounding box of the player prior to moving.
- * @param dx Proposed horizontal delta (speed * deltaTime), in pixels.
- * @param obstacles Collection of solid bounding boxes present in the room.
- * @returns The resolved top-left X coordinate after collision clamping.
+ * @param playerSprite The Konva shape representing the player.
+ * @param dx Proposed horizontal delta (speed * deltaTime).
+ * @param obstacles Collection of Konva nodes (e.g. layer.children).
+ * @returns The resolved center/anchor X coordinate for the sprite.
  */
 export function resolveHorizontalMovement(
-  box: BoundingBox,
+  playerSprite: kv.Shape,
   dx: number,
-  obstacles: BoundingBox[]
+  obstacles: kv.Node[]
 ): number {
+  // Let Konva compute the exact outer bounding box automatically
+  const box = playerSprite.getClientRect();
+
   let targetX = box.x + dx;
 
-  if (dx > 0) {
-    // Moving RIGHT: sweep box from original position to intended target
-    const sweepBox: BoundingBox = {
-      x: box.x,
-      y: box.y,
-      width: box.width + dx,
-      height: box.height,
-    };
+  // Predictive sweep box covering the proposed step
+  const testBox: BoundingBox = {
+    x: dx > 0 ? box.x : targetX,
+    y: box.y,
+    width: box.width + Math.abs(dx),
+    height: box.height,
+  };
 
-    for (const obstacle of obstacles) {
-      if (checkAABBCollision(sweepBox, obstacle)) {
-        // Player's right edge must stop at obstacle's left edge
-        targetX = Math.min(targetX, obstacle.x - box.width);
-      }
-    }
-  } else if (dx < 0) {
-    // Moving LEFT: sweep box from intended target to original right edge
-    const sweepBox: BoundingBox = {
-      x: box.x + dx,
-      y: box.y,
-      width: box.width - dx,
-      height: box.height,
-    };
+  for (const node of obstacles) {
+    // Ignore the player's own sprite
+    if (node === playerSprite) continue;
 
-    for (const obstacle of obstacles) {
-      if (checkAABBCollision(sweepBox, obstacle)) {
-        // Player's left edge must stop at obstacle's right edge
-        targetX = Math.max(targetX, obstacle.x + obstacle.width);
+    const obstacleBox = node.getClientRect();
+
+    if (checkAABBCollision(testBox, obstacleBox)) {
+      if (dx > 0) {
+        targetX = Math.min(targetX, obstacleBox.x - box.width);
+      } else if (dx < 0) {
+        targetX = Math.max(targetX, obstacleBox.x + obstacleBox.width);
       }
+      testBox.x = dx > 0 ? box.x : targetX;
+      testBox.width = box.width + Math.abs(targetX - box.x);
     }
   }
 
-  return targetX;
-}
-/**
- * Checks if the player has completely run off the right edge of the stage.
- */
-export function checkLevelClear(box: BoundingBox, stageWidth: number): boolean {
-  return box.x >= stageWidth;
-}
-
-/**
- * Validates that a player-created projection does not bridge start to finish.
- */
-export function isValidPlatformProjection(
-  platform: BoundingBox,
-  constraints: PlatformConstraints
-): boolean {
-  if (platform.width > constraints.maxWidth) return false;
-  const touchesStart = platform.x <= constraints.startZoneRightEdge;
-  const reachesGoal = platform.x + platform.width >= constraints.exitZoneLeftEdge;
-  return !(touchesStart && reachesGoal);
+  // Convert the clamped top-left X coordinate back to the sprite's local origin
+  const offsetX = playerSprite.x() - box.x;
+  return targetX + offsetX;
 }

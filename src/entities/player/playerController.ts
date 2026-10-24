@@ -1,6 +1,7 @@
 import Input from '../../systems/input.ts';
 import PlayerModel from './playerModel.ts';
-import { BoundingBox, resolveHorizontalMovement } from '../../systems/collision.ts';
+import kv from 'konva';
+import { resolveHorizontalMovement } from '../../systems/collision.ts';
 
 /**
  * Moves the player in response to keyboard input.
@@ -30,9 +31,9 @@ export default class PlayerController {
      *
      * @param dt Seconds elapsed since the last frame. Movement is scaled by
      *   this so speed stays the same regardless of frame rate.
-     * @param obstacles Optional collection of solid bounding boxes to clamp against.
+     * @param obstacles Collection of Konva nodes on the stage.
      */
-    public update(dt: number, obstacles: BoundingBox[] = []) {
+    public update(dt: number, obstacles: kv.Node[] = []) {
         let dx = 0;
 
         if (this.input.isKeyDown('KeyA')
@@ -46,9 +47,9 @@ export default class PlayerController {
         }
 
         if (dx !== 0) {
-            const currentBox = this.model.getBoundingBox();
-            const safeX = resolveHorizontalMovement(currentBox, dx, obstacles);
-            this.model.getSprite().x(safeX + this.model.getSprite().radiusX());
+            const sprite = this.model.getSprite();
+            const safeX = resolveHorizontalMovement(sprite, dx, obstacles);
+            sprite.x(safeX);
         }
     }
 }

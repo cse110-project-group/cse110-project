@@ -1,5 +1,5 @@
 import kv from 'konva';
-import { BoundingBox } from '../../systems/collision.ts';
+
 /**
  * Holds the player's visual state: the Konva shape drawn on the game layer.
  *
@@ -27,17 +27,6 @@ export default class PlayerModel {
 	/** Returns the Konva shape so it can be added to a layer or moved. */
 	public getSprite(): kv.Ellipse {
 		return this.sprite;
-	}
-
-	public getBoundingBox(): BoundingBox {
-		const rx = this.sprite.radiusX();
-		const ry = this.sprite.radiusY();
-		return {
-			x: this.sprite.x() - rx,
-			y: this.sprite.y() - ry,
-			width: rx * 2,
-			height: ry * 2,
-		};
 	}
 }
 
