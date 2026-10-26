@@ -9,12 +9,6 @@ import kv from 'konva';
 export default class PlayerModel {
 	/** Konva shape representing the player. Its position is the player's position. */
 	private sprite: kv.Ellipse;
-	private static max_x_speed: number = 200; 
-	/** Acceleration / deceleration for horizontal movement. 
-	 * (Note: Should be relatively large to ensure snappy movement.)
-	*/
-	private static x_acceleration: number = 800;
-	private static x_deceleration: number = 1600;
 
 	/**
 	 * @param x - Initial x position of the sprite's center, in pixels.
