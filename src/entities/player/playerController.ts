@@ -11,15 +11,8 @@ import PlayerModel from './playerModel.ts';
 export default class PlayerController {
 	private input: Input;
 	private model: PlayerModel;
-	/** Horizontal movement speed, in pixels per second. 
-	 * (Note: Should probably be a constant but keeping this here for now.)
-	*/
-	private max_speed: number; 
+	/** Horizontal movement speed, in pixels per second. */
 	private curr_speed: number;
-	/** Acceleration / deceleration for horizontal movement. 
-	 * (Note: Should be relatively large to ensure snappy movement.)
-	*/
-	private acceleration: number;
 
 	/**
 	 * @param input - Shared input tracker to poll each frame.
@@ -28,9 +21,7 @@ export default class PlayerController {
 	constructor(input: Input, model: PlayerModel) {
 		this.input = input;
 		this.model = model;
-		this.max_speed = 200;
 		this.curr_speed = 0;
-		this.acceleration = 800;
 	}
 
 	/**
@@ -50,37 +41,50 @@ export default class PlayerController {
 	 */
 	private move(dt: number){
 		/** If both directions are pressed, decelerate. */
-		if((this.input.isKeyDown('KeyA') 
-		    || this.input.isKeyDown('ArrowLeft'))
-			&& (this.input.isKeyDown('KeyD') 
-				|| this.input.isKeyDown('ArrowRight'))){
+		if(this.isLeft() && this.isRight()){
 				this.curr_speed = Math.sign(this.curr_speed) 
 								  * Math.max(0, Math.abs(this.curr_speed) 
-								  - this.acceleration * dt);
+								  - PlayerModel.getXDeceleration() * dt);
 		}
 		/** If only left is pressed, go left. */
-		else if(this.input.isKeyDown('KeyA')
-		   		|| this.input.isKeyDown('ArrowLeft')) {
-			this.curr_speed = Math.max(- this.max_speed, 
+		else if(this.isLeft()) {
+			this.curr_speed = Math.max(- PlayerModel.getMaxXSpeed(), 
 									 	   this.curr_speed 
-										   - this.acceleration * dt);
+										   - PlayerModel.getXAcceleration() * dt);
 		}
 		/** If only right is pressed, go right. */
-		else if(this.input.isKeyDown('KeyD')
-		   		|| this.input.isKeyDown('ArrowRight')) {
-			this.curr_speed = Math.min(this.max_speed, 
+		else if(this.isRight()) {
+			this.curr_speed = Math.min(PlayerModel.getMaxXSpeed(), 
 										this.curr_speed 
-										+ this.acceleration * dt);
+										+ PlayerModel.getXAcceleration() * dt);
 		}
 		/** Otherwise, decelerate. */
 		else{
 			this.curr_speed = Math.sign(this.curr_speed) 
 							  * Math.max(0, Math.abs(this.curr_speed) 
-							  - this.acceleration * dt);
+							  - PlayerModel.getXDeceleration() * dt);
 		}
 
 		this.model.getSprite().x(
 			this.model.getSprite().x() + this.curr_speed * dt
 		);
+	}
+
+	/**
+	 * Checks whether any "left" button is pressed in Input.
+	 * @returns whether any "left" button is pressed
+	 */
+	private isLeft(){
+		return this.input.isKeyDown('KeyA') 
+				|| this.input.isKeyDown('ArrowLeft');
+	}
+
+	/**
+	 * Checks whether any "right" button is pressed in Input.
+	 * @returns whether any "right" button is pressed
+	 */
+	private isRight(){
+		return this.input.isKeyDown('KeyD') 
+				|| this.input.isKeyDown('ArrowRight');
 	}
 }
