@@ -1,4 +1,5 @@
 import Input from '../../systems/input.ts';
+import Player from './player.ts';
 import PlayerModel from './playerModel.ts';
 
 /**
@@ -13,6 +14,14 @@ export default class PlayerController {
 	private model: PlayerModel;
 	/** Horizontal movement speed, in pixels per second. */
 	private curr_speed: number;
+
+	/** Static readonlys as constants */
+	private static readonly MAX_X_SPEED: number = 200; 
+	/** Acceleration / deceleration for horizontal movement. 
+	 * (Note: Should be relatively large to ensure snappy movement.)
+	*/
+	private static readonly X_ACCELERATION: number = 800;
+	private static readonly X_DECELERATION: number = 1600;
 
 	/**
 	 * @param input - Shared input tracker to poll each frame.
@@ -44,25 +53,25 @@ export default class PlayerController {
 		if(this.isLeft() && this.isRight()){
 				this.curr_speed = Math.sign(this.curr_speed) 
 								  * Math.max(0, Math.abs(this.curr_speed) 
-								  - PlayerModel.getXDeceleration() * dt);
+								  - PlayerController.X_DECELERATION * dt);
 		}
 		/** If only left is pressed, go left. */
 		else if(this.isLeft()) {
-			this.curr_speed = Math.max(- PlayerModel.getMaxXSpeed(), 
-									 	   this.curr_speed 
-										   - PlayerModel.getXAcceleration() * dt);
+			this.curr_speed = Math.max(- PlayerController.MAX_X_SPEED, 
+									 	this.curr_speed 
+										- PlayerController.X_ACCELERATION * dt);
 		}
 		/** If only right is pressed, go right. */
 		else if(this.isRight()) {
-			this.curr_speed = Math.min(PlayerModel.getMaxXSpeed(), 
+			this.curr_speed = Math.min(PlayerController.MAX_X_SPEED, 
 										this.curr_speed 
-										+ PlayerModel.getXAcceleration() * dt);
+										+ PlayerController.X_DECELERATION * dt);
 		}
 		/** Otherwise, decelerate. */
 		else{
 			this.curr_speed = Math.sign(this.curr_speed) 
 							  * Math.max(0, Math.abs(this.curr_speed) 
-							  - PlayerModel.getXDeceleration() * dt);
+							  - PlayerController.X_DECELERATION * dt);
 		}
 
 		this.model.getSprite().x(
