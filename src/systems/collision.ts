@@ -1,69 +1,86 @@
-import kv from 'konva';
-
+/**
+ * Represents an unrotated rectangular boundary in 2D coordinate space.
+ * Compatible with Konva's IRect returned by getClientRect().
+ */
 export interface BoundingBox {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
 }
 
 /**
  * Determines whether two axis-aligned bounding boxes overlap.
+ *
+ * @param a - First bounding box to test.
+ * @param b - Second bounding box to test.
+ * @returns True if the boxes intersect on both axes, otherwise false.
  */
 export function checkAABBCollision(a: BoundingBox, b: BoundingBox): boolean {
-  return (
-    a.x < b.x + b.width &&
-    a.x + a.width > b.x &&
-    a.y < b.y + b.height &&
-    a.y + a.height > b.y
-  );
+    return (
+        a.x < b.x + b.width &&
+        a.x + a.width > b.x &&
+        a.y < b.y + b.height &&
+        a.y + a.height > b.y
+    );
 }
 
 /**
- * Calculates a player's new horizontal position using Konva's getClientRect(),
- * clamping the value against obstacles to prevent moving through solid objects.
+ * Calculates an entity's new horizontal position by testing a predictive sweep box
+ * against solid obstacle boundaries.
  *
- * @param playerSprite The Konva shape representing the player.
- * @param dx Proposed horizontal delta (speed * deltaTime).
- * @param obstacles Collection of Konva nodes (e.g. layer.children).
- * @returns The resolved center/anchor X coordinate for the sprite.
+ * If the entity is stepping away from or exiting an already-overlapping obstacle,
+ * movement is allowed freely to prevent teleporting across wide structures.
+ *
+ * @param box - Current bounding box of the entity before moving.
+ * @param dx - Proposed horizontal delta (speed * deltaTime).
+ * @param obstacles - Collection of solid obstacle bounding boxes.
+ * @returns The resolved top-left X coordinate for the entity's bounding box.
  */
 export function resolveHorizontalMovement(
-  playerSprite: kv.Shape,
-  dx: number,
-  obstacles: kv.Node[]
+    box: BoundingBox,
+    dx: number,
+    obstacles: BoundingBox[]
 ): number {
-  // Let Konva compute the exact outer bounding box automatically
-  const box = playerSprite.getClientRect();
+    if (dx === 0) return box.x;
 
-  let targetX = box.x + dx;
+    let targetX = box.x + dx;
 
-  // Predictive sweep box covering the proposed step
-  const testBox: BoundingBox = {
-    x: dx > 0 ? box.x : targetX,
-    y: box.y,
-    width: box.width + Math.abs(dx),
-    height: box.height,
-  };
+    // Predictive sweep box spanning the full trajectory of the step
+    const sweepBox: BoundingBox = {
+        x: dx > 0 ? box.x : targetX,
+        y: box.y,
+        width: box.width + Math.abs(dx),
+        height: box.height,
+    };
 
-  for (const node of obstacles) {
-    // Ignore the player's own sprite
-    if (node === playerSprite) continue;
+    for (const obstacle of obstacles) {
+        if (!checkAABBCollision(sweepBox, obstacle)) {
+            continue;
+        }
 
-    const obstacleBox = node.getClientRect();
+        if (dx > 0) {
+            // Moving RIGHT:
+            // If player's left edge is already at or past the obstacle's left face,
+            // moving right is exiting the obstacle -> do not snap backwards.
+            if (box.x >= obstacle.x) {
+                continue;
+            }
+            targetX = Math.min(targetX, obstacle.x - box.width);
+        } else if (dx < 0) {
+            // Moving LEFT:
+            // If player's right edge is already at or before the obstacle's right face,
+            // moving left is exiting the obstacle -> do not snap across.
+            if (box.x + box.width <= obstacle.x + obstacle.width) {
+                continue;
+            }
+            targetX = Math.max(targetX, obstacle.x + obstacle.width);
+        }
 
-    if (checkAABBCollision(testBox, obstacleBox)) {
-      if (dx > 0) {
-        targetX = Math.min(targetX, obstacleBox.x - box.width);
-      } else if (dx < 0) {
-        targetX = Math.max(targetX, obstacleBox.x + obstacleBox.width);
-      }
-      testBox.x = dx > 0 ? box.x : targetX;
-      testBox.width = box.width + Math.abs(targetX - box.x);
+        // Shrink the sweep envelope to the newly clamped boundary
+        sweepBox.x = dx > 0 ? box.x : targetX;
+        sweepBox.width = box.width + Math.abs(targetX - box.x);
     }
-  }
 
-  // Convert the clamped top-left X coordinate back to the sprite's local origin
-  const offsetX = playerSprite.x() - box.x;
-  return targetX + offsetX;
+    return targetX;
 }
