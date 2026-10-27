@@ -1,57 +1,113 @@
-import Konva from 'konva';
+// src/mainMenu.ts
+import Konva from "konva";
+import { loadImage } from "../loadImage";
+import { createButton } from "../createButton";
 
-interface ButtonOptions {
-    image: HTMLImageElement;
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-    onClick: () => void;
+// Virtual resolution: all coordinates below are in this space.
+const WIDTH = 1280;
+const HEIGHT = 720;
 
-
-
+// Scale the stage to fit the window while keeping the aspect ratio.
+function fitStageToWindow(stage: Konva.Stage): void {
+  const scale = Math.min(window.innerWidth / WIDTH, window.innerHeight / HEIGHT);
+  stage.width(WIDTH * scale);
+  stage.height(HEIGHT * scale);
+  stage.scale({ x: scale, y: scale });
 }
 
-export function createButtons(opts: ButtonOptions): Konva.Image {
-    const {image, x, y, width, height, onClick} = opts;
+async function init(): Promise<void> {
+  const stage = new Konva.Stage({
+    container: "container", // matches <div id="container"> in index.html
+    width: WIDTH,
+    height: HEIGHT,
+  });
 
-    const button = new Konva.Image({
-        image,
-        x,
-        y,
-        width,
-        height,
-        offsetX: width/2,
-        offsetY: height/2,
-    });
+  // Load all images in parallel; stop with a clear error if one fails.
+  let bgImg: HTMLImageElement;
+  let playImg: HTMLImageElement;
 
-    button.position({x, y});
+  try {
+    [bgImg, playImg,] = await Promise.all([
+      loadImage("assets/background.png"),
+      loadImage("/assets/button.png"),
+    ]);
+  } catch (err) {
+    console.error(err);
+    return;
+  }
 
-    const tweenTo = (scale: number) => new Konva.Tween ({
-        node: button, 
-        duration: 0.1,
-        scaleX: scale,
-        scaleY: scale,
-        easing: Konva.Easings.EaseOut,
+  // ---------- Menu screen ----------
+  const menuLayer = new Konva.Layer();
 
-    }).play();
+  menuLayer.add(
+    new Konva.Image({ image: bgImg, width: WIDTH, height: HEIGHT })
+  );
 
-    button.on("mouseenter", () => {
-        document.body.style.cursor = "pointer";
-        tweenTo(1.08);
-    });
+  const btnW = 300;
+  const btnH = 80;
+  const centerX = WIDTH / 2;
+  const startY = 330;
+  const gap = 110;
 
-    button.on("mouseleave", () => {
-        document.body.style.cursor = "default";
-        tweenTo(1);
-    });
+  // ---------- Placeholder game screen ----------
+  const gameLayer = new Konva.Layer({ visible: false });
+  gameLayer.add(
+    new Konva.Text({
+      text: "Game goes here (click to return)",
+      fontSize: 36,
+      fill: "white",
+      width: WIDTH,
+      y: HEIGHT / 2 - 18,
+      align: "center",
+    })
+  );
+  gameLayer.add(
+    new Konva.Rect({ width: WIDTH, height: HEIGHT, fill: "#111", opacity: 0.0 })
+  );
 
-    button.on("mousedown touchstart", () => tweenTo(0.95));
-    button.on("mouseup touchend", () => tweenTo(1.08));
+  const showMenu = (): void => {
+    gameLayer.hide();
+    menuLayer.show();
+  };
+  const showGame = (): void => {
+    menuLayer.hide();
+    gameLayer.show();
+  };
 
-    button.on("click tap", onClick);
+  gameLayer.on("click tap", showMenu);
 
-    return button;
+  // ---------- Buttons ----------
+  menuLayer.add(
+    createButton({
+      image: playImg,
+      x: centerX,
+      y: startY,
+      width: btnW,
+      height: btnH,
+      onClick: showGame,
+    }),
+    createButton({
+      image: playImg,
+      x: centerX,
+      y: startY + gap,
+      width: btnW,
+      height: btnH,
+      onClick: () => console.log("Options clicked"),
+    }),
+    createButton({
+      image: playImg,
+      x: centerX,
+      y: startY + gap * 2,
+      width: btnW,
+      height: btnH,
+      onClick: () => console.log("Quit clicked"),
+    })
+  );
+
+  stage.add(menuLayer, gameLayer);
+
+  fitStageToWindow(stage);
+  window.addEventListener("resize", () => fitStageToWindow(stage));
 }
 
-
+init();

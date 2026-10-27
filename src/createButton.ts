@@ -12,7 +12,7 @@ interface ButtonOptions {
 
 }
 
-export function createButtons(opts: ButtonOptions): Konva.Image {
+export function createButton(opts: ButtonOptions): Konva.Image {
     const {image, x, y, width, height, onClick} = opts;
 
     const button = new Konva.Image({
@@ -24,8 +24,6 @@ export function createButtons(opts: ButtonOptions): Konva.Image {
         offsetX: width/2,
         offsetY: height/2,
     });
-
-    button.position({x, y});
 
     const tweenTo = (scale: number) => new Konva.Tween ({
         node: button, 
