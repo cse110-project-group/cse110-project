@@ -29,7 +29,6 @@ describe('PlayerModel', () => {
 
 describe('PlayerController', () => {
 	let input: Input;
-	let player: Player;
 	let model: PlayerModel;
 	let controller: PlayerController;
 
