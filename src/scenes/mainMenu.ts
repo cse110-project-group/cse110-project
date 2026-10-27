@@ -28,7 +28,7 @@ async function init(): Promise<void> {
 
   try {
     [bgImg, playImg,] = await Promise.all([
-      loadImage("assets/background.png"),
+      loadImage("assets/background2.png"),
       loadImage("/assets/button.png"),
     ]);
   } catch (err) {
@@ -37,14 +37,14 @@ async function init(): Promise<void> {
   }
 
   // ---------- Menu screen ----------
-  const menuLayer = new Konva.Layer();
+  const menuLayer = new Konva.Layer({imageSmoothingEnabled: false});
 
   menuLayer.add(
     new Konva.Image({ image: bgImg, width: WIDTH, height: HEIGHT })
   );
 
-  const btnW = 300;
-  const btnH = 80;
+  const btnW = 50 * 5;
+  const btnH = 15 * 5;
   const centerX = WIDTH / 2;
   const startY = 330;
   const gap = 110;
@@ -80,7 +80,8 @@ async function init(): Promise<void> {
   menuLayer.add(
     createButton({
       image: playImg,
-      x: centerX,
+      label: 'Start Game',
+      x: centerX - 190,
       y: startY,
       width: btnW,
       height: btnH,
@@ -88,7 +89,8 @@ async function init(): Promise<void> {
     }),
     createButton({
       image: playImg,
-      x: centerX,
+      label: 'Levels',
+      x: centerX - 190,
       y: startY + gap,
       width: btnW,
       height: btnH,
@@ -96,7 +98,8 @@ async function init(): Promise<void> {
     }),
     createButton({
       image: playImg,
-      x: centerX,
+      label: 'Options',
+      x: centerX - 190,
       y: startY + gap * 2,
       width: btnW,
       height: btnH,
