@@ -48,46 +48,162 @@ export default class PlayerController {
 	 *   this so speed stays the same regardless of frame rate.
 	 */
 	private move(dt: number){
+		let avgSpeed;
 		/** If both directions are pressed, decelerate. */
 		if(this.isLeft() && this.isRight()){
+			let timeToZero = Math.abs(this.currSpeed 
+									  / PlayerController.X_DECELERATION);
+			/** Always decelerate during dt */
+			if(timeToZero >= dt){
+				this.model.getSprite().x(
+					this.model.getSprite().x() 
+					+ 0.5 * (this.currSpeed + Math.sign(this.currSpeed) 
+							* Math.max(0, Math.abs(this.currSpeed) 
+							- PlayerController.X_DECELERATION * dt)) * dt
+				);
 				this.currSpeed = Math.sign(this.currSpeed) 
-								  * Math.max(0, Math.abs(this.currSpeed) 
-								  - PlayerController.X_DECELERATION * dt);
+								* Math.max(0, Math.abs(this.currSpeed) 
+								- PlayerController.X_DECELERATION * dt);
+			}
+			/** Reaches 0 during dt */
+			else{
+				this.model.getSprite().x(
+					this.model.getSprite().x() 
+					+ 0.5 * this.currSpeed * timeToZero);
+				this.currSpeed = 0;
+			}
 		}
+		
 		/** If only left is pressed, go left. */
 		else if(this.isLeft()) {
-			/** If moving right, decelerate first */
-			if(this.currSpeed > 0){
-				this.currSpeed -= PlayerController.X_DECELERATION * dt;
+			if (this.currSpeed > 0){
+				let timeToZero = Math.abs(this.currSpeed 
+									  	  / PlayerController.X_DECELERATION);
+				/** Always decelerate during dt */
+				if(timeToZero >= dt){
+					this.model.getSprite().x(
+						this.model.getSprite().x() 
+						+ 0.5 * (this.currSpeed + this.currSpeed
+								- PlayerController.X_DECELERATION * dt) * dt
+					);
+					this.currSpeed = this.currSpeed
+									 - PlayerController.X_DECELERATION * dt;
+				}
+				/** Decelerate then accelerate during dt */
+				else{
+					this.model.getSprite().x(
+						this.model.getSprite().x() 
+						+ 0.5 * this.currSpeed * timeToZero
+						- 0.5 * PlayerController.X_ACCELERATION 
+						* (dt - timeToZero) * (dt - timeToZero)
+					);
+					this.currSpeed = - PlayerController.X_ACCELERATION 
+									 * (dt - timeToZero);
+				}
 			}
 			else{
-				this.currSpeed = Math.max(- PlayerController.MAX_X_SPEED, 
-									 	this.currSpeed 
-										- PlayerController.X_ACCELERATION * dt);
+				let timeToMax = (PlayerController.MAX_X_SPEED 
+								- Math.abs(this.currSpeed))
+								/ PlayerController.X_ACCELERATION;
+				/** Always accelerate during dt */
+				if(timeToMax >= dt){
+					this.model.getSprite().x(
+						this.model.getSprite().x() 
+						+ 0.5 * (this.currSpeed + this.currSpeed
+								- PlayerController.X_ACCELERATION * dt) * dt
+					);
+					this.currSpeed = this.currSpeed 
+									 - PlayerController.X_ACCELERATION * dt;
+				}
+				/** Accelerate and reached max during dt */
+				else{
+					this.model.getSprite().x(
+						this.model.getSprite().x() 
+						+ 0.5 * this.currSpeed * timeToMax
+						- PlayerController.MAX_X_SPEED * (dt - timeToMax)
+					);
+					this.currSpeed = - PlayerController.MAX_X_SPEED;
+
+				}
 			}
-		}
-		/** If only right is pressed, go right. */
-		else if(this.isRight()) {
-			/** If moving left, decelerate first */
-			if(this.currSpeed < 0){
-				this.currSpeed += PlayerController.X_DECELERATION * dt;
-			}
-			else{
-				this.currSpeed = Math.min(PlayerController.MAX_X_SPEED, 
-										this.currSpeed 
-										+ PlayerController.X_ACCELERATION * dt);
-			}
-		}
-		/** Otherwise, decelerate. */
-		else{
-			this.currSpeed = Math.sign(this.currSpeed) 
-							  * Math.max(0, Math.abs(this.currSpeed) 
-							  - PlayerController.X_DECELERATION * dt);
 		}
 
-		this.model.getSprite().x(
-			this.model.getSprite().x() + this.currSpeed * dt
-		);
+		/** If only right is pressed, go right. */
+		else if(this.isRight()) {
+			if (this.currSpeed < 0){
+				let timeToZero = Math.abs(this.currSpeed 
+									  	  / PlayerController.X_DECELERATION);
+				/** Always decelerate during dt */
+				if(timeToZero >= dt){
+					this.model.getSprite().x(
+						this.model.getSprite().x() 
+						+ 0.5 * (this.currSpeed + this.currSpeed
+								+ PlayerController.X_DECELERATION * dt) * dt
+					);
+					this.currSpeed = this.currSpeed
+									 + PlayerController.X_DECELERATION * dt;
+				}
+				/** Decelerate then accelerate during dt */
+				else{
+					this.model.getSprite().x(
+						this.model.getSprite().x() 
+						+ 0.5 * this.currSpeed * timeToZero
+						+ 0.5 * PlayerController.X_ACCELERATION 
+						* (dt - timeToZero) * (dt - timeToZero)
+					);
+					this.currSpeed = PlayerController.X_ACCELERATION 
+									 * (dt - timeToZero);
+				}
+			}
+			else{
+				let timeToMax = (PlayerController.MAX_X_SPEED 
+								- Math.abs(this.currSpeed))
+								/ PlayerController.X_ACCELERATION;
+				/** Always accelerate during dt */
+				if(timeToMax >= dt){
+					this.model.getSprite().x(
+						this.model.getSprite().x() 
+						+ 0.5 * (this.currSpeed + this.currSpeed
+								+ PlayerController.X_ACCELERATION * dt) * dt
+					);
+					this.currSpeed = this.currSpeed 
+									 + PlayerController.X_ACCELERATION * dt;
+				}
+				/** Accelerate and reached max during dt */
+				else{
+					this.model.getSprite().x(
+						this.model.getSprite().x() 
+						+ 0.5 * this.currSpeed * timeToMax
+						+ PlayerController.MAX_X_SPEED * (dt - timeToMax)
+					);
+					this.currSpeed = PlayerController.MAX_X_SPEED;
+
+				}
+			}
+		}
+		else{
+			let timeToZero = Math.abs(this.currSpeed 
+									  / PlayerController.X_DECELERATION);
+			/** Always decelerate during dt */
+			if(timeToZero >= dt){
+				this.model.getSprite().x(
+					this.model.getSprite().x() 
+					+ 0.5 * (this.currSpeed + Math.sign(this.currSpeed) 
+							* Math.max(0, Math.abs(this.currSpeed) 
+							- PlayerController.X_DECELERATION * dt)) * dt
+				);
+				this.currSpeed = Math.sign(this.currSpeed) 
+								* Math.max(0, Math.abs(this.currSpeed) 
+								- PlayerController.X_DECELERATION * dt);
+			}
+			/** Reaches 0 during dt */
+			else{
+				this.model.getSprite().x(
+					this.model.getSprite().x() 
+					+ 0.5 * this.currSpeed * timeToZero);
+				this.currSpeed = 0;
+			}
+		}
 	}
 
 	/**

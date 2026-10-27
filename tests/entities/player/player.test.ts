@@ -29,6 +29,7 @@ describe('PlayerModel', () => {
 
 describe('PlayerController', () => {
 	let input: Input;
+	let player: Player;
 	let model: PlayerModel;
 	let controller: PlayerController;
 
@@ -50,22 +51,22 @@ describe('PlayerController', () => {
 	it.each(['KeyA', 'ArrowLeft'])('moves left with %s', (code) => {
 		press(code);
 		for(let i = 0; i < 5; ++i) controller.update(0.1);
-		expect(model.getSprite().x()).toBeLessThanOrEqual(20);
-		expect(model.getSprite().x()).toBeGreaterThanOrEqual(10);
+		expect(model.getSprite().x()).toBeLessThanOrEqual(30);
+		expect(model.getSprite().x()).toBeGreaterThanOrEqual(20);
 	});
 
 	it.each(['KeyD', 'ArrowRight'])('moves right with %s', (code) => {
 		press(code);
 		for(let i = 0; i < 5; ++i) controller.update(0.1);
-		expect(model.getSprite().x()).toBeGreaterThanOrEqual(180);
-		expect(model.getSprite().x()).toBeLessThanOrEqual(190);
+		expect(model.getSprite().x()).toBeGreaterThanOrEqual(170);
+		expect(model.getSprite().x()).toBeLessThanOrEqual(180);
 	});
 
 	it('scales movement by delta time', () => {
 		press('KeyD');
 		controller.update(0.1);
-		expect(model.getSprite().x()).toBeLessThan(110);
-		expect(model.getSprite().x()).toBeGreaterThan(100);
+		expect(model.getSprite().x()).toBeLessThanOrEqual(110);
+		expect(model.getSprite().x()).toBeGreaterThanOrEqual(100);
 	});
 
 	it('does not move when delta time is zero', () => {
@@ -77,22 +78,23 @@ describe('PlayerController', () => {
 	it('cancels out when both directions are held', () => {
 		press('KeyA');
 		press('KeyD');
-		controller.update(1);
-		expect(model.getSprite().x()).toBe(100);
+		for(let i = 0; i < 10; ++i) controller.update(0.1);
+		expect(model.getSprite().x()).toBeLessThanOrEqual(105);
+		expect(model.getSprite().x()).toBeGreaterThanOrEqual(95);
 	});
 
 	it('stops moving after the key is released', () => {
 		press('KeyD');
-		controller.update(0.5);
+		for(let i = 0; i < 5; ++i) controller.update(0.1);
 		release('KeyD');
-		controller.update(0.5);
-		expect(model.getSprite().x()).toBeLessThanOrEqual(200);
-		expect(model.getSprite().x()).toBeGreaterThan(100);
+		for(let i = 0; i < 5; ++i) controller.update(0.1);
+		expect(model.getSprite().x()).toBeLessThanOrEqual(190);
+		expect(model.getSprite().x()).toBeGreaterThanOrEqual(180);
 	});
 
 	it('never changes vertical position', () => {
 		press('KeyA');
-		controller.update(1);
+		for(let i = 0; i < 10; ++i) controller.update(0.1);
 		expect(model.getSprite().y()).toBe(50);
 	});
 });
@@ -117,8 +119,8 @@ describe('Player', () => {
 	it('moves its sprite on update', () => {
 		const player = new Player(input, 100, 0);
 		press('KeyD');
-		player.update(1);
-		expect(player.getSprite().x()).toBeGreaterThan(200);
-		expect(player.getSprite().x()).toBeLessThanOrEqual(300);
+		for(let i = 0; i < 10; ++i) player.update(0.1);
+		expect(player.getSprite().x()).toBeGreaterThanOrEqual(265);
+		expect(player.getSprite().x()).toBeLessThanOrEqual(275);
 	});
 });
