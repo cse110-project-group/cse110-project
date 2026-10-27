@@ -49,22 +49,22 @@ describe('PlayerController', () => {
 
 	it.each(['KeyA', 'ArrowLeft'])('moves left with %s', (code) => {
 		press(code);
-		controller.update(0.5);
-		expect(model.getSprite().x()).toBeLessThan(100);
-		expect(model.getSprite().x()).toBeGreaterThanOrEqual(0);
+		for(let i = 0; i < 5; ++i) controller.update(0.1);
+		expect(model.getSprite().x()).toBeLessThanOrEqual(20);
+		expect(model.getSprite().x()).toBeGreaterThanOrEqual(10);
 	});
 
 	it.each(['KeyD', 'ArrowRight'])('moves right with %s', (code) => {
 		press(code);
-		controller.update(0.5);
-		expect(model.getSprite().x()).toBeGreaterThan(100);
-		expect(model.getSprite().x()).toBeLessThanOrEqual(200);
+		for(let i = 0; i < 5; ++i) controller.update(0.1);
+		expect(model.getSprite().x()).toBeGreaterThanOrEqual(180);
+		expect(model.getSprite().x()).toBeLessThanOrEqual(190);
 	});
 
 	it('scales movement by delta time', () => {
 		press('KeyD');
 		controller.update(0.1);
-		expect(model.getSprite().x()).toBeLessThan(120);
+		expect(model.getSprite().x()).toBeLessThan(110);
 		expect(model.getSprite().x()).toBeGreaterThan(100);
 	});
 
