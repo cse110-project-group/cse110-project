@@ -1,7 +1,7 @@
 // src/mainMenu.ts
 import Konva from "konva";
-import { loadImage } from "../loadImage";
-import { createButton } from "../createButton";
+import { loadImage } from "../systems/loadImage";
+import { createButton } from "../UI/createButton";
 
 // Virtual resolution: all coordinates below are in this space.
 const WIDTH = 1280;
