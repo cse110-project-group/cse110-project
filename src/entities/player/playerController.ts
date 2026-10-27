@@ -1,5 +1,4 @@
 import Input from '../../systems/input.ts';
-import Player from './player.ts';
 import PlayerModel from './playerModel.ts';
 
 /**
@@ -13,7 +12,7 @@ export default class PlayerController {
 	private input: Input;
 	private model: PlayerModel;
 	/** Horizontal movement speed, in pixels per second. */
-	private curr_speed: number;
+	private currSpeed: number;
 
 	/** Static readonlys as constants */
 	private static readonly MAX_X_SPEED: number = 200; 
@@ -30,7 +29,7 @@ export default class PlayerController {
 	constructor(input: Input, model: PlayerModel) {
 		this.input = input;
 		this.model = model;
-		this.curr_speed = 0;
+		this.currSpeed = 0;
 	}
 
 	/**
@@ -51,31 +50,43 @@ export default class PlayerController {
 	private move(dt: number){
 		/** If both directions are pressed, decelerate. */
 		if(this.isLeft() && this.isRight()){
-				this.curr_speed = Math.sign(this.curr_speed) 
-								  * Math.max(0, Math.abs(this.curr_speed) 
+				this.currSpeed = Math.sign(this.currSpeed) 
+								  * Math.max(0, Math.abs(this.currSpeed) 
 								  - PlayerController.X_DECELERATION * dt);
 		}
 		/** If only left is pressed, go left. */
 		else if(this.isLeft()) {
-			this.curr_speed = Math.max(- PlayerController.MAX_X_SPEED, 
-									 	this.curr_speed 
+			/** If moving right, decelerate first */
+			if(this.currSpeed > 0){
+				this.currSpeed -= PlayerController.X_DECELERATION * dt;
+			}
+			else{
+				this.currSpeed = Math.max(- PlayerController.MAX_X_SPEED, 
+									 	this.currSpeed 
 										- PlayerController.X_ACCELERATION * dt);
+			}
 		}
 		/** If only right is pressed, go right. */
 		else if(this.isRight()) {
-			this.curr_speed = Math.min(PlayerController.MAX_X_SPEED, 
-										this.curr_speed 
-										+ PlayerController.X_DECELERATION * dt);
+			/** If moving left, decelerate first */
+			if(this.currSpeed < 0){
+				this.currSpeed += PlayerController.X_DECELERATION * dt;
+			}
+			else{
+				this.currSpeed = Math.min(PlayerController.MAX_X_SPEED, 
+										this.currSpeed 
+										+ PlayerController.X_ACCELERATION * dt);
+			}
 		}
 		/** Otherwise, decelerate. */
 		else{
-			this.curr_speed = Math.sign(this.curr_speed) 
-							  * Math.max(0, Math.abs(this.curr_speed) 
+			this.currSpeed = Math.sign(this.currSpeed) 
+							  * Math.max(0, Math.abs(this.currSpeed) 
 							  - PlayerController.X_DECELERATION * dt);
 		}
 
 		this.model.getSprite().x(
-			this.model.getSprite().x() + this.curr_speed * dt
+			this.model.getSprite().x() + this.currSpeed * dt
 		);
 	}
 
