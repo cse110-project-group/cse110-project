@@ -43,7 +43,7 @@ describe('PlayerController', () => {
 	});
 
 	it('does not move without input', () => {
-		controller.update(1);
+		for(let i = 0; i < 10; ++i) controller.update(0.1);
 		expect(model.getSprite().x()).toBe(100);
 	});
 
@@ -96,6 +96,44 @@ describe('PlayerController', () => {
 		for(let i = 0; i < 10; ++i) controller.update(0.1);
 		expect(model.getSprite().y()).toBe(50);
 	});
+
+	it.each(['KeyA', 'ArrowLeft', 'KeyD', 'ArrowRight'])
+			('moves independent of framerate', (code) => {
+		press(code);
+		for(let i = 0; i < 10; ++i) controller.update(0.05);
+		release(code);
+		for(let i = 0; i < 10; ++i) controller.update(0.05);
+		let x1 = model.getSprite().x();
+		model = new PlayerModel(100, 50);
+		controller = new PlayerController(input, model);
+		press(code);
+		for(let i = 0; i < 100; ++i) controller.update(0.005);
+		release(code);
+		for(let i = 0; i < 100; ++i) controller.update(0.005);
+		let x2 = model.getSprite().x();
+		expect(x1).toBeCloseTo(x2);
+	})
+
+	it.each([['KeyA', 'ArrowLeft'], ['KeyD', 'ArrowRight']])
+			('changes movement independent of framerate', (code1, code2) => {
+		press(code1);
+		for(let i = 0; i < 10; ++i) controller.update(0.05);
+		release(code1);
+		press(code2);
+		for(let i = 0; i < 5; ++i) controller.update(0.05);
+		release(code2);
+		let x1 = model.getSprite().x();
+		model = new PlayerModel(100, 50);
+		controller = new PlayerController(input, model);
+		press(code1);
+		for(let i = 0; i < 50; ++i) controller.update(0.01);
+		release(code1);
+		press(code2);
+		for(let i = 0; i < 25; ++i) controller.update(0.01);
+		release(code2);
+		let x2 = model.getSprite().x();
+		expect(x1).toBeCloseTo(x2);
+	})
 });
 
 describe('Player', () => {
