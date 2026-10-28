@@ -3,10 +3,10 @@
  * Compatible with Konva's IRect returned by getClientRect().
  */
 export interface BoundingBox {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
+	x: number;
+	y: number;
+	width: number;
+	height: number;
 }
 
 /**
@@ -17,12 +17,12 @@ export interface BoundingBox {
  * @returns True if the boxes intersect on both axes, otherwise false.
  */
 export function checkAABBCollision(a: BoundingBox, b: BoundingBox): boolean {
-    return (
-        a.x < b.x + b.width &&
-        a.x + a.width > b.x &&
-        a.y < b.y + b.height &&
-        a.y + a.height > b.y
-    );
+	return (
+		a.x < b.x + b.width &&
+		a.x + a.width > b.x &&
+		a.y < b.y + b.height &&
+		a.y + a.height > b.y
+	);
 }
 
 /**
@@ -38,49 +38,49 @@ export function checkAABBCollision(a: BoundingBox, b: BoundingBox): boolean {
  * @returns The resolved top-left X coordinate for the entity's bounding box.
  */
 export function resolveHorizontalMovement(
-    box: BoundingBox,
-    dx: number,
-    obstacles: BoundingBox[]
+	box: BoundingBox,
+	dx: number,
+	obstacles: BoundingBox[]
 ): number {
-    if (dx === 0) return box.x;
+	if (dx === 0) return box.x;
 
-    let targetX = box.x + dx;
+	let targetX = box.x + dx;
 
-    // Predictive sweep box spanning the full trajectory of the step
-    const sweepBox: BoundingBox = {
-        x: dx > 0 ? box.x : targetX,
-        y: box.y,
-        width: box.width + Math.abs(dx),
-        height: box.height,
-    };
+	// Predictive sweep box spanning the full trajectory of the step
+	const sweepBox: BoundingBox = {
+		x: dx > 0 ? box.x : targetX,
+		y: box.y,
+		width: box.width + Math.abs(dx),
+		height: box.height,
+	};
 
-    for (const obstacle of obstacles) {
-        if (!checkAABBCollision(sweepBox, obstacle)) {
-            continue;
-        }
+	for (const obstacle of obstacles) {
+		if (!checkAABBCollision(sweepBox, obstacle)) {
+			continue;
+		}
 
-        if (dx > 0) {
-            // Moving RIGHT:
-            // If player's left edge is already at or past the obstacle's left face,
-            // moving right is exiting the obstacle -> do not snap backwards.
-            if (box.x >= obstacle.x) {
-                continue;
-            }
-            targetX = Math.min(targetX, obstacle.x - box.width);
-        } else if (dx < 0) {
-            // Moving LEFT:
-            // If player's right edge is already at or before the obstacle's right face,
-            // moving left is exiting the obstacle -> do not snap across.
-            if (box.x + box.width <= obstacle.x + obstacle.width) {
-                continue;
-            }
-            targetX = Math.max(targetX, obstacle.x + obstacle.width);
-        }
+		if (dx > 0) {
+			// Moving RIGHT:
+			// If player's left edge is already at or past the obstacle's left face,
+			// moving right is exiting the obstacle -> do not snap backwards.
+			if (box.x >= obstacle.x) {
+				continue;
+			}
+			targetX = Math.min(targetX, obstacle.x - box.width);
+		} else if (dx < 0) {
+			// Moving LEFT:
+			// If player's right edge is already at or before the obstacle's right face,
+			// moving left is exiting the obstacle -> do not snap across.
+			if (box.x + box.width <= obstacle.x + obstacle.width) {
+				continue;
+			}
+			targetX = Math.max(targetX, obstacle.x + obstacle.width);
+		}
 
-        // Shrink the sweep envelope to the newly clamped boundary
-        sweepBox.x = dx > 0 ? box.x : targetX;
-        sweepBox.width = box.width + Math.abs(targetX - box.x);
-    }
+		// Shrink the sweep envelope to the newly clamped boundary
+		sweepBox.x = dx > 0 ? box.x : targetX;
+		sweepBox.width = box.width + Math.abs(targetX - box.x);
+	}
 
-    return targetX;
+	return targetX;
 }
