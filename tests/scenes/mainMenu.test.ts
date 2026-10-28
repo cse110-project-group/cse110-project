@@ -1,11 +1,13 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+// @vitest-environment jsdom
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import "../helpers/canvasStub.ts";
 import Konva from "konva";
-import { init, fitStageToWindow } from "../../src/scenes/mainMenu";
-import { loadImage } from "../../src/systems/loadImage";
+import { init, fitStageToWindow } from "../../src/scenes/mainMenu.ts";
+import { loadImage } from "../../src/systems/loadImage.ts";
 
-// Replace the real image loader so no files are needed. A small canvas stands
-// in for an image because it's safe to draw inside the fake browser.
-vi.mock("../../src/systems/loadImage", () => ({
+// Replace the real image loader so no files are needed. A canvas element
+// stands in for an image.
+vi.mock("../../src/systems/loadImage.ts", () => ({
   loadImage: vi.fn(() => Promise.resolve(document.createElement("canvas"))),
 }));
 
@@ -28,6 +30,14 @@ beforeEach(() => {
   // Fresh page with the container element that init() expects.
   document.body.innerHTML = '<div id="container"></div>';
   setWindowSize(1280, 720);
+});
+
+afterEach(() => {
+  // Konva keeps every stage in a global list, so destroy them to stop
+  // one test's stage from leaking into the next.
+  Konva.stages.forEach((s) => s.destroy());
+  vi.restoreAllMocks();
+  document.body.innerHTML = "";
 });
 
 describe("fitStageToWindow", () => {
@@ -95,6 +105,5 @@ describe("init", () => {
 
     expect(stage).toBeUndefined();
     expect(errorSpy).toHaveBeenCalled();
-    errorSpy.mockRestore();
   });
 });

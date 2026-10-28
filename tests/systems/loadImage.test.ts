@@ -1,5 +1,6 @@
-import { describe, it, expect, vi, afterEach } from "vitest";
-import { loadImage } from "../../src/systems/loadImage";
+// @vitest-environment jsdom
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { loadImage } from "../../src/systems/loadImage.ts";
 
 // Replaces the browser's Image with a fake that "finishes loading" (or fails)
 // as soon as src is set.

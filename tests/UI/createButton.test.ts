@@ -1,8 +1,10 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+// @vitest-environment jsdom
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import "../helpers/canvasStub.ts";
 import Konva from "konva";
-import { createButton } from "../../src/UI/createButton";
+import { createButton } from "../../src/UI/createButton.ts";
 
-// Helper so each test doesn't repeat all the options.
+// Builds a button with sensible defaults; each test overrides only what it cares about.
 // vi.fn() makes a "spy" function that records whether/how it was called.
 function makeButton(overrides: Partial<Parameters<typeof createButton>[0]> = {}) {
   const onClick = vi.fn();
@@ -22,6 +24,11 @@ function makeButton(overrides: Partial<Parameters<typeof createButton>[0]> = {})
 describe("createButton", () => {
   beforeEach(() => {
     document.body.style.cursor = "default"; // reset shared state between tests
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    document.body.style.cursor = "default";
   });
 
   it("returns a Konva group positioned at x, y", () => {
