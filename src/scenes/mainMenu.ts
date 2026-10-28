@@ -17,12 +17,12 @@ export function fitStageToWindow(stage: Konva.Stage): void {
 
 export async function init(): Promise<Konva.Stage | undefined> {
   const stage = new Konva.Stage({
-    container: "container", // matches <div id="container"> in index.html
+    container: "container", 
     width: WIDTH,
     height: HEIGHT,
   });
 
-  // Load all images in parallel; stop with a clear error if one fails.
+
   let bgImg: HTMLImageElement;
   let playImg: HTMLImageElement;
 
@@ -36,7 +36,7 @@ export async function init(): Promise<Konva.Stage | undefined> {
     return undefined;
   }
 
-  // ---------- Menu screen ----------
+  
   const menuLayer = new Konva.Layer({imageSmoothingEnabled: false});
 
   menuLayer.add(
@@ -49,7 +49,7 @@ export async function init(): Promise<Konva.Stage | undefined> {
   const startY = 330;
   const gap = 110;
 
-  // ---------- Placeholder game screen ----------
+
   const gameLayer = new Konva.Layer({ visible: false });
   gameLayer.add(
     new Konva.Text({
@@ -76,7 +76,7 @@ export async function init(): Promise<Konva.Stage | undefined> {
 
   gameLayer.on("click tap", showMenu);
 
-  // ---------- Buttons ----------
+
   menuLayer.add(
     createButton({
       image: playImg,

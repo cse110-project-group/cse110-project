@@ -27,14 +27,11 @@ function findButton(layer: Konva.Layer, label: string): Konva.Group {
 }
 
 beforeEach(() => {
-  // Fresh page with the container element that init() expects.
   document.body.innerHTML = '<div id="container"></div>';
   setWindowSize(1280, 720);
 });
 
 afterEach(() => {
-  // Konva keeps every stage in a global list, so destroy them to stop
-  // one test's stage from leaking into the next.
   Konva.stages.forEach((s) => s.destroy());
   vi.restoreAllMocks();
   document.body.innerHTML = "";
@@ -54,7 +51,7 @@ describe("fitStageToWindow", () => {
     fitStageToWindow(stage);
     expect(stage.scaleX()).toBe(0.5);
     expect(stage.width()).toBe(640);
-    expect(stage.height()).toBe(360); // keeps the 16:9 shape
+    expect(stage.height()).toBe(360);
   });
 
   it("scales by height when the window is short", () => {

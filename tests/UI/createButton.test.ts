@@ -4,7 +4,8 @@ import "../helpers/canvasStub.ts";
 import Konva from "konva";
 import { createButton } from "../../src/UI/createButton.ts";
 
-// Builds a button with sensible defaults; each test overrides only what it cares about.
+// Builds a button with sensible defaults; each test overrides only what it 
+// cares about.
 // vi.fn() makes a "spy" function that records whether/how it was called.
 function makeButton(overrides: Partial<Parameters<typeof createButton>[0]> = {}) {
   const onClick = vi.fn();
@@ -23,7 +24,7 @@ function makeButton(overrides: Partial<Parameters<typeof createButton>[0]> = {})
 
 describe("createButton", () => {
   beforeEach(() => {
-    document.body.style.cursor = "default"; // reset shared state between tests
+    document.body.style.cursor = "default"; 
   });
 
   afterEach(() => {
