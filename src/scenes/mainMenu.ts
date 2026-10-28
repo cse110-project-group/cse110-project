@@ -28,7 +28,7 @@ export async function init(): Promise<Konva.Stage | undefined> {
 
   try {
     [bgImg, playImg,] = await Promise.all([
-      loadImage("assets/background2.png"),
+      loadImage("/assets/background2.png"),
       loadImage("/assets/button.png"),
     ]);
   } catch (err) {
@@ -52,6 +52,9 @@ export async function init(): Promise<Konva.Stage | undefined> {
 
   const gameLayer = new Konva.Layer({ visible: false });
   gameLayer.add(
+    new Konva.Rect({ width: WIDTH, height: HEIGHT, fill: "#111" })
+  );
+  gameLayer.add(
     new Konva.Text({
       text: "Game goes here (click to return)",
       fontSize: 36,
@@ -60,9 +63,6 @@ export async function init(): Promise<Konva.Stage | undefined> {
       y: HEIGHT / 2 - 18,
       align: "center",
     })
-  );
-  gameLayer.add(
-    new Konva.Rect({ width: WIDTH, height: HEIGHT, fill: "#111", opacity: 0.0 })
   );
 
   const showMenu = (): void => {
@@ -94,7 +94,7 @@ export async function init(): Promise<Konva.Stage | undefined> {
       y: startY + gap,
       width: btnW,
       height: btnH,
-      onClick: () => console.log("Options clicked"),
+      onClick: () => console.log("Levels clicked"),
     }),
     createButton({
       image: playImg,
@@ -103,7 +103,7 @@ export async function init(): Promise<Konva.Stage | undefined> {
       y: startY + gap * 2,
       width: btnW,
       height: btnH,
-      onClick: () => console.log("Quit clicked"),
+      onClick: () => console.log("Options clicked"),
     })
   );
 
