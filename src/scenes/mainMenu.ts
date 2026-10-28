@@ -8,14 +8,14 @@ const WIDTH = 1280;
 const HEIGHT = 720;
 
 // Scale the stage to fit the window while keeping the aspect ratio.
-function fitStageToWindow(stage: Konva.Stage): void {
+export function fitStageToWindow(stage: Konva.Stage): void {
   const scale = Math.min(window.innerWidth / WIDTH, window.innerHeight / HEIGHT);
   stage.width(WIDTH * scale);
   stage.height(HEIGHT * scale);
   stage.scale({ x: scale, y: scale });
 }
 
-async function init(): Promise<void> {
+export async function init(): Promise<Konva.Stage | undefined> {
   const stage = new Konva.Stage({
     container: "container", // matches <div id="container"> in index.html
     width: WIDTH,
@@ -33,7 +33,7 @@ async function init(): Promise<void> {
     ]);
   } catch (err) {
     console.error(err);
-    return;
+    return undefined;
   }
 
   // ---------- Menu screen ----------
@@ -111,6 +111,6 @@ async function init(): Promise<void> {
 
   fitStageToWindow(stage);
   window.addEventListener("resize", () => fitStageToWindow(stage));
-}
 
-init();
+  return stage;
+}
