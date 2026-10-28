@@ -53,7 +53,7 @@ export default class Game {
      * entity with it, then schedules itself
      * again. Konva redraws the layer automatically when shapes change.
      *
-     * @param time High-resolution timestamp from `requestAnimationFrame`.
+     * @param time - High-resolution timestamp from `requestAnimationFrame`.
      */
     private gameLoop = (time: number) => {
         const deltaTime = Math.min(

@@ -19,9 +19,9 @@ export default class Player {
     controller: PlayerController;
 
     /**
-     * @param input Shared input tracker the controller polls.
-     * @param x Starting x position, in pixels.
-     * @param y Starting y position, in pixels.
+     * @param input - Shared input tracker the controller polls.
+     * @param x - Starting x position, in pixels.
+     * @param y - Starting y position, in pixels.
      */
     constructor(input: Input, x: number, y: number) {
         this.model = new PlayerModel(x, y);
@@ -36,8 +36,8 @@ export default class Player {
     /**
      * Advances the player by one frame.
      *
-     * @param deltaTime Seconds elapsed since the last frame.
-     * @param obstacles Collection of Konva nodes on the stage.
+     * @param deltaTime - Seconds elapsed since the last frame.
+     * @param obstacles - Collection of Konva nodes on the stage.
      */
     public update(deltaTime: number, obstacles: kv.Node[] = []) {
         this.controller.update(deltaTime, obstacles);

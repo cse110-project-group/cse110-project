@@ -3,14 +3,22 @@ import PlayerModel from './playerModel.ts';
 import kv from 'konva';
 import { BoundingBox, resolveHorizontalMovement } from '../../systems/collision.ts';
 
+/**
+ * Moves the player in response to keyboard input.
+ *
+ * Each frame, {@link update} polls {@link Input} and moves the model's sprite
+ * horizontally: `A` / `ArrowLeft` moves left, `D` / `ArrowRight` moves right.
+ * Holding both directions at once cancels out.
+ */
 export default class PlayerController {
 	private input: Input;
 	private model: PlayerModel;
+	/** Horizontal movement speed, in pixels per second. */
 	private speed: number;
 
 	/**
-	 * @param input - Shared input manager to poll key states.
-	 * @param model - The player model instance containing the sprite.
+	 * @param input - Shared input manager to poll key frame.
+	 * @param model - The player model whose sprite this controller moves.
 	 */
 	constructor(input: Input, model: PlayerModel) {
 		this.input = input;
@@ -21,7 +29,8 @@ export default class PlayerController {
 	/**
 	 * Applies horizontal displacement resolved against active room obstacles.
 	 *
-	 * @param dt - Elapsed frame delta time in seconds.
+	 * @param dt - Seconds elapsed since the last frame. Movement is scaled by
+	 *   this so speed stays the same regardless of frame rate.
 	 * @param obstacles - Canvas nodes present on the layer.
 	 */
 	public update(dt: number, obstacles: kv.Node[] = []): void {

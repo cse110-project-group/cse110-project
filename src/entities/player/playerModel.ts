@@ -29,4 +29,3 @@ export default class PlayerModel {
 		return this.sprite;
 	}
 }
-
