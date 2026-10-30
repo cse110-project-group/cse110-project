@@ -1,6 +1,7 @@
 import PlayerModel from './playerModel.ts';
 import PlayerController from './playerController.ts';
 import Input from '../../systems/input.ts';
+import type kv from 'konva';
 
 /**
  * The player entity. Wires a {@link PlayerModel} (what is drawn) to a
@@ -36,8 +37,9 @@ export default class Player {
 	 * Advances the player by one frame.
 	 *
 	 * @param deltaTime - Seconds elapsed since the last frame.
+	 * @param obstacles - Collection of Konva nodes on the stage.
 	 */
-	public update(deltaTime: number) {
-		this.controller.update(deltaTime);
+	public update(deltaTime: number, obstacles: kv.Node[] = []) {
+		this.controller.update(deltaTime, obstacles);
 	}
 }
