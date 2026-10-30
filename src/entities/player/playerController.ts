@@ -29,9 +29,9 @@ export default class PlayerController {
 	/**
 	 * Applies one frame of movement, resolved against solid room obstacles.
 	 *
-	 * @param dt Seconds elapsed since the last frame. Movement is scaled by
+	 * @param dt - Seconds elapsed since the last frame. Movement is scaled by
 	 *   this so speed stays the same regardless of frame rate.
-	 * @param obstacles Collection of Konva nodes on the stage to test for collisions.
+	 * @param obstacles - Collection of Konva nodes on the stage to test for collisions.
 	 */
 	public update(dt: number, obstacles: kv.Node[] = []): void {
 		let dx = 0;
