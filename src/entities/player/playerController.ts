@@ -1,6 +1,6 @@
 import Input from '../../systems/input.ts';
 import PlayerModel from './playerModel.ts';
-import kv from 'konva';
+import type kv from 'konva';
 import { BoundingBox, resolveHorizontalMovement } from '../../systems/collision.ts';
 
 /**
@@ -27,11 +27,11 @@ export default class PlayerController {
 	}
 
 	/**
-	 * Applies horizontal displacement resolved against active room obstacles.
+	 * Applies one frame of movement, resolved against solid room obstacles.
 	 *
-	 * @param dt - Seconds elapsed since the last frame. Movement is scaled by
+	 * @param dt Seconds elapsed since the last frame. Movement is scaled by
 	 *   this so speed stays the same regardless of frame rate.
-	 * @param obstacles - Canvas nodes present on the layer.
+	 * @param obstacles Collection of Konva nodes on the stage to test for collisions.
 	 */
 	public update(dt: number, obstacles: kv.Node[] = []): void {
 		let dx = 0;
@@ -53,9 +53,9 @@ export default class PlayerController {
 		const obstacleBoxes: BoundingBox[] = [];
 		for (const node of obstacles) {
 			if (node === sprite) continue;
-			// If obstacles are tagged with 'solid' or name === 'obstacle', check here:
-			if (node.name() === 'solid' || !node.name()) {
-			obstacleBoxes.push(node.getClientRect({ relativeTo: parent }));
+			// If obstacles are tagged with 'solid'  check here:
+			if (node.hasName('solid')) {
+				obstacleBoxes.push(node.getClientRect({ relativeTo: parent }));
 			}
 		}
 

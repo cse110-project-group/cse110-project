@@ -1,7 +1,7 @@
 import PlayerModel from './playerModel.ts';
 import PlayerController from './playerController.ts';
 import Input from '../../systems/input.ts';
-import kv from 'konva';
+import type kv from 'konva';
 
 /**
  * The player entity. Wires a {@link PlayerModel} (what is drawn) to a

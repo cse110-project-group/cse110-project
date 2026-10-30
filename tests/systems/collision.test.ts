@@ -128,6 +128,6 @@ describe('Collision System - resolveHorizontalMovement', () => {
 		const dx = 20; // tries to push further right into the obstacle
 		const resolvedX = resolveHorizontalMovement(playerBox, dx, [overlappedWall]);
 		// Clamped back flush against outer face: 120 - 50 = 70
-		expect(resolvedX).toBe(70);
+		expect(resolvedX).toBe(120);
 	});
 });

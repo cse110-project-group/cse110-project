@@ -55,26 +55,14 @@ export function resolveHorizontalMovement(
 	};
 
 	for (const obstacle of obstacles) {
-		if (!checkAABBCollision(sweepBox, obstacle)) {
-			continue;
-		}
+		if (checkAABBCollision(box, obstacle)) continue;
 
-		if (dx > 0) {
-			// Moving RIGHT:
-			// If player's left edge is already at or past the obstacle's left face,
-			// moving right is exiting the obstacle -> do not snap backwards.
-			if (box.x >= obstacle.x) {
-				continue;
+		if (checkAABBCollision(sweepBox, obstacle)) {
+			if (dx > 0) {
+				targetX = Math.min(targetX, obstacle.x - box.width);
+			} else {
+				targetX = Math.max(targetX, obstacle.x + obstacle.width);
 			}
-			targetX = Math.min(targetX, obstacle.x - box.width);
-		} else if (dx < 0) {
-			// Moving LEFT:
-			// If player's right edge is already at or before the obstacle's right face,
-			// moving left is exiting the obstacle -> do not snap across.
-			if (box.x + box.width <= obstacle.x + obstacle.width) {
-				continue;
-			}
-			targetX = Math.max(targetX, obstacle.x + obstacle.width);
 		}
 
 		// Shrink the sweep envelope to the newly clamped boundary
