@@ -1,0 +1,18 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = tab
+indent_size = 4
+
+# npm rewrites package.json with 2 spaces; YAML doesn't allow tabs
+[*.{json,yml,yaml,html}]
+indent_style = space
+indent_size = 2
+
+# Trailing double-spaces are line breaks in Markdown
+[*.md]
+trim_trailing_whitespace = false
