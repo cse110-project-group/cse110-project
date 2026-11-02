@@ -135,14 +135,25 @@ export default class PlayerController {
 				}
 				/** Decelerate then accelerate during dt */
 				else{
+					let timeToMax = PlayerController.MAX_X_SPEED
+									/ PlayerController.X_ACCELERATION;
+					let accelTime = Math.min(dt - timeToZero, timeToMax);
 					this.model.getSprite().x(
 						this.model.getSprite().x() 
 						+ 0.5 * this.currSpeed * timeToZero
 						+ 0.5 * sign * PlayerController.X_ACCELERATION 
-						* (dt - timeToZero) * (dt - timeToZero)
+						* accelTime * accelTime
 					);
+					/** Reaches max durin dt */
+					if(dt - timeToZero >= timeToMax){
+						this.model.getSprite().x(
+							this.model.getSprite().x() 
+							+ sign * PlayerController.MAX_X_SPEED 
+							* (dt - timeToZero - timeToMax)
+						)
+					}
 					this.currSpeed = sign * PlayerController.X_ACCELERATION 
-									 * (dt - timeToZero);
+									 * accelTime;
 				}
 			}
 			else{

@@ -75,8 +75,12 @@ describe('PlayerController', () => {
 		let modelX = model.getSprite().x();
 		press('KeyD');
 		controller.update(0.1);
+		let timeToMax = PlayerController.MAX_X_SPEED 
+						/ PlayerController.X_ACCELERATION;
 		expect(model.getSprite().x()).toBeCloseTo(
-			modelX + 0.5 * PlayerController.X_ACCELERATION * 0.1 * 0.1
+			modelX 
+			+ 0.5 * PlayerController.X_ACCELERATION * timeToMax * timeToMax
+			+ (0.1 - timeToMax) * PlayerController.MAX_X_SPEED
 		);
 	});
 
