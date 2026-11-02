@@ -153,6 +153,46 @@ describe('PlayerController', () => {
 		let modelX2 = model.getSprite().x();
 		expect(modelX1).toBeCloseTo(modelX2);
 	})
+
+	it.each([['KeyA', 'ArrowLeft'], ['KeyD', 'ArrowRight']])
+			('moves without getting affected by changing framerate', 
+			(code1, code2) => {
+		press(code2);
+		let t1 = 0;
+		while(t1 < 0.5){
+			let interval = Math.min(Math.random() * 0.1, 0.5 - t1);
+			controller.update(interval);
+			t1 += interval;
+		}
+		release(code2);
+		press(code1);
+		while(t1 < 1){
+			let interval = Math.min(Math.random() * 0.1, 1 - t1);
+			controller.update(interval);
+			t1 += interval;
+		}
+		release(code1);
+		let modelX1 = model.getSprite().x();
+		model = new PlayerModel(100, 50);
+		controller = new PlayerController(input, model);
+		press(code2);
+		let t2 = 0;
+		while(t2 < 0.5){
+			let interval = Math.min(Math.random() * 0.1, 0.5 - t2);
+			controller.update(interval);
+			t2 += interval;
+		}
+		release(code2);
+		press(code1);
+		while(t2 < 1){
+			let interval = Math.min(Math.random() * 0.1, 1 - t2);
+			controller.update(interval);
+			t2 += interval;
+		}
+		release(code1);
+		let modelX2 = model.getSprite().x();
+		expect(modelX1).toBeCloseTo(modelX2);
+	})
 });
 
 describe('Player', () => {
