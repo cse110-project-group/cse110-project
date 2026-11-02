@@ -45,14 +45,7 @@ export default class PlayerController {
 	 *   
 	 */
 	public update(dt: number, obstacles: kv.Node[] = []): void {
-		let dx = 0;
-
-		if (this.input.isKeyDown('KeyA') || this.input.isKeyDown('ArrowLeft')) {
-			dx -= this.speed * dt;
-		}
-		if (this.input.isKeyDown('KeyD') || this.input.isKeyDown('ArrowRight')) {
-			dx += this.speed * dt;
-		}
+		let dx = this.move(dt);
 
 		if (dx === 0) return;
 
@@ -85,9 +78,11 @@ export default class PlayerController {
 	 *   this so speed stays the same regardless of frame rate. Assumed to be
 	 *   0.1 at max.
 	 */
-	private move(dt: number){
+	private move(dt: number): number{
 		/** Assumes dt is at most 0.1 */
 		if(dt > 0.1) throw new Error("Invalid delta time");
+
+		let deltaX = 0;
 
 		/** If both directions are pressed or not pressed, decelerate. */
 		if(this.isLeft() === this.isRight()){
@@ -95,21 +90,17 @@ export default class PlayerController {
 									  / PlayerController.X_DECELERATION);
 			/** Always decelerate during dt */
 			if(timeToZero >= dt){
-				this.model.getSprite().x(
-					this.model.getSprite().x() 
-					+ 0.5 * (this.currSpeed + Math.sign(this.currSpeed) 
-							* Math.max(0, Math.abs(this.currSpeed) 
-							- PlayerController.X_DECELERATION * dt)) * dt
-				);
+				deltaX = 0.5 * (this.currSpeed + Math.sign(this.currSpeed) 
+						 * Math.max(0, Math.abs(this.currSpeed) 
+						 - PlayerController.X_DECELERATION * dt)) * dt
+	
 				this.currSpeed = Math.sign(this.currSpeed) 
 								* Math.max(0, Math.abs(this.currSpeed) 
 								- PlayerController.X_DECELERATION * dt);
 			}
 			/** Reaches 0 during dt */
 			else{
-				this.model.getSprite().x(
-					this.model.getSprite().x() 
-					+ 0.5 * this.currSpeed * timeToZero);
+				deltaX = 0.5 * this.currSpeed * timeToZero;
 				this.currSpeed = 0;
 			}
 		}
@@ -123,12 +114,9 @@ export default class PlayerController {
 									  	  / PlayerController.X_DECELERATION);
 				/** Always decelerate during dt */
 				if(timeToZero >= dt){
-					this.model.getSprite().x(
-						this.model.getSprite().x() 
-						+ 0.5 * (this.currSpeed + this.currSpeed
-								+ sign * PlayerController.X_DECELERATION * dt) 
-								* dt
-					);
+					deltaX = 0.5 * (this.currSpeed + this.currSpeed
+							 + sign * PlayerController.X_DECELERATION * dt) 
+							 * dt
 					this.currSpeed += sign 
 									  * PlayerController.X_DECELERATION * dt;
 				}
@@ -137,19 +125,13 @@ export default class PlayerController {
 					let timeToMax = PlayerController.MAX_X_SPEED
 									/ PlayerController.X_ACCELERATION;
 					let accelTime = Math.min(dt - timeToZero, timeToMax);
-					this.model.getSprite().x(
-						this.model.getSprite().x() 
-						+ 0.5 * this.currSpeed * timeToZero
-						+ 0.5 * sign * PlayerController.X_ACCELERATION 
-						* accelTime * accelTime
-					);
+					deltaX = 0.5 * this.currSpeed * timeToZero
+							 + 0.5 * sign * PlayerController.X_ACCELERATION 
+							 * accelTime * accelTime
 					/** Reaches max during dt */
 					if(dt - timeToZero >= timeToMax){
-						this.model.getSprite().x(
-							this.model.getSprite().x() 
-							+ sign * PlayerController.MAX_X_SPEED 
-							* (dt - timeToZero - timeToMax)
-						)
+						deltaX += sign * PlayerController.MAX_X_SPEED 
+								  * (dt - timeToZero - timeToMax)
 					}
 					this.currSpeed = sign * PlayerController.X_ACCELERATION 
 									 * accelTime;
@@ -161,28 +143,24 @@ export default class PlayerController {
 								/ PlayerController.X_ACCELERATION;
 				/** Always accelerate during dt */
 				if(timeToMax >= dt){
-					this.model.getSprite().x(
-						this.model.getSprite().x() 
-						+ 0.5 * (this.currSpeed + this.currSpeed
-								+ sign * PlayerController.X_ACCELERATION * dt)
-								* dt
-					);
+					deltaX = 0.5 * (this.currSpeed + this.currSpeed
+							 + sign * PlayerController.X_ACCELERATION * dt)
+							 * dt
 					this.currSpeed += sign 
 									  * PlayerController.X_ACCELERATION * dt;
 				}
 				/** Accelerate and reached max during dt */
 				else{
-					this.model.getSprite().x(
-						this.model.getSprite().x() 
-						+ 0.5 * (this.currSpeed 
-								+ sign * PlayerController.MAX_X_SPEED) 
-						* timeToMax
-						+ sign * PlayerController.MAX_X_SPEED * (dt - timeToMax)
-					);
+					deltaX = 0.5 * (this.currSpeed + sign 
+									* PlayerController.MAX_X_SPEED) * timeToMax
+							+ sign * PlayerController.MAX_X_SPEED 
+								* (dt - timeToMax)
 					this.currSpeed = sign * PlayerController.MAX_X_SPEED;
 				}
 			}
 		}
+
+		return deltaX;
 	}
 
 	/**
