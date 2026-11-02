@@ -8,15 +8,15 @@ import { BoundingBox, resolveHorizontalMovement } from '../../systems/collision.
  *
  * Each frame, {@link update} polls {@link Input} and moves the model's sprite
  * horizontally: `A` / `ArrowLeft` moves left, `D` / `ArrowRight` moves right.
- * Holding both directions at once cancels out. Movement is tracked using 
- * currSpeed, which is updated per frame depending on time elapsed from last
- * frame, denoted dt, within the move(dt) function.
+ * Holding both directions at once (or neither) decelerates to a stop.
+ * Movement is tracked using currSpeed, which is updated per frame depending on
+ * time elapsed from last frame, denoted dt, within the move(dt) function.
  */
 export default class PlayerController {
 	private input: Input;
 	private model: PlayerModel;
 
-	/** Horizontal movement speed, in pixels per second. */
+	/** Signed horizontal velocity, in pixels per second (negative is left). */
 	private currSpeed: number;
 
 	/** Static readonlys as constants */
@@ -30,7 +30,6 @@ export default class PlayerController {
 	/**
 	 * @param input - Shared input manager to poll key frame.
 	 * @param model - The player model whose sprite this controller moves.
-	 * @param currSpeed - The player's speed during this frame.
 	 */
 	constructor(input: Input, model: PlayerModel) {
 		this.input = input;
@@ -144,7 +143,7 @@ export default class PlayerController {
 						+ 0.5 * sign * PlayerController.X_ACCELERATION 
 						* accelTime * accelTime
 					);
-					/** Reaches max durin dt */
+					/** Reaches max during dt */
 					if(dt - timeToZero >= timeToMax){
 						this.model.getSprite().x(
 							this.model.getSprite().x() 
