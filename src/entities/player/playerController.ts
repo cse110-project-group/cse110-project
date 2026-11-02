@@ -8,11 +8,14 @@ import { BoundingBox, resolveHorizontalMovement } from '../../systems/collision.
  *
  * Each frame, {@link update} polls {@link Input} and moves the model's sprite
  * horizontally: `A` / `ArrowLeft` moves left, `D` / `ArrowRight` moves right.
- * Holding both directions at once cancels out.
+ * Holding both directions at once cancels out. Movement is tracked using 
+ * currSpeed, which is updated per frame depending on time elapsed from last
+ * frame, denoted dt, within the move(dt) function.
  */
 export default class PlayerController {
 	private input: Input;
 	private model: PlayerModel;
+
 	/** Horizontal movement speed, in pixels per second. */
 	private currSpeed: number;
 
@@ -27,6 +30,7 @@ export default class PlayerController {
 	/**
 	 * @param input - Shared input manager to poll key frame.
 	 * @param model - The player model whose sprite this controller moves.
+	 * @param currSpeed - The player's speed during this frame.
 	 */
 	constructor(input: Input, model: PlayerModel) {
 		this.input = input;
@@ -37,9 +41,7 @@ export default class PlayerController {
 	/**
 	 * Applies one frame of movement, resolved against solid room obstacles.
 	 *
-	 * @param dt - Seconds elapsed since the last frame. Movement is scaled by
-	 *   this so speed stays the same regardless of frame rate.
-	 *   0.1 at max.
+	 * @param dt - Seconds elapsed since the last frame. 
 	 * @param obstacles - Collection of Konva nodes on the stage to test for collisions.
 	 *   
 	 */
@@ -74,7 +76,16 @@ export default class PlayerController {
 		const deltaApplied = safeTopLeftX - playerBox.x;
 		sprite.x(sprite.x() + deltaApplied);
 	}
-	
+
+
+	/**
+	 * Applies movement and acceleration to the player for one frame. Updates 
+	 * currSpeed to be the calculated player speed during this frame.
+	 * 
+	 * @param dt Seconds elapsed since the last frame. Movement is scaled by
+	 *   this so speed stays the same regardless of frame rate. Assumed to be
+	 *   0.1 at max.
+	 */
 	private move(dt: number){
 		/** Assumes dt is at most 0.1 */
 		if(dt > 0.1) throw new Error("Invalid delta time");
@@ -166,6 +177,7 @@ export default class PlayerController {
 
 	/**
 	 * Checks whether any "left" button is pressed in Input.
+	 * 
 	 * @returns whether any "left" button is pressed
 	 */
 	private isLeft(){
@@ -175,6 +187,7 @@ export default class PlayerController {
 
 	/**
 	 * Checks whether any "right" button is pressed in Input.
+	 * 
 	 * @returns whether any "right" button is pressed
 	 */
 	private isRight(){
