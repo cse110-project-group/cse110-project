@@ -1,9 +1,5 @@
 import Konva from "konva";
 
-/**
- * Properties and type of the button, text is optional
- */
-
 interface ButtonOptions {
   image: HTMLImageElement;
   label?: string;          

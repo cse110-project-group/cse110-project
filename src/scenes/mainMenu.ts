@@ -4,6 +4,8 @@ import { loadImage } from "../systems/loadImage";
 import { createButton } from "../UI/createButton";
 
 // Virtual resolution: all coordinates below are in this space.
+// gives us a consistent coordinate system for positioning UI elements, 
+// regardless of the player's actual screen resolution
 const WIDTH = 1280;
 const HEIGHT = 720;
 
@@ -21,7 +23,7 @@ export function fitStageToWindow(stage: Konva.Stage): void {
   stage.scale({ x: scale, y: scale });
 }
 
-// onStart runs when Start Game is clicked.
+// onStart
 export async function init(onStart: () => void): Promise<MainMenu | undefined> {
   let bgImg: HTMLImageElement;
   let playImg: HTMLImageElement;
@@ -49,9 +51,9 @@ export async function init(onStart: () => void): Promise<MainMenu | undefined> {
     new Konva.Image({ image: bgImg, width: WIDTH, height: HEIGHT })
   );
 
+// Buttons sit left of center to line up with the background art.
   const btnW = 50 * 5;
   const btnH = 15 * 5;
-  // Buttons sit left of center to line up with the background art.
   const buttonX = WIDTH / 2 - 190;
   const startY = 330;
   const gap = 110;
@@ -86,7 +88,6 @@ export async function init(onStart: () => void): Promise<MainMenu | undefined> {
     stage,
     destroy: () => {
       window.removeEventListener("resize", onResize);
-      // mouseleave never fires on a destroyed button, so reset the cursor here.
       document.body.style.cursor = "default";
       stage.destroy();
     },
