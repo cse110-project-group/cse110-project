@@ -3,10 +3,10 @@
  * Compatible with Konva's IRect returned by getClientRect().
  */
 export interface BoundingBox {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
+	x: number;
+	y: number;
+	width: number;
+	height: number;
 }
 
 /**
@@ -18,16 +18,16 @@ export interface BoundingBox {
  * @returns True if the boxes intersect on both axes beyond the offset, otherwise false.
  */
 export function checkAABBCollision(
-    a: BoundingBox,
-    b: BoundingBox,
-    offset: number = 0
+	a: BoundingBox,
+	b: BoundingBox,
+	offset: number = 0
 ): boolean {
-    return (
-        a.x < b.x + b.width - offset &&
-        a.x + a.width > b.x + offset &&
-        a.y < b.y + b.height - offset &&
-        a.y + a.height > b.y + offset
-    );
+	return (
+		a.x < b.x + b.width - offset &&
+		a.x + a.width > b.x + offset &&
+		a.y < b.y + b.height - offset &&
+		a.y + a.height > b.y + offset
+	);
 }
 
 /**
@@ -43,42 +43,48 @@ export function checkAABBCollision(
  * @returns The resolved top-left X coordinate for the entity's bounding box.
  */
 export function resolveHorizontalMovement(
-    box: BoundingBox,
-    dx: number,
-    obstacles: BoundingBox[]
+	box: BoundingBox,
+	dx: number,
+	obstacles: BoundingBox[]
 ): number {
-    if (dx === 0) return box.x;
+	if (dx === 0) return box.x;
 
-    // Tolerance threshold for floating-point precision inaccuracies
-    const offset = 0.5;
+	// Tolerance threshold for floating-point precision inaccuracies
+	const offset = 0.5;
 
-    let targetX = box.x + dx;
+	let targetX = box.x + dx;
 
-    // Predictive sweep box spanning the full trajectory of the step
-    const sweepBox: BoundingBox = {
-        x: dx > 0 ? box.x : targetX,
-        y: box.y,
-        width: box.width + Math.abs(dx),
-        height: box.height,
-    };
+	// Predictive sweep box spanning the full trajectory of the step
+	const sweepBox: BoundingBox = {
+		x: dx > 0 ? box.x : targetX,
+		y: box.y,
+		width: box.width + Math.abs(dx),
+		height: box.height,
+	};
 
-    for (const obstacle of obstacles) {
-        if (checkAABBCollision(box, obstacle, offset)) {
-            continue;
-        }
+	for (const obstacle of obstacles) {
+		if (checkAABBCollision(box, obstacle, offset)) {
+			continue;
+		}
 
-        if (checkAABBCollision(sweepBox, obstacle)) {
-            if (dx > 0) {
-                targetX = Math.min(targetX, obstacle.x - box.width);
-            } else if (dx < 0) {
-                targetX = Math.max(targetX, obstacle.x + obstacle.width);
-            }
+		if (checkAABBCollision(sweepBox, obstacle)) {
+			if (dx > 0) {
+				if (box.x >= obstacle.x - offset) {
+					continue;
+				}
+				targetX = Math.min(targetX, obstacle.x - box.width);
+			} else if (dx < 0) {
+				if (box.x + box.width <= obstacle.x + obstacle.width + offset) {
+					continue;
+				}
+				targetX = Math.max(targetX, obstacle.x + obstacle.width);
+			}
 
-            // Shrink the sweep envelope to the newly clamped boundary
-            sweepBox.x = dx > 0 ? box.x : targetX;
-            sweepBox.width = box.width + Math.abs(targetX - box.x);
-        }
-    }
+			// Shrink the sweep envelope to the newly clamped boundary
+			sweepBox.x = dx > 0 ? box.x : targetX;
+			sweepBox.width = box.width + Math.abs(targetX - box.x);
+		}
+	}
 
-    return targetX;
+	return targetX;
 }
