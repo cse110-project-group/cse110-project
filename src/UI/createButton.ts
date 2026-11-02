@@ -60,16 +60,28 @@ export function createButton(opts: ButtonOptions): Konva.Group {
     );
   }
 
+  // Only one tween per button exists at a time: starting a new one destroys
+  // the previous one, and a finished tween destroys itself, so none pile up.
+  let activeTween: Konva.Tween | null = null;
+
   // Each button animates itself to the given scale for a duration of 0.1 
   // seconds
-  const tweenTo = (scale: number) =>
-    new Konva.Tween({
+  const tweenTo = (scale: number) => {
+    activeTween?.destroy();
+    const tween = new Konva.Tween({
       node: button,
       duration: 0.1,
       scaleX: scale,
       scaleY: scale,
       easing: Konva.Easings.EaseOut,
-    }).play();
+      onFinish: () => {
+        tween.destroy();
+        if (activeTween === tween) activeTween = null;
+      },
+    });
+    activeTween = tween;
+    tween.play();
+  };
 
     // Hover: show a pointer cursor and enlarge slightly using tweenTo.
     button.on("mouseenter", () => {
@@ -86,7 +98,11 @@ export function createButton(opts: ButtonOptions): Konva.Group {
 
     button.on("mousedown touchstart", () => tweenTo(0.95));
 
-    button.on("mouseup touchend", () => tweenTo(1.08));
+    // Mouse release returns to the hover size, since the cursor is still over it.
+    button.on("mouseup", () => tweenTo(1.08));
+
+    // Touch has no hover, so a release goes straight back to normal size.
+    button.on("touchend", () => tweenTo(1));
 
     button.on("click tap", onClick);
 
