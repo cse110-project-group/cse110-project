@@ -83,7 +83,7 @@ describe('PlayerController', () => {
 			modelX 
 			+ 0.5 * PlayerController.X_ACCELERATION 
 				* Math.min(0.1, timeToMax) * Math.min(0.1, timeToMax)
-			+ Math.max(0, 0.1 - timeToMax) * PlayerController.MAX_X_SPEED
+			+ PlayerController.MAX_X_SPEED * Math.max(0, 0.1 - timeToMax) 
 		);
 	});
 
@@ -111,8 +111,8 @@ describe('PlayerController', () => {
 		let timeToZero = PlayerController.MAX_X_SPEED 
 						/ PlayerController.X_DECELERATION;
 		expect(model.getSprite().x()).toBeCloseTo(
-			modelX + 0.5 * PlayerController.MAX_X_SPEED 
-				* Math.min(0.5, timeToMax)
+			modelX + 0.5 * PlayerController.X_ACCELERATION 
+				* Math.min(0.5, timeToMax) * Math.min(0.5, timeToMax)
 			+ PlayerController.MAX_X_SPEED * Math.max(0, 0.5 - timeToMax)
 			+ 0.5 * PlayerController.X_DECELERATION 
 				* Math.min(0.5, timeToZero) * Math.min(0.5, timeToZero)
@@ -229,8 +229,9 @@ describe('Player', () => {
 		let timeToMax = PlayerController.MAX_X_SPEED 
 						/ PlayerController.X_ACCELERATION;
 		expect(player.getSprite().x()).toBeCloseTo(
-			spriteX + 0.5 * PlayerController.MAX_X_SPEED * timeToMax
-			+ PlayerController.MAX_X_SPEED * (1 - timeToMax)
+			spriteX + 0.5 * PlayerController.X_ACCELERATION 
+				* Math.min(1, timeToMax) * Math.min(1, timeToMax)
+			+ PlayerController.MAX_X_SPEED * Math.max(0, 1 - timeToMax)
 		);
 	});
 });
