@@ -27,6 +27,8 @@ export default class PlayerController {
 	public static readonly X_ACCELERATION: number = 800;
 	public static readonly X_DECELERATION: number = 1600;
 
+	private static readonly COLLISION_OFFSET = 1e-6;
+
 	/**
 	 * @param input - Shared input manager to poll key frame.
 	 * @param model - The player model whose sprite this controller moves.
@@ -66,9 +68,11 @@ export default class PlayerController {
 		const safeTopLeftX = resolveHorizontalMovement(playerBox, dx, obstacleBoxes);
 
 		const deltaApplied = safeTopLeftX - playerBox.x;
+
+		if(Math.abs(deltaApplied) < Math.abs(dx) 
+			- PlayerController.COLLISION_OFFSET) this.currSpeed = 0;
+
 		sprite.x(sprite.x() + deltaApplied);
-		
-		if(deltaApplied !== dx) this.currSpeed = deltaApplied / dt;
 	}
 
 
