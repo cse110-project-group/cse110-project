@@ -28,9 +28,13 @@
     "randmatqugea": "github:richie-rich90454/RandMatQuGeA"
   },
   "devDependencies": {
+    "canvas": "^3.2.3",
     "jsdom": "^30.1.3",
     "typescript": "^7.0.2",
     "vite": "^8.3.4",
     "vitest": "^5.0.5"
+  },
+  "allowScripts": {
+    "fsevents@2.3.3": true
   }
 }
