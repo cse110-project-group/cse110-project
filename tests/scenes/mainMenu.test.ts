@@ -64,43 +64,43 @@ describe("fitStageToWindow", () => {
 });
 
 describe("init", () => {
-  it("builds a menu layer with three buttons and a hidden game layer", async () => {
-    const stage = await init();
-    const [menuLayer, gameLayer] = stage!.getLayers();
+  it("builds a menu layer with three buttons", async () => {
+    const menu = await init(vi.fn());
+    const [menuLayer] = menu!.stage.getLayers();
 
-    expect(menuLayer.visible()).toBe(true);
-    expect(gameLayer.visible()).toBe(false);
     expect(menuLayer.find("Group")).toHaveLength(3);
   });
 
-  it("switches to the game screen when Start Game is clicked", async () => {
-    const stage = await init();
-    const [menuLayer, gameLayer] = stage!.getLayers();
+  it("calls onStart when Start Game is clicked", async () => {
+    const onStart = vi.fn();
+    const menu = await init(onStart);
+    const [menuLayer] = menu!.stage.getLayers();
 
     findButton(menuLayer, "Start Game").fire("click");
 
-    expect(menuLayer.visible()).toBe(false);
-    expect(gameLayer.visible()).toBe(true);
+    expect(onStart).toHaveBeenCalledTimes(1);
   });
 
-  it("returns to the menu when the game screen is clicked", async () => {
-    const stage = await init();
-    const [menuLayer, gameLayer] = stage!.getLayers();
-
-    findButton(menuLayer, "Start Game").fire("click");
-    gameLayer.fire("click");
-
-    expect(menuLayer.visible()).toBe(true);
-    expect(gameLayer.visible()).toBe(false);
-  });
-
-  it("logs an error and returns nothing if an image fails to load", async () => {
+  it("creates no stage and logs an error if an image fails to load", async () => {
     const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
     vi.mocked(loadImage).mockRejectedValueOnce(new Error("Failed to load"));
 
-    const stage = await init();
+    const menu = await init(vi.fn());
 
-    expect(stage).toBeUndefined();
+    expect(menu).toBeUndefined();
+    expect(Konva.stages).toHaveLength(0); // no blank canvas left behind
     expect(errorSpy).toHaveBeenCalled();
+  });
+
+  it("destroy removes the stage and resize listener and resets the cursor", async () => {
+    const removeSpy = vi.spyOn(window, "removeEventListener");
+    const menu = await init(vi.fn());
+    document.body.style.cursor = "pointer";
+
+    menu!.destroy();
+
+    expect(Konva.stages).toHaveLength(0);
+    expect(removeSpy).toHaveBeenCalledWith("resize", expect.any(Function));
+    expect(document.body.style.cursor).toBe("default");
   });
 });
