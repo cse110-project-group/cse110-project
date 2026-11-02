@@ -15,7 +15,7 @@ function stubImage(outcome: "load" | "error") {
     }
     set src(value: string) {
       this._src = value;
-      // Fire asynchronously, like a real image, after handlers are attached.
+
       setTimeout(() => {
         if (outcome === "load") this.onload?.();
         else this.onerror?.();
@@ -26,7 +26,7 @@ function stubImage(outcome: "load" | "error") {
 }
 
 describe("loadImage", () => {
-  // Restore the real Image after each test so tests don't affect each other.
+
   afterEach(() => {
     vi.unstubAllGlobals();
   });
