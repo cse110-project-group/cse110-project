@@ -67,6 +67,8 @@ export default class PlayerController {
 
 		const deltaApplied = safeTopLeftX - playerBox.x;
 		sprite.x(sprite.x() + deltaApplied);
+		
+		if(deltaApplied !== dx) this.currSpeed = deltaApplied / dt;
 	}
 
 
