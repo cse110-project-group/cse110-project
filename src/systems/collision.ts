@@ -3,10 +3,10 @@
  * Compatible with Konva's IRect returned by getClientRect().
  */
 export interface BoundingBox {
-	x: number;
-	y: number;
-	width: number;
-	height: number;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
 }
 
 /**
@@ -34,8 +34,8 @@ export function checkAABBCollision(
  * Calculates an entity's new horizontal position by testing a predictive sweep box
  * against solid obstacle boundaries.
  *
- * Uses a collision skin offset to prevent floating-point inaccuracies
- * from registering surface contact as an internal overlap.
+ * If the entity already significantly overlaps an obstacle prior to moving,
+ * that obstacle is ignored to allow free exit without backwards snapping.
  *
  * @param box - Current bounding box of the entity before moving.
  * @param dx - Proposed horizontal delta (speed * deltaTime).
@@ -49,12 +49,12 @@ export function resolveHorizontalMovement(
 ): number {
     if (dx === 0) return box.x;
 
-    // Half-pixel tolerance offset for floating-point precision
+    // Tolerance threshold for floating-point precision inaccuracies
     const offset = 0.5;
 
     let targetX = box.x + dx;
 
-    // Predictive sweep box spanning the full trajectory of the step.
+    // Predictive sweep box spanning the full trajectory of the step
     const sweepBox: BoundingBox = {
         x: dx > 0 ? box.x : targetX,
         y: box.y,
@@ -74,7 +74,7 @@ export function resolveHorizontalMovement(
                 targetX = Math.max(targetX, obstacle.x + obstacle.width);
             }
 
-			// Shrink the sweep envelope to the newly clamped boundary
+            // Shrink the sweep envelope to the newly clamped boundary
             sweepBox.x = dx > 0 ? box.x : targetX;
             sweepBox.width = box.width + Math.abs(targetX - box.x);
         }
