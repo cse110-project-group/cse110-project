@@ -40,7 +40,7 @@ export default class Game {
 
 		this.input = new Input();
 		this.player = new Player(
-			this.input, this.stage.width()/2, this.stage.height()/2
+			this.input, this.stage.width() / 2, this.stage.height() / 2
 		);
 
 		this.gameLayer.add(this.player.getSprite());
@@ -62,7 +62,7 @@ export default class Game {
 		);
 		this.lastTime = time;
 
-		this.player.update(deltaTime);
+		this.player.update(deltaTime, this.gameLayer.getChildren());
 
 		requestAnimationFrame(this.gameLoop);
 	}
