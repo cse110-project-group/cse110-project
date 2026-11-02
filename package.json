@@ -23,9 +23,7 @@
   },
   "homepage": "https://github.com/AdamTequila/cse110-project#readme",
   "dependencies": {
-    "konva": "^10.9.0",
-    "ls": "^1.0.0",
-    "scripts": "^0.1.0"
+    "konva": "^10.9.0"
   },
   "devDependencies": {
     "canvas": "^3.2.3",
