@@ -8,13 +8,26 @@ import { BoundingBox, resolveHorizontalMovement } from '../../systems/collision.
  *
  * Each frame, {@link update} polls {@link Input} and moves the model's sprite
  * horizontally: `A` / `ArrowLeft` moves left, `D` / `ArrowRight` moves right.
- * Holding both directions at once cancels out.
+ * Holding both directions at once (or neither) decelerates to a stop.
+ * Movement is tracked using currSpeed, which is updated per frame depending on
+ * time elapsed from last frame, denoted dt, within the move(dt) function.
  */
 export default class PlayerController {
 	private input: Input;
 	private model: PlayerModel;
-	/** Horizontal movement speed, in pixels per second. */
-	private speed: number;
+
+	/** Signed horizontal velocity, in pixels per second (negative is left). */
+	private currSpeed: number;
+
+	/** Static readonlys as constants */
+	public static readonly MAX_X_SPEED: number = 200; 
+	/** Acceleration / deceleration for horizontal movement. 
+	 * (Note: Should be relatively large to ensure snappy movement.)
+	*/
+	public static readonly X_ACCELERATION: number = 800;
+	public static readonly X_DECELERATION: number = 1600;
+
+	private static readonly COLLISION_OFFSET = 1e-6;
 
 	/**
 	 * @param input - Shared input manager to poll key frame.
@@ -23,25 +36,18 @@ export default class PlayerController {
 	constructor(input: Input, model: PlayerModel) {
 		this.input = input;
 		this.model = model;
-		this.speed = 200;
+		this.currSpeed = 0;
 	}
 
 	/**
 	 * Applies one frame of movement, resolved against solid room obstacles.
 	 *
-	 * @param dt - Seconds elapsed since the last frame. Movement is scaled by
-	 *   this so speed stays the same regardless of frame rate.
+	 * @param dt - Seconds elapsed since the last frame. 
 	 * @param obstacles - Collection of Konva nodes on the stage to test for collisions.
+	 *   
 	 */
 	public update(dt: number, obstacles: kv.Node[] = []): void {
-		let dx = 0;
-
-		if (this.input.isKeyDown('KeyA') || this.input.isKeyDown('ArrowLeft')) {
-			dx -= this.speed * dt;
-		}
-		if (this.input.isKeyDown('KeyD') || this.input.isKeyDown('ArrowRight')) {
-			dx += this.speed * dt;
-		}
+		let dx = this.move(dt);
 
 		if (dx === 0) return;
 
@@ -62,6 +68,124 @@ export default class PlayerController {
 		const safeTopLeftX = resolveHorizontalMovement(playerBox, dx, obstacleBoxes);
 
 		const deltaApplied = safeTopLeftX - playerBox.x;
+
+		if(Math.abs(deltaApplied) < Math.abs(dx) 
+			- PlayerController.COLLISION_OFFSET) this.currSpeed = 0;
+
 		sprite.x(sprite.x() + deltaApplied);
+	}
+
+
+	/**
+	 * Applies movement and acceleration to the player for one frame. Updates 
+	 * currSpeed to be the calculated player speed during this frame.
+	 * 
+	 * @param dt Seconds elapsed since the last frame. Movement is scaled by
+	 *   this so speed stays the same regardless of frame rate. Assumed to be
+	 *   0.1 at max.
+	 */
+	private move(dt: number): number{
+		/** Assumes dt is at most 0.1 */
+		if(dt > 0.1) throw new Error("Invalid delta time");
+
+		let deltaX = 0;
+
+		/** If both directions are pressed or not pressed, decelerate. */
+		if(this.isLeft() === this.isRight()){
+			let timeToZero = Math.abs(this.currSpeed 
+									  / PlayerController.X_DECELERATION);
+			/** Always decelerate during dt */
+			if(timeToZero >= dt){
+				deltaX = 0.5 * (this.currSpeed + Math.sign(this.currSpeed) 
+						 * Math.max(0, Math.abs(this.currSpeed) 
+						 - PlayerController.X_DECELERATION * dt)) * dt
+	
+				this.currSpeed = Math.sign(this.currSpeed) 
+								* Math.max(0, Math.abs(this.currSpeed) 
+								- PlayerController.X_DECELERATION * dt);
+			}
+			/** Reaches 0 during dt */
+			else{
+				deltaX = 0.5 * this.currSpeed * timeToZero;
+				this.currSpeed = 0;
+			}
+		}
+		
+		/** If only left or right is pressed, go that direction. */
+		else{
+			let sign = this.isLeft() ? -1 : 1;
+
+			if (- sign * this.currSpeed > 0){
+				let timeToZero = Math.abs(this.currSpeed 
+									  	  / PlayerController.X_DECELERATION);
+				/** Always decelerate during dt */
+				if(timeToZero >= dt){
+					deltaX = 0.5 * (this.currSpeed + this.currSpeed
+							 + sign * PlayerController.X_DECELERATION * dt) 
+							 * dt
+					this.currSpeed += sign 
+									  * PlayerController.X_DECELERATION * dt;
+				}
+				/** Decelerate then accelerate during dt */
+				else{
+					let timeToMax = PlayerController.MAX_X_SPEED
+									/ PlayerController.X_ACCELERATION;
+					let accelTime = Math.min(dt - timeToZero, timeToMax);
+					deltaX = 0.5 * this.currSpeed * timeToZero
+							 + 0.5 * sign * PlayerController.X_ACCELERATION 
+							 * accelTime * accelTime
+					/** Reaches max during dt */
+					if(dt - timeToZero >= timeToMax){
+						deltaX += sign * PlayerController.MAX_X_SPEED 
+								  * (dt - timeToZero - timeToMax)
+					}
+					this.currSpeed = sign * PlayerController.X_ACCELERATION 
+									 * accelTime;
+				}
+			}
+			else{
+				let timeToMax = (PlayerController.MAX_X_SPEED 
+								- Math.abs(this.currSpeed))
+								/ PlayerController.X_ACCELERATION;
+				/** Always accelerate during dt */
+				if(timeToMax >= dt){
+					deltaX = 0.5 * (this.currSpeed + this.currSpeed
+							 + sign * PlayerController.X_ACCELERATION * dt)
+							 * dt
+					this.currSpeed += sign 
+									  * PlayerController.X_ACCELERATION * dt;
+				}
+				/** Accelerate and reached max during dt */
+				else{
+					deltaX = 0.5 * (this.currSpeed + sign 
+									* PlayerController.MAX_X_SPEED) * timeToMax
+							+ sign * PlayerController.MAX_X_SPEED 
+								* (dt - timeToMax)
+					this.currSpeed = sign * PlayerController.MAX_X_SPEED;
+				}
+			}
+		}
+
+		return deltaX;
+	}
+
+	/**
+	 * Checks whether any "left" button is pressed in Input.
+	 * 
+	 * @returns whether any "left" button is pressed
+	 */
+	private isLeft(){
+		return this.input.isKeyDown('KeyA') 
+				|| this.input.isKeyDown('ArrowLeft');
+	}
+
+	/**
+	 * Checks whether any "right" button is pressed in Input.
+	 * 
+	 * @returns whether any "right" button is pressed
+	 */
+	private isRight(){
+		return this.input.isKeyDown('KeyD') 
+				|| this.input.isKeyDown('ArrowRight');
 	}
 }

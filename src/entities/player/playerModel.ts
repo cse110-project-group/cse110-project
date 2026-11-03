@@ -22,6 +22,7 @@ export default class PlayerModel {
 			radiusY: 50,
 			fill: 'gray',
 		});
+
 	}
 
 	/** Returns the Konva shape so it can be added to a layer or moved. */
