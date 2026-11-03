@@ -44,7 +44,6 @@ export default class PlayerController {
 	 *
 	 * @param dt - Seconds elapsed since the last frame. 
 	 * @param obstacles - Collection of Konva nodes on the stage to test for collisions.
-	 *   
 	 */
 	public update(dt: number, obstacles: kv.Node[] = []): void {
 		let dx = this.move(dt);
@@ -82,11 +81,12 @@ export default class PlayerController {
 	 * 
 	 * @param dt Seconds elapsed since the last frame. Movement is scaled by
 	 *   this so speed stays the same regardless of frame rate. Assumed to be
-	 *   0.1 at max.
+	 *   positive and 0.1 at max.
+	 * @returns Number of pixels moved this frame.
 	 */
 	private move(dt: number): number{
 		/** Assumes dt is at most 0.1 */
-		if(dt > 0.1) throw new Error("Invalid delta time");
+		if(dt > 0.1 || dt < 0) throw new Error("Invalid delta time");
 
 		let deltaX = 0;
 
