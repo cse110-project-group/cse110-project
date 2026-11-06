@@ -20,12 +20,12 @@ export default class PlayerController {
 	private currSpeed: number;
 
 	/** Static readonlys as constants */
-	public static readonly MAX_X_SPEED: number = 200; 
+	public static readonly MAX_X_SPEED: number = 400; 
 	/** Acceleration / deceleration for horizontal movement. 
 	 * (Note: Should be relatively large to ensure snappy movement.)
 	*/
-	public static readonly X_ACCELERATION: number = 800;
-	public static readonly X_DECELERATION: number = 1600;
+	public static readonly X_ACCELERATION: number = 1600;
+	public static readonly X_DECELERATION: number = 3200;
 
 	private static readonly COLLISION_OFFSET = 1e-6;
 
