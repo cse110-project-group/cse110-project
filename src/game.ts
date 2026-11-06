@@ -38,7 +38,7 @@ export default class Game {
 		this.gameLayer = new kv.Layer();
 		this.stage.add(this.gameLayer);
 
-		this.input = new Input();
+		this.input = new Input(this.stage.container());
 		this.player = new Player(
 			this.input, this.stage.width() / 2, this.stage.height() / 2
 		);
