@@ -10,6 +10,19 @@ function release(code: string) {
 	window.dispatchEvent(new KeyboardEvent('keyup', { code }));
 }
 
+// MouseEvent carries clientX/clientY, which is all Input reads from pointer
+// events, and avoids depending on jsdom's PointerEvent support.
+function pointer(type: string, clientX = 0, clientY = 0) {
+	window.dispatchEvent(new MouseEvent(type, { clientX, clientY }));
+}
+
+/** Creates an element whose bounding box starts at (left, top). */
+function elementAt(left: number, top: number): HTMLElement {
+	const el = document.createElement('div');
+	el.getBoundingClientRect = () => new DOMRect(left, top, 800, 600);
+	return el;
+}
+
 describe('Input', () => {
 	let input: Input;
 
@@ -96,5 +109,82 @@ describe('Input', () => {
 		const e = new KeyboardEvent('keydown', { code: 'KeyA', cancelable: true });
 		window.dispatchEvent(e);
 		expect(e.defaultPrevented).toBe(false);
+	});
+});
+
+describe('Input pointer', () => {
+	let input: Input;
+	let target: HTMLElement;
+
+	beforeEach(() => {
+		target = elementAt(0, 0);
+		input = new Input(target);
+	});
+
+	afterEach(() => {
+		input.destroy();
+	});
+
+	it('reports no location before any press', () => {
+		expect(input.getMouseDownLocation()).toBeNull();
+	});
+
+	it('reports the location after pointerdown', () => {
+		pointer('pointerdown', 120, 80);
+		expect(input.getMouseDownLocation()).toEqual([120, 80]);
+	});
+
+	it('follows the pointer while it is held down', () => {
+		pointer('pointerdown', 10, 10);
+		pointer('pointermove', 50, 60);
+		expect(input.getMouseDownLocation()).toEqual([50, 60]);
+	});
+
+	it('reports no location after pointerup', () => {
+		pointer('pointerdown', 10, 10);
+		pointer('pointerup', 10, 10);
+		expect(input.getMouseDownLocation()).toBeNull();
+	});
+
+	it('reports no location after pointercancel', () => {
+		pointer('pointerdown', 10, 10);
+		pointer('pointercancel');
+		expect(input.getMouseDownLocation()).toBeNull();
+	});
+
+	it('ignores pointermove while not pressed', () => {
+		pointer('pointermove', 50, 60);
+		expect(input.getMouseDownLocation()).toBeNull();
+	});
+
+	it('uses the latest position when pressed after moving', () => {
+		pointer('pointermove', 50, 60);
+		pointer('pointerdown', 70, 90);
+		expect(input.getMouseDownLocation()).toEqual([70, 90]);
+	});
+
+	it('releases the pointer when the window loses focus', () => {
+		pointer('pointerdown', 10, 10);
+		window.dispatchEvent(new Event('blur'));
+		expect(input.getMouseDownLocation()).toBeNull();
+	});
+
+	it('reports positions relative to the target element', () => {
+		input.destroy();
+		input = new Input(elementAt(100, 50));
+		pointer('pointerdown', 130, 70);
+		expect(input.getMouseDownLocation()).toEqual([30, 20]);
+	});
+
+	it('measures the target position at read time', () => {
+		pointer('pointerdown', 130, 70);
+		target.getBoundingClientRect = () => new DOMRect(100, 50, 800, 600);
+		expect(input.getMouseDownLocation()).toEqual([30, 20]);
+	});
+
+	it('stops tracking the pointer after destroy', () => {
+		input.destroy();
+		pointer('pointerdown', 10, 10);
+		expect(input.getMouseDownLocation()).toBeNull();
 	});
 });

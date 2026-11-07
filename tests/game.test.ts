@@ -58,8 +58,9 @@ describe('Game', () => {
 		const startX = playerSprite().x();
 
 		window.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyD' }));
-		runFrame(1050); // 0.05s at 200px/s
-		expect(playerSprite().x()).toBeCloseTo(startX + 10);
+		runFrame(1050); // 0.05s accelerating from rest at 800px/s² ≈ 1px
+		expect(playerSprite().x()).toBeLessThan(startX + 10);
+		expect(playerSprite().x()).toBeGreaterThan(startX);
 		window.dispatchEvent(new KeyboardEvent('keyup', { code: 'KeyD' }));
 	});
 
@@ -69,8 +70,9 @@ describe('Game', () => {
 		const startX = playerSprite().x();
 
 		window.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyD' }));
-		runFrame(11000); // 10s gap, capped to 0.1s at 200px/s
-		expect(playerSprite().x()).toBeCloseTo(startX + 20);
+		runFrame(11000); // 10s gap, capped to 0.1s accelerating from rest ≈ 4px
+		expect(playerSprite().x()).toBeLessThan(startX + 20);
+		expect(playerSprite().x()).toBeGreaterThan(startX);
 		window.dispatchEvent(new KeyboardEvent('keyup', { code: 'KeyD' }));
 	});
 
