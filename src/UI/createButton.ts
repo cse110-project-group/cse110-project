@@ -88,7 +88,7 @@ export function createButton(opts: ButtonOptions): Konva.Group {
         document.body.style.cursor = "pointer";
         tweenTo(1.08);
     });
-
+    
     // Hover off: returns mouse to its original pointer and returns the button 
     // to its original size
     button.on("mouseleave", () => {
