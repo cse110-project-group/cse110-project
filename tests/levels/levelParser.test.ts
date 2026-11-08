@@ -1,19 +1,21 @@
 import { describe, expect, it } from 'vitest';
-import type { Level } from '../../src/levels/level.ts';
+import {Level} from "../../src/levels/level.ts";
 import {
 	LevelParser,
 	validNumber,
 	validObject,
-	validPlatform,
+	validRectangle,
+	validList,
 	validPoint,
 	validSlope,
 } from '../../src/levels/levelParser.ts';
 
 function validLevel(): Level {
 	return {
-		num: 1,
+		levelId: 1,
 		spawnPoint: { x: 10, y: 20 },
 		platforms: [{ upperLeft: { x: 0, y: 500 }, width: 800, height: 40 }],
+		walls: [{ upperLeft: { x: 780, y: 0 }, width: 20, height: 500 }],
 		slopes: [{ startPoint: { x: 100, y: 300 }, xComponent: 200, yComponent: 80 }],
 	};
 }
@@ -69,31 +71,53 @@ describe('validPoint', () => {
 	});
 });
 
-describe('validPlatform', () => {
-	it('returns a platform from valid data', () => {
+describe('validList', () => {
+	it('returns the checked items as a new list', () => {
+		expect(validList([1, 2, 3], 'xs', validNumber)).toEqual([1, 2, 3]);
+	});
+
+	it('returns an empty list for an empty list', () => {
+		expect(validList([], 'xs', validNumber)).toEqual([]);
+	});
+
+	it.each([
+		['text', 'none'],
+		['an object', {}],
+		['null', null],
+		['undefined (a missing field)', undefined],
+	])('throws if the value is %s', (_description, value) => {
+		expect(() => validList(value, 'level.walls', validNumber)).toThrow('level.walls must be a list');
+	});
+
+	it('names the position of the first bad item', () => {
+		expect(() => validList([1, 'two', 3], 'xs', validNumber)).toThrow('xs[1] must be a valid number');
+	});
+});
+
+describe('validRectangle', () => {
+	it('returns a rectangle from valid data', () => {
 		const data = { upperLeft: { x: 0, y: 500 }, width: 800, height: 40 };
-		expect(validPlatform(data, 'level.platforms[0]')).toEqual(data);
+		expect(validRectangle(data, 'level.platforms[0]')).toEqual(data);
 	});
 
 	it('throws if width is missing', () => {
 		const data = { upperLeft: { x: 0, y: 500 }, height: 40 };
-		expect(() => validPlatform(data, 'level.platforms[0]')).toThrow('level.platforms[0].width');
-	});
-});
-
-describe('validSlope', () => {
-	it('returns a slope from valid data', () => {
-		const data = { startPoint: { x: 100, y: 300 }, xComponent: 200, yComponent: 80 };
-		expect(validSlope(data, 'level.slopes[0]')).toEqual(data);
+		expect(() => validRectangle(data, 'level.platforms[0]')).toThrow('level.platforms[0].width');
 	});
 
-	it('throws if the start point is missing', () => {
-		expect(() => validSlope({ xComponent: 1, yComponent: 1 }, 'level.slopes[0]')).toThrow('level.slopes[0].startPoint');
+	it.each([0, -5])('throws if width is %s', (width) => {
+		const data = { upperLeft: { x: 0, y: 500 }, width, height: 40 };
+		expect(() => validRectangle(data, 'level.walls[0]')).toThrow('level.walls[0].width must be greater than 0');
 	});
 
-	it('throws if a component is not a number', () => {
-		const data = { startPoint: { x: 1, y: 1 }, xComponent: 'big', yComponent: 1 };
-		expect(() => validSlope(data, 'level.slopes[0]')).toThrow('level.slopes[0].xComponent');
+	it.each([0, -5])('throws if height is %s', (height) => {
+		const data = { upperLeft: { x: 0, y: 500 }, width: 10, height };
+		expect(() => validRectangle(data, 'level.walls[0]')).toThrow('level.walls[0].height must be greater than 0');
+	});
+
+	it('names the exact field when the corner point is wrong', () => {
+		const data = { upperLeft: { x: 0 }, width: 10, height: 10 };
+		expect(() => validRectangle(data, 'level.walls[2]')).toThrow('level.walls[2].upperLeft.y');
 	});
 });
 
@@ -123,12 +147,18 @@ describe('LevelParser', () => {
 	});
 
 	it('unserialize throws "not valid JSON" for broken text', () => {
-		expect(() => parser.unserialize('{ "num": 1,')).toThrow('not valid JSON');
+		expect(() => parser.unserialize('{ "levelId": 1,')).toThrow('not valid JSON');
 	});
 
 	it('unserialize throws for JSON that is not a level', () => {
 		expect(() => parser.unserialize('5')).toThrow('invalid object');
 		expect(() => parser.unserialize('[1, 2]')).toThrow('invalid object');
+	});
+
+	it('unserialize says the level id must be a whole number', () => {
+		const level: any = validLevel();
+		level.levelId = 1.5;
+		expect(() => parser.unserialize(JSON.stringify(level))).toThrow('level.levelId must be a whole number');
 	});
 
 	it('unserialize says which field is wrong', () => {
@@ -137,15 +167,16 @@ describe('LevelParser', () => {
 		expect(() => parser.unserialize(JSON.stringify(level))).toThrow('level.platforms[0].width');
 	});
 
-	it('unserialize throws if platforms is not a list', () => {
+	it.each(['platforms', 'walls', 'slopes'])('unserialize throws if %s is not a list', (field) => {
 		const level: any = validLevel();
-		level.platforms = 'none';
-		expect(() => parser.unserialize(JSON.stringify(level))).toThrow('platforms must be a list');
+		level[field] = 'none';
+		expect(() => parser.unserialize(JSON.stringify(level))).toThrow(`level.${field} must be a list`);
 	});
 
-	it('serialize refuses a level with bad data', () => {
+	it.each(['platforms', 'walls', 'slopes'])('unserialize throws if %s is missing', (field) => {
 		const level: any = validLevel();
-		level.spawnPoint.x = 'left';
-		expect(() => parser.serialize(level)).toThrow('level.spawnPoint.x');
+		delete level[field];
+		expect(() => parser.unserialize(JSON.stringify(level))).toThrow(`level.${field} must be a list`);
 	});
+
 });

@@ -1,16 +1,18 @@
-import { Level, Point, Slope, Platform } from "./level";
+import { Level, Point, Platform, Wall, Slope, Rectangle } from './level.ts';
 
 /**
- * Class that parses JSON strings and 
- * Level objects and converts them to 
+ * Class that parses JSON strings and
+ * Level objects and converts them to
  * and from JSON.
- *  @example
- * 
+ * @example
+ * const parser = new LevelParser();
+ * const level = parser.unserialize(jsonString);
+ * const json = parser.serialize(level);
  */
 export class LevelParser {
     /**
      * Takes a JSON string, checks that the string
-     * represents a valid level, then converts into 
+     * represents a valid level, then converts into
      * a Level object.
      * @param {string} text - a JSON string containing level data.
      * @returns {Level} A level object.
@@ -27,14 +29,12 @@ export class LevelParser {
     }
 
     /**
-     * Validates a level object then converts into 
-     * a JSON string.
+	 * Converts a Level object to a JSON string.
      * @param {Level} level - A Level object.
      * @returns {string} A JSON string that represents a level.
-     * @throws {Error} if level is not a valid Level object.
      */
     serialize(level: Level): string {
-        return JSON.stringify(this.validate(level), null, 2)
+        return JSON.stringify(level, null, 2)
     }
 
     /**
@@ -47,23 +47,12 @@ export class LevelParser {
      */
     validate(data: unknown, name: string = 'level'): Level {
         const object = validObject(data, name);
-        const num = validNumber(object.num, `${name}.num`);
-        const spawnPoint = validPoint(object.spawnPoint, `${name}.spawnPoint`);
-        const platforms: Platform[] = [];
-        if (!Array.isArray(object.platforms)) throw new Error(`${name}.platforms must be a list`);
-        for (const [i, platform] of object.platforms.entries()) {
-	        platforms.push(validPlatform(platform, `${name}.platforms[${i}]`));
-        }
-        const slopes: Slope[] = [];
-        if (!Array.isArray(object.slopes)) throw new Error(`${name}.slopes must be a list`);
-        for (const [i, slope] of object.slopes.entries()) {
-	        slopes.push(validSlope(slope, `${name}.slopes[${i}]`));
-        }
         return {
-            num: num,
-            spawnPoint: spawnPoint,
-            platforms: platforms,
-            slopes: slopes
+            levelId: validInt(object.levelId, `${name}.levelId`),
+            spawnPoint: validPoint(object.spawnPoint, `${name}.spawnPoint`),
+            platforms: validList(object.platforms, `${name}.platforms`, validRectangle),
+			walls: validList(object.walls, `${name}.walls`, validRectangle),
+            slopes: validList(object.slopes, `${name}.slopes`, validSlope)
         }
     }
 }
@@ -71,8 +60,8 @@ export class LevelParser {
 // helper functions
 
 /**
- * Takes in an object of unknown type and checks that it 
- * is a valid object and not an array.
+ * Takes in an object of unknown type and checks that it
+ * is a valid object, not null and not an array.
  * @param {unknown} object - An unknown object.
  * @param {string} name - The name of the level the unknown object is supposed to represent, eg. level1.
  * @returns The same object with a type of Record so its data can be read.
@@ -92,11 +81,25 @@ export function validObject(object: unknown, name: string): Record<string, unkno
  * @returns {number} The value as a number if it is a valid number.
  * @throws {Error} If the value is null or not a number.
  */
-export function validNumber(value: unknown, name: string): number{
-    if (!Number.isFinite(value) || typeof(value) !== 'number') {
+export function validNumber(value: unknown, name: string): number {
+    if (typeof(value) !== 'number' || !Number.isFinite(value) ) {
         throw new Error(`${name} must be a valid number`);
     }
     return value;
+}
+
+/**
+ *
+ * @param {unknown} value - An unknown value being validated as an integer.
+ * @param {string} name - The number that the value is supposed to represent, eg. level1.levelId.
+ * @returns {number} The value as a number if it is an integer.
+ * @throws {Error} If the value is not an integer.
+ */
+export function validInt(value: unknown, name: string): number {
+	if (typeof(value) !== 'number' || !Number.isInteger(value)) {
+		throw new Error(`${name} must be a whole number`);
+	}
+	return value;
 }
 
 /**
@@ -107,11 +110,25 @@ export function validNumber(value: unknown, name: string): number{
  * @throws {Error} If the value <= 0.
  */
 export function validPositiveNumber(value: unknown, name: string): number {
-	const number = validNumber(value, name); 
+	const number = validNumber(value, name);
 	if (number <= 0) {
 		throw new Error(`${name} must be greater than 0`);
 	}
 	return number;
+}
+
+/**
+ * Iterates through a list of a certain
+ * object type and validates that every item
+ * is an object of that type.
+ * @param {unknown} data - An unknown object being validated as a list.
+ * @param {string} name - The name of the list the object is supposed to represent, eg. platforms1
+ * @param {function} validateItem - The specific function that validates that each item is the expected object type.
+ * @returns {T[]} A list containing the original items of the list if they are valid.
+ */
+export function validList<T>(data: unknown, name: string, validateItem: (item: unknown, name: string) => T): T[] {
+    if (!Array.isArray(data)) throw new Error(`${name} must be a list`);
+    return data.map((item, i) => validateItem(item, `${name}[${i}]`));
 }
 
 /**
@@ -130,14 +147,14 @@ export function validPoint(data: unknown, name: string): Point{
 }
 
 /**
- * Takes in an unknown object and checks that it is a valid Platform.
- * @param {unknown} data - An unknown object being validated as a Platform.
- * @param name - The platform the object is supposed to represent in a Platforms array, eg. Platforms[0].
- * @returns {Platform} A Platform object with data read from the object.
- * @throws {Error} If data is not a valid object or data.upperLeft is not a valid Point 
+ * Takes in an unknown object and checks that it is a valid Rectangle.
+ * @param {unknown} data - An unknown object being validated as a Rectangle.
+ * @param {string} name - The platform/wall the object is supposed to represent in a Platforms/Walls array, eg. Platforms[0].
+ * @returns {Rectangle} A Rectangle object with data read from the object.
+ * @throws {Error} If data is not a valid object or data.upperLeft is not a valid Point.
  * or data.width/data.height are not positive numbers.
  */
-export function validPlatform(data: unknown, name: string): Platform {
+export function validRectangle(data: unknown, name: string): Rectangle {
     const platform = validObject(data, name);
     return {
         upperLeft: validPoint(platform.upperLeft, `${name}.upperLeft`),
@@ -151,14 +168,14 @@ export function validPlatform(data: unknown, name: string): Platform {
  * @param {unknown} data - An unknown object being validated as a Slope.
  * @param {string} name - The slope the object is supposed to represent in a Slopes array, eg. Slopes[0].
  * @returns {Slope} A Slope object with data read from the object.
- * @throws {Error} If data is not a valid object or data.startPoint is not a valid Point 
- * or data.xComponent/data.yComponent are not numbers.
+ * @throws {Error} If data is not a valid object or data.startPoint is not a valid Point.
+ * or data.xComponent/data.yComponent are not positive numbers.
  */
 export function validSlope(data: unknown, name: string): Slope {
     const slope = validObject(data, name);
     return {
         startPoint: validPoint(slope.startPoint, `${name}.startPoint`),
-        xComponent: validNumber(slope.xComponent, `${name}.xComponent`), 
-        yComponent: validNumber(slope.yComponent, `${name}.yComponent`)
+        xComponent: validPositiveNumber(slope.xComponent, `${name}.xComponent`),
+        yComponent: validPositiveNumber(slope.yComponent, `${name}.yComponent`)
     }
 }
