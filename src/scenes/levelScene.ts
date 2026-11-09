@@ -97,6 +97,7 @@ export async function initLevelSelect(
         y,
         width: btnW,
         height: btnH,
+        textOffsetY: -18,
         onClick: () => console.log(`Level ${level} clicked`),
       })
     );
