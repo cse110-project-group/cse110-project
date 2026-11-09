@@ -70,8 +70,8 @@ export async function initLevelSelect(
   const totalLevels = 12;
   const columns = 4;
 
-  const btnW = 180;
-  const btnH = 75;
+  const btnW = 190;
+  const btnH = 100;
 
   const gapX = 260;
   const gapY = 125;
@@ -97,7 +97,7 @@ export async function initLevelSelect(
         y,
         width: btnW,
         height: btnH,
-        textOffsetY: -18,
+        textOffsetY: -27,
         onClick: () => console.log(`Level ${level} clicked`),
       })
     );
