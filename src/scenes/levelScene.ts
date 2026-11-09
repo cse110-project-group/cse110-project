@@ -1,4 +1,3 @@
-
 import Konva from "konva";
 import { loadImage } from "../systems/loadImage";
 import { createButton } from "../UI/createButton";
@@ -19,12 +18,14 @@ export async function initLevelSelect(
 ): Promise<LevelSelect | undefined> {
   let bgImg: HTMLImageElement;
   let buttonImg: HTMLImageElement;
+  let Locked_LevelImg: HTMLImageElement;
 
   // Load images before creating the Stage.
   try {
-    [bgImg, buttonImg] = await Promise.all([
+    [bgImg, buttonImg, Locked_LevelImg] = await Promise.all([
       loadImage("/assets/background2.png"),
-      loadImage("/assets/button.png"),
+      loadImage('/assets/button.png'),
+      loadImage("/assets/Locked_Level.png"),
     ]);
   } catch (err) {
     console.error(err);
@@ -90,7 +91,7 @@ export async function initLevelSelect(
 
     levelLayer.add(
       createButton({
-        image: buttonImg,
+        image: Locked_LevelImg,
         label: `Level ${level}`,
         x,
         y,
