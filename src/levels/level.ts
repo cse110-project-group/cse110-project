@@ -6,7 +6,7 @@
  * in the level.
  * @example
  * const level: Level = {
- *   num: 1,
+ *   levelId: 1,
  *   spawnPoint: { x: 1, y: 2},
  * 	 platforms: [[{ upperLeft: { x: 2, y: 5 }, width: 4, height: 2 }]],
  *   walls: [{ upperLeft: { x: 10, y: 0 }, width: 5, height: 10 }],
@@ -14,11 +14,11 @@
  * };
  */
 export interface Level {
-    levelId: number;
-    spawnPoint: Point;
-    platforms: Platform[];
+	levelId: number;
+	spawnPoint: Point;
+	platforms: Platform[];
 	walls: Wall[];
-    slopes: Slope[];
+	slopes: Slope[];
 }
 
 /**
@@ -29,8 +29,8 @@ export interface Level {
  * const point: Point = { x: 1, y: 2 };
  */
 export interface Point {
-    x: number;
-    y: number;
+	x: number;
+	y: number;
 }
 
 /**
@@ -38,7 +38,7 @@ export interface Point {
  * Stores the upper left corner as
  * a point, and the width and height.
  * @example
- * const rectangle: Rectangle = { upperLeft: {1,2}, width: 4, height: 5 };
+ * const rectangle: Rectangle = { upperLeft: {x: 1, y: 2}, width: 4, height: 5 };
  */
 export interface Rectangle {
 	upperLeft: Point;
@@ -50,7 +50,7 @@ export interface Rectangle {
  * Interface to represent platforms.
  * Has the same fields as rectangle.
  * @example
- * const platform: Platform = { upperLeft: {1,2}, width: 3, height: 4 }
+ * const platform: Platform = { upperLeft: {x: 1, y: 2}, width: 3, height: 4 }
  */
 export interface Platform extends Rectangle {}
 
@@ -58,7 +58,7 @@ export interface Platform extends Rectangle {}
  * Interface to represent walls.
  * Has the same fields as rectangle.
  * @example
- * const wall: Wall = { upperLeft: {3,4}, width: 4, height: 5 };
+ * const wall: Wall = { upperLeft: {x: 3, y: 4}, width: 4, height: 5 };
  */
 export interface Wall extends Rectangle {}
 
@@ -71,12 +71,12 @@ export interface Wall extends Rectangle {}
  * stretch from (startX, startY) to
  * (startX + xComponent, startY + yComponent)
  * @example
- * const slope: Slope = { startPoint: {1,2}, xComponent: 2, yComponent: 2 }
+ * const slope: Slope = { startPoint: {x: 1, y: 2}, xComponent: 2, yComponent: 2 }
  */
 export interface Slope {
-    startPoint: Point;
-    xComponent: number;
-    yComponent: number;
+	startPoint: Point;
+	xComponent: number;
+	yComponent: number;
 }
 
 

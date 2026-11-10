@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {Level} from "../../src/levels/level.ts";
+import { Level } from '../../src/levels/level.ts';
 import {
 	LevelParser,
 	validNumber,
@@ -7,7 +7,6 @@ import {
 	validRectangle,
 	validList,
 	validPoint,
-	validSlope,
 } from '../../src/levels/levelParser.ts';
 
 function validLevel(): Level {
