@@ -16,17 +16,19 @@ export default class PlayerController {
 	private input: Input;
 	private model: PlayerModel;
 
+	public readonly SPAWN_X: number;
+	public readonly SPAWN_Y: number;
+
 	/** Signed horizontal velocity, in pixels per second (negative is left). */
 	private currSpeed: number;
 
 	/** Static readonlys as constants */
-	public static readonly MAX_X_SPEED: number = 200; 
+	public static readonly MAX_X_SPEED: number = 300; 
 	/** Acceleration / deceleration for horizontal movement. 
-	 * (Note: Should be relatively large to ensure snappy movement.)
-	*/
-	public static readonly X_ACCELERATION: number = 800;
-	public static readonly X_DECELERATION: number = 1600;
-
+	 * (Note: Should be relatively large to ensure snappy movement.) */
+	public static readonly X_ACCELERATION: number = 1800;
+	public static readonly X_DECELERATION: number = 3600;
+	/** Collision offset for handling speed changes due to collisions. */
 	private static readonly COLLISION_OFFSET = 1e-6;
 
 	/**
@@ -37,6 +39,9 @@ export default class PlayerController {
 		this.input = input;
 		this.model = model;
 		this.currSpeed = 0;
+
+		this.SPAWN_X = model.getSprite().x();
+		this.SPAWN_Y = model.getSprite().y();
 	}
 
 	/**
@@ -72,6 +77,15 @@ export default class PlayerController {
 			- PlayerController.COLLISION_OFFSET) this.currSpeed = 0;
 
 		sprite.x(sprite.x() + deltaApplied);
+	}
+
+	/** 
+	 * Respawn player at level spawn after death and sets currSpeed to 0. 
+	 */
+	public respawn(){
+		this.model.getSprite().x(this.SPAWN_X);
+		this.model.getSprite().y(this.SPAWN_Y);
+		this.currSpeed = 0;
 	}
 
 

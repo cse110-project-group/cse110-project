@@ -1,0 +1,46 @@
+import SpikesModel from './spikesModel.ts';
+import SpikesController from './spikesController.ts';
+import Input from '../../systems/input.ts';
+import { BoundingBox } from '../../systems/collision.ts';
+
+/**
+ * The spikes entity. Wires a {@link SpikesModel} (what is drawn) to a
+ * {@link SpikesController} (how it functions) so the game only has to 
+ * deal with one object.
+ *
+ * @example
+ * const spikes = new Spikes(720, 720, 180);
+ * layer.add(spikes.getSprite());
+ */
+export default class Spikes {
+    model: SpikesModel;
+    //controller: SpikesController;
+    AABB: BoundingBox;
+
+    //Placeholder, should be side length of a grid unit based on level format
+    public static readonly HEIGHT_UNIT = 30;
+
+    /**
+     * @param x - X position of the spikes' upper left corner, in pixels.
+     * @param y - Y position of the spikes' upper left corner, in pixels.
+     * @param width - Width of the spikes, in pixels.
+     */    
+    constructor(x: number, y: number, width: number) {
+        if(width <= 0) throw new Error("Invalid width, should be positive.");
+
+        this.model = new SpikesModel(x, y, width);
+        //this.controller = new SpikesController(this.model);
+
+        this.AABB = {
+            x: x, 
+            y: y, 
+            width: width, 
+            height: Spikes.HEIGHT_UNIT
+        };
+    }
+
+    /** Returns the spikes' Konva shape, ready to add to a layer. */
+    public getSprite() {
+        return this.model.getSprite();
+    }
+}

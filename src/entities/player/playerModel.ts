@@ -1,4 +1,5 @@
 import kv from 'konva';
+import Player from './player';
 
 /**
  * Holds the player's visual state: the Konva shape drawn on the game layer.
@@ -18,8 +19,8 @@ export default class PlayerModel {
 		this.sprite = new kv.Ellipse({
 			x: x,
 			y: y,
-			radiusX: 25,
-			radiusY: 50,
+			radiusX: Player.SPRITE_RADIUS_X,
+			radiusY: Player.SPRITE_RADIUS_Y,
 			fill: 'gray',
 		});
 
