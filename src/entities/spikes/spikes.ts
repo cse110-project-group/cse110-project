@@ -2,6 +2,7 @@ import SpikesModel from './spikesModel.ts';
 import SpikesController from './spikesController.ts';
 import Input from '../../systems/input.ts';
 import { BoundingBox } from '../../systems/collision.ts';
+import Game from '../../game.ts';
 
 /**
  * The spikes entity. Wires a {@link SpikesModel} (what is drawn) to a
@@ -16,9 +17,6 @@ export default class Spikes {
     model: SpikesModel;
     //controller: SpikesController;
     AABB: BoundingBox;
-
-    //Placeholder, should be side length of a grid unit based on level format
-    public static readonly HEIGHT_UNIT = 30;
 
     /**
      * @param x - X position of the spikes' upper left corner, in pixels.
@@ -35,7 +33,7 @@ export default class Spikes {
             x: x, 
             y: y, 
             width: width, 
-            height: Spikes.HEIGHT_UNIT
+            height: Game.GRID_UNIT
         };
     }
 

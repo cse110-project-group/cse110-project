@@ -14,6 +14,9 @@ import Player from './entities/player/player.ts';
  * game.start();
  */
 export default class Game {
+	/** Side length for a unit grid in a level */
+	public static readonly GRID_UNIT = 30;
+
 	/**
 	 * Longest frame the game will simulate, in seconds. When the tab is in the
 	 * background `requestAnimationFrame` pauses, so the first frame back would

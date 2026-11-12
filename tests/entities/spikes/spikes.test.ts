@@ -6,6 +6,7 @@ import Spikes from '../../../src/entities/spikes/spikes.ts';
 import SpikesController from '../../../src/entities/spikes/spikesController.ts';
 import SpikesModel from '../../../src/entities/spikes/spikesModel.ts';
 import Player from '../../../src/entities/player/player.ts';
+import Game from '../../../src/game.ts';
 
 describe('Spikes', () => {
     it("gets instantiated and shows sprite correctly", () => {
@@ -16,7 +17,7 @@ describe('Spikes', () => {
             x: 500, 
             y: 800,
             width: 500, 
-            height: Spikes.HEIGHT_UNIT
+            height: Game.GRID_UNIT
         });
     });
 });

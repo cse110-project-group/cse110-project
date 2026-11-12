@@ -1,4 +1,5 @@
 import kv from 'konva';
+import Game from '../../game';
 
 /**
  * Holds the spikes' visual state: the Konva shape drawn on the game layer.
@@ -12,8 +13,6 @@ export default class SpikesModel {
     private static readonly SPIKE_STROKE_COLOR: string = "#6b0000";
     private static readonly SPIKE_STROKE_WIDTH: number = 5;
     private static readonly SPIKE_FILL: string = "#c02c2c";
-    
-    unit: number = 30 //placeholder, should be side length of a grid unit based on level format
 
     /**
      * Draws spikes from x to width in intervals of grid unit length. If width
@@ -29,12 +28,12 @@ export default class SpikesModel {
             x: x,
             y: y
         });
-        for(let i = 0; i < Math.ceil(width / this.unit); ++i){
+        for(let i = 0; i < Math.ceil(width / Game.GRID_UNIT); ++i){
             let tri = new kv.Line({
                 points: [
-                    i * this.unit, this.unit,
-                    (i + 1) * this.unit, this.unit,
-                    (i + 0.5) * this.unit, 0
+                    i * Game.GRID_UNIT, Game.GRID_UNIT,
+                    (i + 1) * Game.GRID_UNIT, Game.GRID_UNIT,
+                    (i + 0.5) * Game.GRID_UNIT, 0
                 ], 
                 fill: SpikesModel.SPIKE_FILL,
                 stroke: SpikesModel.SPIKE_STROKE_COLOR,
