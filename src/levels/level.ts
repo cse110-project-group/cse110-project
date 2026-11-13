@@ -8,7 +8,7 @@
  * const level: Level = {
  *   levelId: 1,
  *   spawnPoint: { x: 1, y: 2},
- * 	 platforms: [[{ upperLeft: { x: 2, y: 5 }, width: 4, height: 2 }]],
+ * 	 platforms: [{ upperLeft: { x: 2, y: 5 }, width: 4, height: 2 }],
  *   walls: [{ upperLeft: { x: 10, y: 0 }, width: 5, height: 10 }],
  *   slopes: [{ startPoint: { x: 3, y: 4 }, xComponent: 2, yComponent: 5 }]
  * };
@@ -66,7 +66,7 @@ export interface Wall extends Rectangle {}
  * Interface to store a slope.
  * Stores the start point as a
  * point and the x and y components
- * as numbers. Slopes will be lines
+ * as non-zero numbers. Slopes will be lines
  * that start at the start point and
  * stretch from (startX, startY) to
  * (startX + xComponent, startY + yComponent)

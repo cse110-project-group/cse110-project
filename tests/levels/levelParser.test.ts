@@ -5,6 +5,7 @@ import {
 	validNumber,
 	validObject,
 	validRectangle,
+	validSlope,
 	validList,
 	validPoint,
 } from '../../src/levels/levelParser.ts';
@@ -120,6 +121,55 @@ describe('validRectangle', () => {
 	});
 });
 
+describe('validSlope', () => {
+	const slope = (xComponent: unknown, yComponent: unknown) => ({ startPoint: { x: 1, y: 1 }, xComponent, yComponent });
+
+	it('returns a slope from valid data', () => {
+		const data = slope(200, 80);
+		expect(validSlope(data, 'level.slopes[0]')).toEqual(data);
+	});
+
+	it.each([
+		[2, 3],
+		[2, -3],
+		[-2, 3],
+		[-2, -3],
+		[0.5, -0.5],
+	])('accepts the components %s and %s (positive or negative)', (xComponent, yComponent) => {
+		const data = slope(xComponent, yComponent);
+		expect(validSlope(data, 'level.slopes[0]')).toEqual(data);
+	});
+
+	it.each([
+		['xComponent', slope(0, 3)],
+		['yComponent', slope(2, 0)],
+	])('throws if %s is 0', (field, data) => {
+		expect(() => validSlope(data, 'level.slopes[0]')).toThrow(`level.slopes[0].${field} must not be 0`);
+	});
+
+	it('throws if both components are 0', () => {
+		expect(() => validSlope(slope(0, 0), 'level.slopes[0]')).toThrow('must not be 0');
+	});
+
+	it('treats -0 as 0', () => {
+		expect(() => validSlope(slope(-0, 3), 'level.slopes[0]')).toThrow('level.slopes[0].xComponent must not be 0');
+	});
+
+	it.each([
+		['text', 'big'],
+		['null', null],
+		['undefined (a missing field)', undefined],
+		['NaN', NaN],
+	])('throws if a component is %s', (_description, value) => {
+		expect(() => validSlope(slope(value, 3), 'level.slopes[0]')).toThrow('level.slopes[0].xComponent must be a valid number');
+		expect(() => validSlope(slope(2, value), 'level.slopes[0]')).toThrow('level.slopes[0].yComponent must be a valid number');
+	});
+
+	it('throws if the start point is missing', () => {
+		expect(() => validSlope({ xComponent: 1, yComponent: 1 }, 'level.slopes[0]')).toThrow('level.slopes[0].startPoint');
+	});
+});
+
 describe('LevelParser', () => {
 	const parser = new LevelParser();
 
@@ -158,6 +208,17 @@ describe('LevelParser', () => {
 		const level: any = validLevel();
 		level.levelId = 1.5;
 		expect(() => parser.unserialize(JSON.stringify(level))).toThrow('level.levelId must be a whole number');
+	});
+
+	it.each([0, -1, -100])('unserialize throws if the level id is %s', (levelId) => {
+		const level: any = validLevel();
+		level.levelId = levelId;
+		expect(() => parser.unserialize(JSON.stringify(level))).toThrow('level.levelId must be greater than 0');
+	});
+
+	it.each([1, 2, 50])('unserialize accepts a level id of %s', (levelId) => {
+		const level = { ...validLevel(), levelId };
+		expect(parser.unserialize(JSON.stringify(level)).levelId).toBe(levelId);
 	});
 
 	it('unserialize says which field is wrong', () => {

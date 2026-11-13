@@ -99,7 +99,7 @@ export function validPosInt(value: unknown, name: string): number {
 	if (typeof(value) !== 'number' || !Number.isInteger(value)) {
 		throw new Error(`${name} must be a whole number`);
 	}
-	const number = validNumber(value, name);
+	const number = value;
 	if (number <= 0) {
 		throw new Error(`${name} must be greater than 0`);
 	}
@@ -107,7 +107,7 @@ export function validPosInt(value: unknown, name: string): number {
 }
 
 /**
- * Checks if a number is greater than 0.
+ * Checks if an unknown value is greater than 0.
  * @param {unknown } value - An unknown value being validated as being > 0.
  * @param {string} name - The number that the value is supposed to represent.
  * @returns {number} The same value as a number if it is > 0.
@@ -117,6 +117,21 @@ export function validPositiveNumber(value: unknown, name: string): number {
 	const number = validNumber(value, name);
 	if (number <= 0) {
 		throw new Error(`${name} must be greater than 0`);
+	}
+	return number;
+}
+
+/**
+ * Checks if an unknown value !== 0.
+ * @param {unknown} value - An unknown value being validated as being non-zero.
+ * @param {string} name - The number that the value is supposed to represent.
+ * @returns {number} The same value as a number if it is !== 0.
+ * @throws {Error} If the value === 0.
+ */
+export function validNonZeroNumber(value: unknown, name: string): number {
+	const number = validNumber(value, name);
+	if (number === 0) {
+		throw new Error(`${name} must not be 0`);
 	}
 	return number;
 }
@@ -173,13 +188,13 @@ export function validRectangle(data: unknown, name: string): Rectangle {
  * @param {string} name - The slope the object is supposed to represent in a Slopes array, eg. Slopes[0].
  * @returns {Slope} A Slope object with data read from the object.
  * @throws {Error} If data is not a valid object or data.startPoint is not a valid Point.
- * or data.xComponent/data.yComponent are not positive numbers.
+ * or data.xComponent/data.yComponent === 0.
  */
 export function validSlope(data: unknown, name: string): Slope {
 	const slope = validObject(data, name);
 	return {
 		startPoint: validPoint(slope.startPoint, `${name}.startPoint`),
-		xComponent: validNumber(slope.xComponent, `${name}.xComponent`),
-		yComponent: validNumber(slope.yComponent, `${name}.yComponent`)
+		xComponent: validNonZeroNumber(slope.xComponent, `${name}.xComponent`),
+		yComponent: validNonZeroNumber(slope.yComponent, `${name}.yComponent`)
 	}
 }
