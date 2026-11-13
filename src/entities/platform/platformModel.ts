@@ -10,7 +10,7 @@ export default class PlatformModel {
     private sprite: kv.Rect;
 
     private static readonly PLAT_STROKE_COLOR: string = "#3a271c";
-    private static readonly PLAT_STROKE_WIDTH: number = 15;
+    public static readonly PLAT_STROKE_WIDTH: number = 15;
     private static readonly PLAT_FILL: string = "#645c50";
     private static readonly PLAT_CORNER_RADIUS: number = 1;
 

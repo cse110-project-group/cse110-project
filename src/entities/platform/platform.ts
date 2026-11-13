@@ -1,6 +1,7 @@
 import PlatformModel from './platformModel.ts';
 import PlatformController from './platformController.ts';
 import Input from '../../systems/input.ts';
+import Game from '../../game.ts';
 import { BoundingBox } from '../../systems/collision.ts';
 
 /**
@@ -26,6 +27,16 @@ export default class Platform {
     constructor(x: number, y: number, width: number, height: number) {
         if(width <= 0) throw new Error("Invalid width, should be positive.");
         if(height <= 0) throw new Error("Invalid height, should be positive.");
+
+        if(x % Game.GRID_UNIT != 0) throw new Error(
+            "Invalid x, should be an integer multiple of grid unit length. (Maybe calculation error?)");
+        if(y % Game.GRID_UNIT != 0) throw new Error(
+            "Invalid y, should be an integer multiple of grid unit length. (Maybe calculation error?)");
+
+        if(width % Game.GRID_UNIT != 0) throw new Error(
+            "Invalid width, should be an integer multiple of grid unit length. (Maybe calculation error?)");
+        if(height % Game.GRID_UNIT != 0) throw new Error(
+            "Invalid height, should be an integer multiple of grid unit length. (Maybe calculation error?)");
 
         this.model = new PlatformModel(x, y, width, height);
         //this.controller = new PlatformController(input, this.model);
