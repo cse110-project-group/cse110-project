@@ -21,10 +21,14 @@ export default class Spikes {
     /**
      * @param x - X position of the spikes' upper left corner, in pixels.
      * @param y - Y position of the spikes' upper left corner, in pixels.
-     * @param width - Width of the spikes, in pixels.
+     * @param width - Width of the spikes, in pixels. Assumed to be an integer
+     * multiple of grid unit length.
      */    
     constructor(x: number, y: number, width: number) {
         if(width <= 0) throw new Error("Invalid width, should be positive.");
+        if(width % Game.GRID_UNIT != 0) throw new Error(
+            "Invalid width, should be an integer multiple of grid unit length. \
+             (Maybe calculation error?)");
 
         this.model = new SpikesModel(x, y, width);
         //this.controller = new SpikesController(this.model);

@@ -15,8 +15,8 @@ export default class SpikesModel {
     private static readonly SPIKE_FILL: string = "#c02c2c";
 
     /**
-     * Draws spikes from x to width in intervals of grid unit length. If width
-     * is not a multiple of unit, then draws until next multiple of unit.
+     * Draws spikes from x to width in intervals of grid unit length. Assumes
+     * width is a multiple of grid unit length.
      * 
      * @param x - X position of the spikes' upper left corner, in pixels.
      * @param y - Y position of the spikes' upper left corner, in pixels.
@@ -28,7 +28,7 @@ export default class SpikesModel {
             x: x,
             y: y
         });
-        for(let i = 0; i < Math.ceil(width / Game.GRID_UNIT); ++i){
+        for(let i = 0; i < width / Game.GRID_UNIT; ++i){
             let tri = new kv.Line({
                 points: [
                     i * Game.GRID_UNIT, Game.GRID_UNIT,

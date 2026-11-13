@@ -5,7 +5,7 @@ import { ActionType } from './action.ts'
 /**
  * Controls the action object in response to input.
  */
-export default class SlopeController {
+export default class ActionController {
     private input: Input;
     private model: ActionModel;
 

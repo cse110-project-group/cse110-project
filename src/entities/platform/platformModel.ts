@@ -24,10 +24,10 @@ export default class PlatformModel {
      */
     constructor(x: number, y: number, width: number, height: number) {
         this.sprite = new kv.Rect({
-            x: x,
-            y: y,
-            width: width,
-            height: height,
+            x: x + PlatformModel.PLAT_STROKE_WIDTH / 2,
+            y: y + PlatformModel.PLAT_STROKE_WIDTH / 2,
+            width: width - PlatformModel.PLAT_STROKE_WIDTH,
+            height: height - PlatformModel.PLAT_STROKE_WIDTH,
             fill: PlatformModel.PLAT_FILL,
             stroke: PlatformModel.PLAT_STROKE_COLOR,
             strokeWidth: PlatformModel.PLAT_STROKE_WIDTH,

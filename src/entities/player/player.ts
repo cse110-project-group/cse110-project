@@ -52,5 +52,11 @@ export default class Player {
 	 */
 	public update(deltaTime: number, obstacles: kv.Node[] = []) {
 		this.controller.update(deltaTime, obstacles);
+		this.AABB = {
+			x: this.model.getSprite().x() - Player.SPRITE_RADIUS_X, 
+			y: this.model.getSprite().y() - Player.SPRITE_RADIUS_Y,
+			width: Player.SPRITE_RADIUS_X * 2,
+			height: Player.SPRITE_RADIUS_Y * 2
+		}
 	}
 }

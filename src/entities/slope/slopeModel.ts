@@ -27,7 +27,31 @@ export default class SlopeModel {
      * endpoints), in pixels.
      */
     constructor(x: number, y: number, width: number, height: number) {
-        this.sprite = new kv.Group({
+        this.sprite = this.constructSprite(x, y, width, height);
+    }
+
+    /** Returns the Konva group so it can be added to a layer or moved. */
+    public getSprite(): kv.Group {
+        return this.sprite;
+    }
+
+    /**
+     * Updates sprite with new parameters.
+     * 
+     * @param x - X position of one of the slope's endpoints, in pixels.
+     * @param y - Y position of one of the slope's endpoints, in pixels.
+     * @param width - Width of the slope (i.e. x difference between two 
+     * endpoints), in pixels.
+     * @param height - Height of the slope (i.e. y difference between two 
+     * endpoints), in pixels.
+     */
+    public updateSprite(x: number, y: number, width: number, height: number) {
+        this.sprite = this.constructSprite(x, y, width, height);
+    }
+
+    private constructSprite(x: number, y: number, 
+                            width: number, height: number): kv.Group{
+        let sprite = new kv.Group({
             x: x,
             y: y
         })
@@ -54,56 +78,10 @@ export default class SlopeModel {
             stroke: SlopeModel.ENDPOINT_STROKE_COLOR,
             strokeWidth: SlopeModel.ENDPOINT_STROKE_WIDTH
         })
-        this.sprite.add(line);
-        this.sprite.add(endpoint1);
-        this.sprite.add(endpoint2);
-    }
+        sprite.add(line);
+        sprite.add(endpoint1);
+        sprite.add(endpoint2);
 
-    /** Returns the Konva group so it can be added to a layer or moved. */
-    public getSprite(): kv.Group {
-        return this.sprite;
-    }
-
-    /**
-     * Updates sprite with new parameters.
-     * 
-     * @param x - X position of one of the slope's endpoints, in pixels.
-     * @param y - Y position of one of the slope's endpoints, in pixels.
-     * @param width - Width of the slope (i.e. x difference between two 
-     * endpoints), in pixels.
-     * @param height - Height of the slope (i.e. y difference between two 
-     * endpoints), in pixels.
-     */
-    public updateSprite(x: number, y: number, width: number, height: number) {
-        this.sprite = new kv.Group({
-            x: x,
-            y: y
-        })
-        let line = new kv.Line({
-            points: [x, y, x + width, y + height],
-            stroke: SlopeModel.SLOPE_STROKE_COLOR,
-            strokeWidth: Slope.SLOPE_STROKE_WIDTH
-        });
-        let endpoint1 = new kv.Ellipse({
-            x: x,
-            y: y,
-            radiusX: SlopeModel.ENDPOINT_RADIUS,
-            radiusY: SlopeModel.ENDPOINT_RADIUS,
-            fill: SlopeModel.ENDPOINT_FILL,
-            stroke: SlopeModel.ENDPOINT_STROKE_COLOR,
-            strokeWidth: SlopeModel.ENDPOINT_STROKE_WIDTH
-        })
-        let endpoint2 = new kv.Ellipse({
-            x: x + width,
-            y: y + height,
-            radiusX: SlopeModel.ENDPOINT_RADIUS,
-            radiusY: SlopeModel.ENDPOINT_RADIUS,
-            fill: SlopeModel.ENDPOINT_FILL,
-            stroke: SlopeModel.ENDPOINT_STROKE_COLOR,
-            strokeWidth: SlopeModel.ENDPOINT_STROKE_WIDTH
-        })
-        this.sprite.add(line);
-        this.sprite.add(endpoint1);
-        this.sprite.add(endpoint2);
+        return sprite;
     }
 }
