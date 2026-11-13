@@ -1,7 +1,6 @@
 import kv from 'konva';
 import { createButton } from '../../UI/createButton.ts'
 import { ActionType } from './action.ts'
-import { Image } from 'konva/lib/shapes/Image';
 
 /**
  * Holds the action's visual state: the Konva shape drawn on the game layer.
