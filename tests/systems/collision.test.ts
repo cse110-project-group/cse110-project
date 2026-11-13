@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
 	checkAABBCollision,
 	resolveHorizontalMovement,
+	resolveMovement,
 	resolveVerticalMovement,
 	type BoundingBox,
 } from '../../src/systems/collision';
@@ -104,22 +105,20 @@ describe('Collision System - resolveHorizontalMovement', () => {
 		expect(resolvedX).toBe(130);
 	});
 
-	it('allows player to walk out freely when moving right from an overlapping obstacle behind them', () => {
+	it('blocks walking right while stuck inside an obstacle (only jumping is allowed)', () => {
 		// Player starts at 100..150; obstacle is behind/enclosing left half: 50..120
 		const overlappedWall: BoundingBox = { x: 50, y: 100, width: 70, height: 100 };
 		const dx = 10;
 		const resolvedX = resolveHorizontalMovement(playerBox, dx, [overlappedWall]);
-		// Steps forward into open air without snapping backward
-		expect(resolvedX).toBe(110);
+		expect(resolvedX).toBe(100);
 	});
 
-	it('allows player to walk out freely when moving left from an overlapping obstacle ahead of them', () => {
+	it('blocks walking left while stuck inside an obstacle (only jumping is allowed)', () => {
 		// Player starts at 100..150; obstacle overlaps right half: 120..220
 		const overlappedWall: BoundingBox = { x: 120, y: 100, width: 100, height: 100 };
 		const dx = -10;
 		const resolvedX = resolveHorizontalMovement(playerBox, dx, [overlappedWall]);
-		// Steps back into open air without teleporting across to 220
-		expect(resolvedX).toBe(90);
+		expect(resolvedX).toBe(100);
 	});
 
 	it('blocks player when trying to push deeper into an already-overlapped obstacle', () => {
@@ -127,8 +126,8 @@ describe('Collision System - resolveHorizontalMovement', () => {
 		const overlappedWall: BoundingBox = { x: 120, y: 100, width: 100, height: 100 };
 		const dx = 20; // tries to push further right into the obstacle
 		const resolvedX = resolveHorizontalMovement(playerBox, dx, [overlappedWall]);
-		// Clamped back flush against outer face: 120 - 50 = 70
-		expect(resolvedX).toBe(120);
+		// Stuck: horizontal movement is blocked entirely, stays at 100
+		expect(resolvedX).toBe(100);
 	});
 
 	// --- FLOATING-POINT PRECISION & VARIANCE EDGE CASES ---
@@ -264,14 +263,13 @@ describe('Collision System - resolveVerticalMovement', () => {
 		expect(resolvedY).toBe(85);
 	});
 
-	it('allows player to fall downward freely when already slightly overlapping a ceiling above', () => {
+	it('blocks falling while stuck inside a ceiling above (only jumping is allowed)', () => {
 		// Ceiling overlaps top of player (ceiling underside at y: 110, player top at 100)
 		const overlappedCeiling: BoundingBox = { x: 80, y: 50, width: 100, height: 60 };
-		const dy = 15; // Falling down out of the ceiling
+		const dy = 15; // Trying to fall down
 
 		const resolvedY = resolveVerticalMovement(playerBox, dy, [overlappedCeiling]);
-		// Falls down into open air without snapping upwards
-		expect(resolvedY).toBe(115);
+		expect(resolvedY).toBe(100);
 	});
 
 	it('prevents phasing through a floor when stopped a microscopic fraction inside it', () => {
@@ -404,5 +402,43 @@ describe('Collision System - tolerance and straddle cases', () => {
 		const near: BoundingBox = { x: 80, y: 40, width: 100, height: 20 };  // underside 60
 		const far: BoundingBox = { x: 80, y: -50, width: 100, height: 20 };
 		expect(resolveVerticalMovement(playerBox, -100, [far, near])).toBe(60);
+	});
+});
+
+describe('Collision System - escape-only rules for overlapped obstacles', () => {
+	// Player spans x: 100..150, y: 100..200
+	const playerBox: BoundingBox = { x: 100, y: 100, width: 50, height: 100 };
+
+	// Floor top at 199.4, so the player is sunk 0.6px (beyond the 0.5 offset)
+	const sunkFloor: BoundingBox = { x: 80, y: 199.4, width: 100, height: 40 };
+
+	it('blocks falling when sunk beyond the tolerance into a floor', () => {
+		expect(resolveVerticalMovement(playerBox, 5, [sunkFloor])).toBe(100);
+	});
+
+	it('allows jumping out when sunk into a floor', () => {
+		expect(resolveVerticalMovement(playerBox, -5, [sunkFloor])).toBe(95);
+	});
+
+	it('blocks walking sideways in both directions when sunk into a floor', () => {
+		expect(resolveHorizontalMovement(playerBox, 5, [sunkFloor])).toBe(100);
+		expect(resolveHorizontalMovement(playerBox, -5, [sunkFloor])).toBe(100);
+	});
+
+	it('when stuck in a corner overlap, only the upward jump is allowed', () => {
+		const corner: BoundingBox = { x: 145, y: 190, width: 55, height: 40 };
+		expect(resolveHorizontalMovement(playerBox, 5, [corner])).toBe(100);
+		expect(resolveHorizontalMovement(playerBox, -5, [corner])).toBe(100);
+		expect(resolveVerticalMovement(playerBox, 5, [corner])).toBe(100);
+		expect(resolveVerticalMovement(playerBox, -5, [corner])).toBe(95);
+	});
+
+	it('resolveMovement matches the horizontal and vertical wrappers', () => {
+		expect(resolveMovement(playerBox, 5, [sunkFloor], 'y')).toBe(
+			resolveVerticalMovement(playerBox, 5, [sunkFloor])
+		);
+		expect(resolveMovement(playerBox, 5, [sunkFloor], 'x')).toBe(
+			resolveHorizontalMovement(playerBox, 5, [sunkFloor])
+		);
 	});
 });

@@ -9,6 +9,8 @@ export interface BoundingBox {
 	height: number;
 }
 
+export type Axis = 'x' | 'y';
+
 /**
  * Determines whether two axis-aligned bounding boxes overlap.
  *
@@ -31,62 +33,89 @@ export function checkAABBCollision(
 }
 
 /**
- * Calculates an entity's new horizontal position by testing a predictive sweep box
- * against solid obstacle boundaries.
+ * Resolves an entity's new position along a single axis by testing a predictive
+ * sweep box against solid obstacle boundaries.
  *
- * If the entity already significantly overlaps an obstacle prior to moving,
- * that obstacle is ignored to allow free exit without backwards snapping.
+ * If the entity is "stuck" (already overlapping an obstacle beyond the
+ * tolerance), the only way out is a jump:
+ *  - Horizontal movement is blocked entirely, so the entity can't slide
+ *    sideways through the obstacle.
+ *  - Downward movement is blocked, so it can't fall through.
+ *  - Upward movement (a jump) is allowed.
  *
  * @param box - Current bounding box of the entity before moving.
- * @param dx - Proposed horizontal delta (speed * deltaTime).
+ * @param delta - Proposed delta along the axis (speed * deltaTime).
  * @param obstacles - Collection of solid obstacle bounding boxes.
- * @returns The resolved top-left X coordinate for the entity's bounding box.
+ * @param axis - Axis to resolve movement on.
+ * @returns The resolved top-left coordinate on `axis` for the entity's bounding box.
  */
+export function resolveMovement(
+	box: BoundingBox,
+	delta: number,
+	obstacles: BoundingBox[],
+	axis: Axis
+): number {
+	const pos = axis;
+	const size = axis === 'x' ? 'width' : 'height';
+	const perpPos = axis === 'x' ? 'y' : 'x';
+	const perpSize = axis === 'x' ? 'height' : 'width';
+
+	if (delta === 0) return box[pos];
+
+	// Tolerance threshold for floating-point precision inaccuracies
+	const offset = 0.5;
+
+	let target = box[pos] + delta;
+
+	// Predictive sweep box spanning the full trajectory of the step.
+	// Inset on the perpendicular axis by the tolerance so a surface the box is
+	// merely brushing alongside doesn't register as a blocker.
+	const sweepBox: BoundingBox = {
+		...box,
+		[perpPos]: box[perpPos] + offset,
+		[perpSize]: box[perpSize] - offset * 2,
+		[pos]: delta > 0 ? box[pos] : target,
+		[size]: box[size] + Math.abs(delta),
+	} as BoundingBox;
+
+	for (const obstacle of obstacles) {
+		// Stuck (overlapping beyond tolerance): only an upward jump is allowed.
+		if (checkAABBCollision(box, obstacle, offset)) {
+			// No horizontal movement and no falling deeper
+			if (axis === 'x' || delta > 0) return box[pos];
+			continue;
+		}
+
+		if (checkAABBCollision(sweepBox, obstacle)) {
+			if (delta > 0) {
+				// Leading edge already deeper than tolerance inside: ignore.
+				if (box[pos] + box[size] > obstacle[pos] + offset) {
+					continue;
+				}
+				// Clamp the leading edge flush to the obstacle's near face
+				target = Math.min(target, obstacle[pos] - box[size]);
+			} else {
+				if (box[pos] < obstacle[pos] + obstacle[size] - offset) {
+					continue;
+				}
+				target = Math.max(target, obstacle[pos] + obstacle[size]);
+			}
+
+			// Shrink the sweep envelope to the newly clamped boundary
+			sweepBox[pos] = delta > 0 ? box[pos] : target;
+			sweepBox[size] = box[size] + Math.abs(target - box[pos]);
+		}
+	}
+
+	return target;
+}
+
 export function resolveHorizontalMovement(
 	box: BoundingBox,
 	dx: number,
 	obstacles: BoundingBox[]
 ): number {
-	if (dx === 0) return box.x;
-
-	// Tolerance threshold for floating-point precision inaccuracies
-	const offset = 0.5;
-
-	let targetX = box.x + dx;
-
-	// Predictive sweep box spanning the full trajectory of the step
-	const sweepBox: BoundingBox = {
-		x: dx > 0 ? box.x : targetX,
-		y: box.y + offset,
-		width: box.width + Math.abs(dx),
-		height: box.height - offset * 2,
-	};
-
-	for (const obstacle of obstacles) {
-		if (checkAABBCollision(box, obstacle, offset)) {
-			continue;
-		}
-
-		if (checkAABBCollision(sweepBox, obstacle)) {
-			if (dx > 0) {
-				if (box.x + box.width > obstacle.x + offset) {
-					continue;
-				}
-				targetX = Math.min(targetX, obstacle.x - box.width);
-			} else if (dx < 0) {
-				if (box.x < obstacle.x + obstacle.width - offset) {
-					continue;
-				}
-				targetX = Math.max(targetX, obstacle.x + obstacle.width);
-			}
-
-			// Shrink the sweep envelope to the newly clamped boundary
-			sweepBox.x = dx > 0 ? box.x : targetX;
-			sweepBox.width = box.width + Math.abs(targetX - box.x);
-		}
-	}
-
-	return targetX;
+	return resolveMovement(box, dx, obstacles, 'x');
 }
 
 export function resolveVerticalMovement(
@@ -94,54 +123,5 @@ export function resolveVerticalMovement(
 	dy: number,
 	obstacles: BoundingBox[]
 ): number {
-	if (dy === 0) return box.y;
-
-	// Tolerance threshold for floating-point precision inaccuracies
-	const offset = 0.5;
-
-	let targetY = box.y + dy;
-
-	// Predictive sweep box spanning the full trajectory of the vertical step.
-	// Inset on x by the tolerance so a wall the box is merely brushing
-	// alongside (sub-0.5px overlap) doesn't register as a floor or ceiling.
-	const sweepBox: BoundingBox = {
-		x: box.x + offset,
-		y: dy > 0 ? box.y : targetY,
-		width: box.width - offset * 2,
-		height: box.height + Math.abs(dy),
-	};
-
-	for (const obstacle of obstacles) {
-		// Already overlapping by more than the tolerance: ignore so the
-		// entity can move out without snapping
-		if (checkAABBCollision(box, obstacle, offset)) {
-			continue;
-		}
-
-		if (checkAABBCollision(sweepBox, obstacle)) {
-			if (dy > 0) {
-				// Falling: leading edge is the bottom. If it is already deeper
-				// than the tolerance inside the obstacle, ignore it.
-				if (box.y + box.height > obstacle.y + offset) {
-					continue;
-				}
-				// Clamp the bottom edge flush to the obstacle's top face
-				targetY = Math.min(targetY, obstacle.y - box.height);
-			} else {
-				// Rising: leading edge is the top. If it is already deeper
-				// than the tolerance inside the obstacle, ignore it.
-				if (box.y < obstacle.y + obstacle.height - offset) {
-					continue;
-				}
-				// Clamp the top edge flush to the obstacle's bottom face
-				targetY = Math.max(targetY, obstacle.y + obstacle.height);
-			}
-
-			// Shrink the sweep envelope to the newly clamped boundary
-			sweepBox.y = dy > 0 ? box.y : targetY;
-			sweepBox.height = box.height + Math.abs(targetY - box.y);
-		}
-	}
-
-	return targetY;
+	return resolveMovement(box, dy, obstacles, 'y');
 }
