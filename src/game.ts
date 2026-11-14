@@ -1,6 +1,7 @@
 import Input from './systems/input.ts';
 import kv from 'konva';
 import Player from './entities/player/player.ts';
+import { NodeConfig } from 'konva/lib/Node';
 
 /**
  * Top-level game object. Creates the Konva stage, owns the shared
@@ -14,6 +15,9 @@ import Player from './entities/player/player.ts';
  * game.start();
  */
 export default class Game {
+	/** Side length for a unit grid in a level */
+	public static readonly GRID_UNIT = 30;
+
 	/**
 	 * Longest frame the game will simulate, in seconds. When the tab is in the
 	 * background `requestAnimationFrame` pauses, so the first frame back would
@@ -40,7 +44,7 @@ export default class Game {
 
 		this.input = new Input(this.stage.container());
 		this.player = new Player(
-			this.input, this.stage.width() / 2, this.stage.height() / 2
+			this.input, this.stage.width()/2, this.stage.height()/2
 		);
 
 		this.gameLayer.add(this.player.getSprite());
@@ -62,7 +66,13 @@ export default class Game {
 		);
 		this.lastTime = time;
 
-		this.player.update(deltaTime, this.gameLayer.getChildren());
+		/** 
+		 * Placeholder, should be an array that contains all bounding boxes of 
+		 * obstacles (e.g. platforms), can be obtained during parsing process.
+		*/
+		let obstacles: kv.Node[] = [];
+
+		this.player.update(deltaTime, obstacles);
 
 		requestAnimationFrame(this.gameLoop);
 	}

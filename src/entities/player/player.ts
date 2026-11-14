@@ -1,6 +1,7 @@
 import PlayerModel from './playerModel.ts';
 import PlayerController from './playerController.ts';
 import Input from '../../systems/input.ts';
+import { BoundingBox } from '../../systems/collision.ts';
 import type kv from 'konva';
 
 /**
@@ -17,6 +18,10 @@ import type kv from 'konva';
 export default class Player {
 	model: PlayerModel;
 	controller: PlayerController;
+	AABB: BoundingBox;
+
+	public static readonly SPRITE_RADIUS_X = 25;
+	public static readonly SPRITE_RADIUS_Y = 50;
 
 	/**
 	 * @param input - Shared input tracker the controller polls.
@@ -26,6 +31,12 @@ export default class Player {
 	constructor(input: Input, x: number, y: number) {
 		this.model = new PlayerModel(x, y);
 		this.controller = new PlayerController(input, this.model);
+		this.AABB = {
+			x: x - Player.SPRITE_RADIUS_X, 
+			y: y - Player.SPRITE_RADIUS_Y,
+			width: Player.SPRITE_RADIUS_X * 2,
+			height: Player.SPRITE_RADIUS_Y * 2
+		}
 	}
 
 	/** Returns the player's Konva shape, ready to add to a layer. */
@@ -41,5 +52,11 @@ export default class Player {
 	 */
 	public update(deltaTime: number, obstacles: kv.Node[] = []) {
 		this.controller.update(deltaTime, obstacles);
+		this.AABB = {
+			x: this.model.getSprite().x() - Player.SPRITE_RADIUS_X, 
+			y: this.model.getSprite().y() - Player.SPRITE_RADIUS_Y,
+			width: Player.SPRITE_RADIUS_X * 2,
+			height: Player.SPRITE_RADIUS_Y * 2
+		}
 	}
 }

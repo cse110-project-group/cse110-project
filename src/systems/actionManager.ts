@@ -1,0 +1,1 @@
+/** Class that manages actions on slopes. Tentative, may be unnecessary. */

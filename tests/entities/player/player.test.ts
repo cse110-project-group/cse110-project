@@ -234,4 +234,14 @@ describe('Player', () => {
 			+ PlayerController.MAX_X_SPEED * Math.max(0, 1 - timeToMax)
 		);
 	});
+
+	it("instantiates an AABB correctly", () => {
+		const player = new Player(input, 100, 0);
+		expect(player.AABB).toStrictEqual({
+			x: 100 - Player.SPRITE_RADIUS_X, 
+			y: - Player.SPRITE_RADIUS_Y,
+			width: 2 * Player.SPRITE_RADIUS_X,
+			height: 2 * Player.SPRITE_RADIUS_Y
+		});
+	});
 });
