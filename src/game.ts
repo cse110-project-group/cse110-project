@@ -1,6 +1,7 @@
 import Input from './systems/input.ts';
 import kv from 'konva';
 import Player from './entities/player/player.ts';
+import { NodeConfig } from 'konva/lib/Node';
 
 /**
  * Top-level game object. Creates the Konva stage, owns the shared
@@ -41,7 +42,7 @@ export default class Game {
 		this.gameLayer = new kv.Layer();
 		this.stage.add(this.gameLayer);
 
-		this.input = new Input();
+		this.input = new Input(this.stage.container());
 		this.player = new Player(
 			this.input, this.stage.width()/2, this.stage.height()/2
 		);
@@ -65,7 +66,13 @@ export default class Game {
 		);
 		this.lastTime = time;
 
-		this.player.update(deltaTime);
+		/** 
+		 * Placeholder, should be an array that contains all bounding boxes of 
+		 * obstacles (e.g. platforms), can be obtained during parsing process.
+		*/
+		let obstacles;
+
+		this.player.update(deltaTime, obstacles);
 
 		requestAnimationFrame(this.gameLoop);
 	}

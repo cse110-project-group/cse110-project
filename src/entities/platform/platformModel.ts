@@ -31,7 +31,8 @@ export default class PlatformModel {
             fill: PlatformModel.PLAT_FILL,
             stroke: PlatformModel.PLAT_STROKE_COLOR,
             strokeWidth: PlatformModel.PLAT_STROKE_WIDTH,
-            cornerRadius: PlatformModel.PLAT_CORNER_RADIUS
+            cornerRadius: PlatformModel.PLAT_CORNER_RADIUS,
+            name: 'solid'
         });
     }
 
