@@ -65,7 +65,7 @@ describe("fitStageToWindow", () => {
 
 describe("init", () => {
   it("builds a menu layer with three buttons", async () => {
-    const menu = await init(vi.fn());
+    const menu = await init(vi.fn(), vi.fn());
     const [menuLayer] = menu!.stage.getLayers();
 
     expect(menuLayer.find("Group")).toHaveLength(3);
@@ -73,7 +73,8 @@ describe("init", () => {
 
   it("calls onStart when Start Game is clicked", async () => {
     const onStart = vi.fn();
-    const menu = await init(onStart);
+    const onLevels = vi.fn();
+    const menu = await init(onStart, onLevels);
     const [menuLayer] = menu!.stage.getLayers();
 
     findButton(menuLayer, "Start Game").fire("click");
@@ -85,7 +86,7 @@ describe("init", () => {
     const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
     vi.mocked(loadImage).mockRejectedValueOnce(new Error("Failed to load"));
 
-    const menu = await init(vi.fn());
+    const menu = await init(vi.fn(), vi.fn());
 
     expect(menu).toBeUndefined();
     expect(Konva.stages).toHaveLength(0); // no blank canvas left behind
@@ -94,7 +95,7 @@ describe("init", () => {
 
   it("destroy removes the stage and resize listener and resets the cursor", async () => {
     const removeSpy = vi.spyOn(window, "removeEventListener");
-    const menu = await init(vi.fn());
+    const menu = await init(vi.fn(), vi.fn());
     document.body.style.cursor = "pointer";
 
     menu!.destroy();

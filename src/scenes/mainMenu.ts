@@ -22,7 +22,7 @@ export function fitStageToWindow(stage: Konva.Stage): void {
 }
 
 // onStart runs when Start Game is clicked.
-export async function init(onStart: () => void): Promise<MainMenu | undefined> {
+export async function init(onStart: () => void, onLevels: () => void): Promise<MainMenu | undefined> {
   let bgImg: HTMLImageElement;
   let playImg: HTMLImageElement;
 
@@ -58,7 +58,7 @@ export async function init(onStart: () => void): Promise<MainMenu | undefined> {
 
   const buttons = [
     { label: "Start Game", onClick: onStart },
-    { label: "Levels", onClick: () => console.log("Levels clicked") },
+    { label: "Levels", onClick: onLevels },
     { label: "Options", onClick: () => console.log("Options clicked") },
   ];
 
