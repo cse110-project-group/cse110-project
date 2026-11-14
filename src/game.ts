@@ -70,7 +70,7 @@ export default class Game {
 		 * Placeholder, should be an array that contains all bounding boxes of 
 		 * obstacles (e.g. platforms), can be obtained during parsing process.
 		*/
-		let obstacles;
+		let obstacles: kv.Node[] = [];
 
 		this.player.update(deltaTime, obstacles);
 
