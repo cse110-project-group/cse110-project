@@ -66,7 +66,12 @@ Entities follow a model/controller split: the **model** holds the Konva shape an
 
 ### Collisions
 
-Each frame the game passes the game layer's children to `player.update(deltaTime, obstacles)`. Any Konva node given the name `solid` (e.g. `new Konva.Rect({ ..., name: 'solid' })`) blocks the player's horizontal movement; other nodes are ignored. `systems/collision.ts` sweeps the player's bounding box along its movement and clamps it against solid boxes, and the controller resets the player's speed when it hits one.
+Each frame the game passes the game layer's children to `player.update(deltaTime, obstacles)`. Any Konva node given the name `solid` (e.g. `new Konva.Rect({ ..., name: 'solid' })`) blocks the player's movement; other nodes are ignored. `systems/collision.ts` sweeps the player's bounding box along its movement on each axis (via `resolveMovement`) and clamps it against solid boxes, and the controller resets the player's speed when it hits one.
+
+#### Intended Designs
+
+- **Entities smaller than 1px do not collide.** Collision uses a 0.5px tolerance on each side to address floating-point error and to ignore surfaces an entity is only brushing against. Any entity under 1px in width or height ends up passing through obstacles. No current entity is this small, so this is accepted behavior.
+- **Overlapping entities can only escape vertically.** If an entity is already overlapping a solid beyond the tolerance, horizontal movement and downward movement are blocked, and only upward movement (e.g. a jump) is allowed. This prevents falling or sliding through obstacles, but it stays still until it jumps out.
 
 ### Scenes and UI
 
