@@ -21,8 +21,9 @@ The game opens on a main menu. Click **Start Game** to enter the game (the **Lev
 | --- | --- |
 | `A` / `←` | Move left |
 | `D` / `→` | Move right |
+| `Space` / `W` / `↑` | Jump (while standing on something) |
 
-The player accelerates up to a top speed and decelerates when no direction (or both directions) is held.
+The player accelerates up to a top speed and decelerates when no direction (or both directions) is held. Gravity pulls the player down onto solid obstacles.
 
 ## Project structure
 
@@ -49,10 +50,10 @@ src/
     browserStorageAdapter.ts StorageAdapter backed by localStorage
   systems/
     input.ts              tracks which keys are held down
-    collision.ts          AABB overlap checks and horizontal movement resolution
+    collision.ts          AABB overlap checks and per-axis movement resolution
     loadImage.ts          Promise-based image loader
     trigGenerator.ts      trig question sources built on RandMatQuGeA
-    physics.ts            (empty, reserved)
+    physics.ts            gravity constants and applyGravity()
 tests/                    mirrors src/ (e.g. tests/systems/input.test.ts)
   helpers/
     canvasStub.ts         stubs canvas for Konva in jsdom tests

@@ -5,6 +5,7 @@ import Input from '../../../src/systems/input.ts';
 import Player from '../../../src/entities/player/player.ts';
 import PlayerController from '../../../src/entities/player/playerController.ts';
 import PlayerModel from '../../../src/entities/player/playerModel.ts';
+import kv from 'konva';
 
 function press(code: string) {
 	window.dispatchEvent(new KeyboardEvent('keydown', { code }));
@@ -12,6 +13,11 @@ function press(code: string) {
 
 function release(code: string) {
 	window.dispatchEvent(new KeyboardEvent('keyup', { code }));
+}
+
+/** A wide solid floor whose top edge is at `y`. */
+function floorAt(y: number) {
+	return new kv.Rect({ x: -5000, y, width: 10000, height: 50, name: 'solid' });
 }
 
 describe('PlayerModel', () => {
@@ -119,10 +125,72 @@ describe('PlayerController', () => {
 		);
 	});
 
-	it('never changes vertical position', () => {
-		press('KeyA');
+	it('falls without a floor', () => {
 		for(let i = 0; i < 10; ++i) controller.update(0.1);
-		expect(model.getSprite().y()).toBe(50);
+		expect(model.getSprite().y()).toBeGreaterThan(50);
+	});
+
+	it('stays on a floor while moving sideways', () => {
+		const floor = floorAt(100);
+		press('KeyA');
+		for(let i = 0; i < 10; ++i) controller.update(0.1, [floor]);
+		expect(model.getSprite().y()).toBeCloseTo(50);
+	});
+
+	it.each(['Space', 'ArrowUp', 'KeyW'])('jumps with %s when grounded', (code) => {
+		const floor = floorAt(100);
+		controller.update(0.1, [floor]); // land first so grounded is set
+		press(code);
+		controller.update(0.1, [floor]);
+		expect(model.getSprite().y()).toBeLessThan(50);
+	});
+
+	it('reaches about JUMP_HEIGHT at the peak of a jump', () => {
+		const floor = floorAt(100);
+		controller.update(0.01, [floor]);
+		press('Space');
+		controller.update(0.01, [floor]);
+		release('Space');
+		let minY = model.getSprite().y();
+		for(let i = 0; i < 100; ++i) {
+			controller.update(0.01, [floor]);
+			minY = Math.min(minY, model.getSprite().y());
+		}
+		expect(50 - minY).toBeCloseTo(PlayerController.JUMP_HEIGHT, -1);
+		expect(model.getSprite().y()).toBeCloseTo(50);
+	});
+
+	it('cannot jump in midair', () => {
+		press('Space');
+		controller.update(0.1);
+		expect(model.getSprite().y()).toBeGreaterThan(50);
+	});
+
+	it('stops rising when hitting a ceiling', () => {
+		const floor = floorAt(100);
+		// Ceiling 20px above the player's head (top of the sprite is at 0).
+		const ceiling = new kv.Rect({
+			x: -5000, y: -40, width: 10000, height: 20, name: 'solid'
+		});
+		controller.update(0.01, [floor, ceiling]);
+		press('Space');
+		let minY = model.getSprite().y();
+		for(let i = 0; i < 20; ++i) {
+			controller.update(0.01, [floor, ceiling]);
+			minY = Math.min(minY, model.getSprite().y());
+		}
+		expect(minY).toBeCloseTo(30);
+	});
+
+	it('falls after walking off a ledge', () => {
+		const ledge = new kv.Rect({
+			x: 50, y: 100, width: 100, height: 50, name: 'solid'
+		});
+		controller.update(0.1, [ledge]);
+		expect(model.getSprite().y()).toBeCloseTo(50);
+		press('KeyD');
+		for(let i = 0; i < 10; ++i) controller.update(0.1, [ledge]);
+		expect(model.getSprite().y()).toBeGreaterThan(50);
 	});
 
 	it.each(['KeyA', 'ArrowLeft', 'KeyD', 'ArrowRight'])
