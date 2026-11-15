@@ -1,7 +1,12 @@
 import Input from '../../systems/input.ts';
 import PlayerModel from './playerModel.ts';
 import type kv from 'konva';
+<<<<<<< HEAD
 import { BoundingBox, resolveHorizontalMovement, checkAABBCollision } from '../../systems/collision.ts';
+=======
+import { BoundingBox, resolveHorizontalMovement, resolveVerticalMovement } from '../../systems/collision.ts';
+import { GRAVITY, applyGravity } from '../../systems/physics.ts';
+>>>>>>> 251d1fb (gravity, jumping, and other movement tweaks)
 
 /**
  * Moves the player in response to keyboard input.
@@ -9,8 +14,11 @@ import { BoundingBox, resolveHorizontalMovement, checkAABBCollision } from '../.
  * Each frame, {@link update} polls {@link Input} and moves the model's sprite
  * horizontally: `A` / `ArrowLeft` moves left, `D` / `ArrowRight` moves right.
  * Holding both directions at once (or neither) decelerates to a stop.
- * Movement is tracked using currSpeed, which is updated per frame depending on
- * time elapsed from last frame, denoted dt, within the move(dt) function.
+ * Movement is tracked using xSpeed, which is updated per frame depending on
+ * time elapsed from last frame, denoted dt, within the moveX(dt) function.
+ *
+ * Vertically, the player always falls under gravity (see moveY(dt)) and lands
+ * on solid obstacles. While standing on one, `Space` / `ArrowUp` / `W` jumps.
  */
 export default class PlayerController {
 	private input: Input;
@@ -20,10 +28,33 @@ export default class PlayerController {
 	public readonly SPAWN_Y: number;
 
 	/** Signed horizontal velocity, in pixels per second (negative is left). */
-	private currSpeed: number;
+	private xSpeed: number;
+	/** Signed vertical velocity, in pixels per second (negative is up). */
+	private ySpeed: number;
 
+	/** Whether the player is standing on a solid obstacle (set each frame). */
+	private grounded: boolean;
+
+<<<<<<< HEAD
 	/** Bounding box that indnicates the player hitbox */
 	public AABB: BoundingBox;
+=======
+	/** Static readonlys as constants */
+	public static readonly MAX_X_SPEED: number = 450;
+
+	/** Acceleration / deceleration for horizontal movement.
+	 * (Note: Should be relatively large to ensure snappy movement.)
+	*/
+	public static readonly X_ACCELERATION: number = 1600;
+	public static readonly X_DECELERATION: number = 4500;
+
+	/** Peak height of a jump, in pixels. */
+	public static readonly JUMP_HEIGHT = 150;
+	/** Initial upward speed needed to reach JUMP_HEIGHT under gravity. */
+	public static readonly JUMP_SPEED = Math.sqrt(
+		2 * GRAVITY * PlayerController.JUMP_HEIGHT
+	);
+>>>>>>> 251d1fb (gravity, jumping, and other movement tweaks)
 
 	/** Static readonlys as constants */
 	public static readonly MAX_X_SPEED: number = 300; 
@@ -41,6 +72,7 @@ export default class PlayerController {
 	constructor(input: Input, model: PlayerModel) {
 		this.input = input;
 		this.model = model;
+<<<<<<< HEAD
 		this.currSpeed = 0;
 
 		this.SPAWN_X = model.getSprite().x();
@@ -48,22 +80,29 @@ export default class PlayerController {
 
 		this.AABB = this.offsetBoundingBox(this.model.getBoundingBox(), 
 											this.SPAWN_X, this.SPAWN_Y);
+=======
+		this.xSpeed = 0;
+		this.ySpeed = 0;
+		this.grounded = false;
+>>>>>>> 251d1fb (gravity, jumping, and other movement tweaks)
 	}
 
 	/**
 	 * Applies one frame of movement, resolved against solid room obstacles.
 	 *
-	 * @param dt - Seconds elapsed since the last frame. 
+	 * @param dt - Seconds elapsed since the last frame.
 	 * @param obstacles - Collection of Konva nodes on the stage to test for collisions.
 	 */
 	public update(dt: number, obstacles: kv.Node[] = []): void {
-		let dx = this.move(dt);
+		const dx = this.moveX(dt);
+		const dy = this.moveY(dt);
 
-		if (dx === 0) return;
+		if(dx === 0 && dy === 0) return;
 
 		const sprite = this.model.getSprite();
 		const parent = sprite.getParent() ?? undefined;
 
+<<<<<<< HEAD
 		// const playerBox: BoundingBox = sprite.getClientRect({ relativeTo: parent });
 
 		const obstacleBoxes: BoundingBox[] = [];
@@ -87,13 +126,47 @@ export default class PlayerController {
 		const safeTopLeftX = resolveHorizontalMovement(this.AABB, dx, obstacleBoxes);
 
 		const deltaApplied = safeTopLeftX - this.AABB.x;
+=======
+		let playerBox: BoundingBox = sprite.getClientRect({
+				relativeTo: parent
+		});
+		const boundingBoxes = this.getObstacleBoxes(obstacles);
 
-		if(Math.abs(deltaApplied) < Math.abs(dx) 
-			- PlayerController.COLLISION_OFFSET) this.currSpeed = 0;
+		if(dx !== 0) {
+			const safeTopLeftX = resolveHorizontalMovement(
+				playerBox, dx, boundingBoxes
+			);
+			const deltaXApplied = safeTopLeftX - playerBox.x;
 
+			if(Math.abs(deltaXApplied) < Math.abs(dx)
+				- PlayerController.COLLISION_OFFSET) this.xSpeed = 0;
+
+			sprite.x(sprite.x() + deltaXApplied);
+		}
+
+		if(dy !== 0) {
+			if (dx !== 0)
+				playerBox = sprite.getClientRect({ relativeTo: parent });
+
+			const safeTopLeftY = resolveVerticalMovement(
+				playerBox, dy, boundingBoxes
+			);
+			const deltaYApplied = safeTopLeftY - playerBox.y;
+>>>>>>> 251d1fb (gravity, jumping, and other movement tweaks)
+
+			const blocked = Math.abs(deltaYApplied) < Math.abs(dy) - PlayerController.COLLISION_OFFSET;
+			this.grounded = blocked && dy > 0;
+			if(blocked)
+				this.ySpeed = 0;
+
+<<<<<<< HEAD
 		sprite.x(sprite.x() + deltaApplied);
 
 		this.AABB = this.offsetBoundingBox(this.AABB, dx, 0);
+=======
+			sprite.y(sprite.y() + deltaYApplied);
+		}
+>>>>>>> 251d1fb (gravity, jumping, and other movement tweaks)
 	}
 
 	/** 
@@ -126,15 +199,15 @@ export default class PlayerController {
 	}
 
 	/**
-	 * Applies movement and acceleration to the player for one frame. Updates 
-	 * currSpeed to be the calculated player speed during this frame.
-	 * 
+	 * Applies movement and acceleration to the player for one frame. Updates
+	 * xSpeed to be the calculated player speed during this frame.
+	 *
 	 * @param dt Seconds elapsed since the last frame. Movement is scaled by
 	 *   this so speed stays the same regardless of frame rate. Assumed to be
 	 *   positive and 0.1 at max.
 	 * @returns Number of pixels moved this frame.
 	 */
-	private move(dt: number): number{
+	private moveX(dt: number): number{
 		/** Assumes dt is at most 0.1 */
 		if(dt > 0.1 || dt < 0) throw new Error("Invalid delta time");
 
@@ -142,38 +215,38 @@ export default class PlayerController {
 
 		/** If both directions are pressed or not pressed, decelerate. */
 		if(this.isLeft() === this.isRight()){
-			let timeToZero = Math.abs(this.currSpeed 
+			let timeToZero = Math.abs(this.xSpeed
 									  / PlayerController.X_DECELERATION);
 			/** Always decelerate during dt */
 			if(timeToZero >= dt){
-				deltaX = 0.5 * (this.currSpeed + Math.sign(this.currSpeed) 
-						 * Math.max(0, Math.abs(this.currSpeed) 
+				deltaX = 0.5 * (this.xSpeed + Math.sign(this.xSpeed)
+						 * Math.max(0, Math.abs(this.xSpeed)
 						 - PlayerController.X_DECELERATION * dt)) * dt
-	
-				this.currSpeed = Math.sign(this.currSpeed) 
-								* Math.max(0, Math.abs(this.currSpeed) 
+
+				this.xSpeed = Math.sign(this.xSpeed)
+								* Math.max(0, Math.abs(this.xSpeed)
 								- PlayerController.X_DECELERATION * dt);
 			}
 			/** Reaches 0 during dt */
 			else{
-				deltaX = 0.5 * this.currSpeed * timeToZero;
-				this.currSpeed = 0;
+				deltaX = 0.5 * this.xSpeed * timeToZero;
+				this.xSpeed = 0;
 			}
 		}
-		
+
 		/** If only left or right is pressed, go that direction. */
 		else{
 			let sign = this.isLeft() ? -1 : 1;
 
-			if (- sign * this.currSpeed > 0){
-				let timeToZero = Math.abs(this.currSpeed 
+			if (- sign * this.xSpeed > 0){
+				let timeToZero = Math.abs(this.xSpeed
 									  	  / PlayerController.X_DECELERATION);
 				/** Always decelerate during dt */
 				if(timeToZero >= dt){
-					deltaX = 0.5 * (this.currSpeed + this.currSpeed
-							 + sign * PlayerController.X_DECELERATION * dt) 
+					deltaX = 0.5 * (this.xSpeed + this.xSpeed
+							 + sign * PlayerController.X_DECELERATION * dt)
 							 * dt
-					this.currSpeed += sign 
+					this.xSpeed += sign
 									  * PlayerController.X_DECELERATION * dt;
 				}
 				/** Decelerate then accelerate during dt */
@@ -181,37 +254,37 @@ export default class PlayerController {
 					let timeToMax = PlayerController.MAX_X_SPEED
 									/ PlayerController.X_ACCELERATION;
 					let accelTime = Math.min(dt - timeToZero, timeToMax);
-					deltaX = 0.5 * this.currSpeed * timeToZero
-							 + 0.5 * sign * PlayerController.X_ACCELERATION 
+					deltaX = 0.5 * this.xSpeed * timeToZero
+							 + 0.5 * sign * PlayerController.X_ACCELERATION
 							 * accelTime * accelTime
 					/** Reaches max during dt */
 					if(dt - timeToZero >= timeToMax){
-						deltaX += sign * PlayerController.MAX_X_SPEED 
+						deltaX += sign * PlayerController.MAX_X_SPEED
 								  * (dt - timeToZero - timeToMax)
 					}
-					this.currSpeed = sign * PlayerController.X_ACCELERATION 
+					this.xSpeed = sign * PlayerController.X_ACCELERATION
 									 * accelTime;
 				}
 			}
 			else{
-				let timeToMax = (PlayerController.MAX_X_SPEED 
-								- Math.abs(this.currSpeed))
+				let timeToMax = (PlayerController.MAX_X_SPEED
+								- Math.abs(this.xSpeed))
 								/ PlayerController.X_ACCELERATION;
 				/** Always accelerate during dt */
 				if(timeToMax >= dt){
-					deltaX = 0.5 * (this.currSpeed + this.currSpeed
+					deltaX = 0.5 * (this.xSpeed + this.xSpeed
 							 + sign * PlayerController.X_ACCELERATION * dt)
 							 * dt
-					this.currSpeed += sign 
+					this.xSpeed += sign
 									  * PlayerController.X_ACCELERATION * dt;
 				}
 				/** Accelerate and reached max during dt */
 				else{
-					deltaX = 0.5 * (this.currSpeed + sign 
+					deltaX = 0.5 * (this.xSpeed + sign
 									* PlayerController.MAX_X_SPEED) * timeToMax
-							+ sign * PlayerController.MAX_X_SPEED 
+							+ sign * PlayerController.MAX_X_SPEED
 								* (dt - timeToMax)
-					this.currSpeed = sign * PlayerController.MAX_X_SPEED;
+					this.xSpeed = sign * PlayerController.MAX_X_SPEED;
 				}
 			}
 		}
@@ -220,22 +293,76 @@ export default class PlayerController {
 	}
 
 	/**
+	 * Applies a jump (if grounded and jump is held) and one frame of gravity.
+	 * Updates ySpeed to be the player's vertical speed after this frame.
+	 *
+	 * Gravity applies even while grounded so that the floor blocking it each
+	 * frame is what keeps grounded true; walking off a ledge clears it.
+	 *
+	 * @param dt Seconds elapsed since the last frame.
+	 * @returns Number of pixels moved this frame (positive is down).
+	 */
+	private moveY(dt: number): number {
+		if(this.grounded && this.isJump()) {
+			this.ySpeed = -PlayerController.JUMP_SPEED;
+			this.grounded = false;
+		}
+
+		const {ySpeed, dy} = applyGravity(this.ySpeed, dt);
+		this.ySpeed = ySpeed;
+		return dy;
+	}
+
+	/**
+	 * Collects the bounding boxes of all solid obstacles, relative to the
+	 * player's parent so they share a coordinate space with the player's box.
+	 *
+	 * @param obstacles - Konva nodes on the stage to test for collisions.
+	 * @returns Bounding boxes of the nodes tagged `'solid'`, excluding the player.
+	 */
+	private getObstacleBoxes(obstacles: kv.Node[]): BoundingBox[] {
+		const sprite = this.model.getSprite();
+		const parent = sprite.getParent() ?? undefined;
+
+		const boxes: BoundingBox[] = []
+		for (const node of obstacles) {
+			if (node === sprite) continue;
+			// If obstacles are tagged with 'solid'  check here:
+			if (node.hasName('solid')) {
+				boxes.push(node.getClientRect({ relativeTo: parent }));
+			}
+		}
+		return boxes;
+	}
+
+	/**
 	 * Checks whether any "left" button is pressed in Input.
-	 * 
+	 *
 	 * @returns whether any "left" button is pressed
 	 */
-	private isLeft(){
-		return this.input.isKeyDown('KeyA') 
+	private isLeft() {
+		return this.input.isKeyDown('KeyA')
 				|| this.input.isKeyDown('ArrowLeft');
 	}
 
 	/**
 	 * Checks whether any "right" button is pressed in Input.
-	 * 
+	 *
 	 * @returns whether any "right" button is pressed
 	 */
-	private isRight(){
-		return this.input.isKeyDown('KeyD') 
+	private isRight() {
+		return this.input.isKeyDown('KeyD')
 				|| this.input.isKeyDown('ArrowRight');
+	}
+
+	/**
+	 * Checks whether any "jump" button is pressed in Input.
+	 *
+	 * @returns whether any "jump" button is pressed
+	 */
+	private isJump() {
+		return this.input.isKeyDown('Space')
+				|| this.input.isKeyDown('ArrowUp')
+				|| this.input.isKeyDown('KeyW');
 	}
 }
