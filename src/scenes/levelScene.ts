@@ -5,6 +5,11 @@ import { fitStageToWindow } from "./mainMenu";
 
 const WIDTH = 1280;
 const HEIGHT = 720;
+const LEVEL_TEXT_OFFSET_Y = -27;
+
+let levelAssetsPromise:
+  | Promise<[HTMLImageElement, HTMLImageElement, HTMLImageElement]>
+  | undefined;
 
 // The running level screen and its cleanup function.
 export interface LevelSelect {
@@ -22,15 +27,20 @@ export async function initLevelSelect(
 
   // Load images before creating the Stage.
   try {
-    [bgImg, buttonImg, Locked_LevelImg] = await Promise.all([
+  if (!levelAssetsPromise) {
+    levelAssetsPromise = Promise.all([
       loadImage("/assets/background2.png"),
-      loadImage('/assets/button.png'),
+      loadImage("/assets/button.png"),
       loadImage("/assets/Locked_Level.png"),
     ]);
-  } catch (err) {
-    console.error(err);
-    return undefined;
   }
+
+  [bgImg, buttonImg, Locked_LevelImg] = await levelAssetsPromise;
+} catch (err) {
+  levelAssetsPromise = undefined;
+  console.error(err);
+  return undefined;
+}
 
   // Create the Stage and Layer.
   const stage = new Konva.Stage({
@@ -89,20 +99,23 @@ export async function initLevelSelect(
     const x = startX + col * gapX;
     const y = startY + row * gapY;
 
-    levelLayer.add(
-      createButton({
-        image: Locked_LevelImg,
-        label: `Level ${level}`,
-        x,
-        y,
-        width: btnW,
-        height: btnH,
-        textOffsetY: -27,
-        onClick: () => console.log(`Level ${level} clicked`),
-      })
-    );
-  }
+    const levelButton = createButton({
+      image: Locked_LevelImg,
+      label: `Level ${level}`,
+      x,
+      y,
+      width: btnW,
+      height: btnH,
+      textOffsetY: LEVEL_TEXT_OFFSET_Y,
+      onClick: () => {},
+    });
 
+    levelButton.listening(false);
+
+    levelLayer.add(levelButton);
+    
+  }
+  
   // Create a Back button.
   levelLayer.add(
     createButton({
@@ -134,4 +147,23 @@ export async function initLevelSelect(
       stage.destroy();
     },
   };
+}
+
+export async function preloadLevelAssets(): Promise<boolean> {
+  try {
+    if (!levelAssetsPromise) {
+      levelAssetsPromise = Promise.all([
+        loadImage("/assets/background2.png"),
+        loadImage("/assets/button.png"),
+        loadImage("/assets/Locked_Level.png"),
+      ]);
+    }
+
+    await levelAssetsPromise;
+    return true;
+  } catch (err) {
+    levelAssetsPromise = undefined;
+    console.error(err);
+    return false;
+  }
 }
