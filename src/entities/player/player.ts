@@ -18,7 +18,7 @@ import type kv from 'konva';
 export default class Player {
 	model: PlayerModel;
 	controller: PlayerController;
-	
+
 	/**
 	 * @param input - Shared input tracker the controller polls.
 	 * @param x - Starting x position, in pixels.
@@ -42,5 +42,9 @@ export default class Player {
 	 */
 	public update(deltaTime: number, obstacles: kv.Node[] = []) {
 		this.controller.update(deltaTime, obstacles);
+	}
+
+	public getAABB(): BoundingBox{
+		return this.controller.AABB;
 	}
 }

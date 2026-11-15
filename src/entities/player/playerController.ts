@@ -23,7 +23,7 @@ export default class PlayerController {
 	private currSpeed: number;
 
 	/** Bounding box that indnicates the player hitbox */
-	private AABB: BoundingBox;
+	public AABB: BoundingBox;
 
 	/** Static readonlys as constants */
 	public static readonly MAX_X_SPEED: number = 300; 
@@ -121,7 +121,6 @@ export default class PlayerController {
 			height: height === undefined ? this.AABB.height : height,
 		}
 	}
-
 
 	/**
 	 * Applies movement and acceleration to the player for one frame. Updates 
