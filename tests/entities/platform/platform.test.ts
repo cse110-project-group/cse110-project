@@ -8,6 +8,8 @@ import Platformontroller from '../../../src/entities/platform/platformController
 import PlatformModel from '../../../src/entities/platform/platformModel.ts';
 import Player from '../../../src/entities/player/player.ts';
 import { resolveHorizontalMovement } from '../../../src/systems/collision.ts';
+import PlayerModel from '../../../src/entities/player/playerModel.ts';
+import PlayerController from '../../../src/entities/player/playerController.ts';
 
 describe('Platform', () => {
 
@@ -29,7 +31,7 @@ describe('Platform', () => {
         const platform = new Platform(300, 510, 210, 600);
         const player = new Player(new Input(), 600, 800);
         const dx = -150;
-        const resolvedX = resolveHorizontalMovement(player.AABB, dx, [platform.AABB]);
+        const resolvedX = resolveHorizontalMovement(player.getAABB(), dx, [platform.AABB]);
         expect(resolvedX).toBe(510);
     });
 

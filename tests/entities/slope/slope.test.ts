@@ -12,8 +12,8 @@ import { LineConfig } from 'konva/lib/shapes/Line';
 describe('Slope', () => {
     it("gets instantiated and shows sprite correctly", () => {
         const slope = new Slope(new Input(), 100, 100, 600, 300);
-        expect(slope.getSprite().x()).toBe(100);
-        expect(slope.getSprite().y()).toBe(100);
+        expect(slope.getSprite().x()).toBe(0);
+        expect(slope.getSprite().y()).toBe(0);
         let endpoints = slope.getSprite().getChildren(function(node){
             return node.getClassName() === 'Ellipse';
         });
@@ -22,7 +22,7 @@ describe('Slope', () => {
         let line = slope.getSprite().getChildren(function(node){
             return node.getClassName() === 'Line';
         });
-        expect(line[0].getAttrs()["points"]).toStrictEqual([0, 0, 600, 300]);
+        expect(line[0].getAttrs()["points"]).toStrictEqual([100, 100, 700, 400]);
         expect(slope.AABB).toStrictEqual({x: -1, y: -1, width: -1, height: -1});
     });
 });
