@@ -22,6 +22,9 @@ export default class PlayerController {
 	/** Signed horizontal velocity, in pixels per second (negative is left). */
 	private currSpeed: number;
 
+	/** Bounding box that indnicates the player hitbox */
+	private AABB: BoundingBox;
+
 	/** Static readonlys as constants */
 	public static readonly MAX_X_SPEED: number = 300; 
 	/** Acceleration / deceleration for horizontal movement. 
@@ -35,10 +38,17 @@ export default class PlayerController {
 	 * @param input - Shared input manager to poll key frame.
 	 * @param model - The player model whose sprite this controller moves.
 	 */
-	constructor(input: Input, model: PlayerModel) {
+	constructor(input: Input, model: PlayerModel, x: number, y: number) {
 		this.input = input;
 		this.model = model;
 		this.currSpeed = 0;
+
+		this.AABB = {
+			x: x - PlayerModel.SPRITE_RADIUS_X, 
+			y: y - PlayerModel.SPRITE_RADIUS_Y,
+			width: PlayerModel.SPRITE_RADIUS_X * 2,
+			height: PlayerModel.SPRITE_RADIUS_Y * 2
+		};
 
 		this.SPAWN_X = model.getSprite().x();
 		this.SPAWN_Y = model.getSprite().y();
@@ -77,6 +87,12 @@ export default class PlayerController {
 			- PlayerController.COLLISION_OFFSET) this.currSpeed = 0;
 
 		sprite.x(sprite.x() + deltaApplied);
+		this.updateAABB(
+			this.model.getSprite().x() - PlayerModel.SPRITE_RADIUS_X, 
+			this.model.getSprite().y() - PlayerModel.SPRITE_RADIUS_Y,
+			PlayerModel.SPRITE_RADIUS_X * 2,
+			PlayerModel.SPRITE_RADIUS_Y * 2
+		);
 	}
 
 	/** 
@@ -85,7 +101,25 @@ export default class PlayerController {
 	public respawn(){
 		this.model.getSprite().x(this.SPAWN_X);
 		this.model.getSprite().y(this.SPAWN_Y);
+		this.updateAABB(this.SPAWN_X, this.SPAWN_Y);
 		this.currSpeed = 0;
+	}
+
+	/**
+	 * Updates the player hitbox parameters using new values.
+	 * 
+	 * @param x - New x position of the bounding box, in pixels.
+	 * @param y - New Y position of the bounding box, in pixels.
+	 * @param width - New width of the bounding box, in pixels.
+	 * @param height - New height of the bounding box, in pixels.
+	 */
+	public updateAABB(x?: number, y?: number, width?: number, height?: number){
+		this.AABB = {
+			x: x === undefined ? this.AABB.x : x,
+			y: y === undefined ? this.AABB.y : y,
+			width: width === undefined ? this.AABB.width : width,
+			height: height === undefined ? this.AABB.height : height,
+		}
 	}
 
 

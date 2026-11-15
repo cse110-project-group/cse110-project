@@ -1,5 +1,4 @@
 import kv from 'konva';
-import Player from './player';
 
 /**
  * Holds the player's visual state: the Konva shape drawn on the game layer.
@@ -11,6 +10,10 @@ export default class PlayerModel {
 	/** Konva shape representing the player. Its position is the player's position. */
 	private sprite: kv.Ellipse;
 
+	public static readonly SPRITE_RADIUS_X = 25;
+	public static readonly SPRITE_RADIUS_Y = 50;
+
+
 	/**
 	 * @param x - Initial x position of the sprite's center, in pixels.
 	 * @param y - Initial y position of the sprite's center, in pixels.
@@ -19,8 +22,8 @@ export default class PlayerModel {
 		this.sprite = new kv.Ellipse({
 			x: x,
 			y: y,
-			radiusX: Player.SPRITE_RADIUS_X,
-			radiusY: Player.SPRITE_RADIUS_Y,
+			radiusX: PlayerModel.SPRITE_RADIUS_X,
+			radiusY: PlayerModel.SPRITE_RADIUS_Y,
 			fill: 'gray',
 		});
 

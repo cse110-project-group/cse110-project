@@ -46,23 +46,34 @@ export default class SlopeModel {
      * endpoints), in pixels.
      */
     public updateSprite(x: number, y: number, width: number, height: number) {
-        this.sprite = this.constructSprite(x, y, width, height);
+        let line = this.sprite.getChildren(function(node){
+            return node.getClassName() === 'Line';
+        });
+        line[0].setAttrs({points: [x, y, x + width, y + height]});
+
+        let endpoints = this.sprite.getChildren(function(node){
+            return node.getClassName() === 'Ellipse';
+        });
+        endpoints[0].x(x);
+        endpoints[0].y(y);
+        endpoints[1].x(x + width);
+        endpoints[1].y(y + height);
     }
 
     private constructSprite(x: number, y: number, 
                             width: number, height: number): kv.Group{
         let sprite = new kv.Group({
-            x: x,
-            y: y
+            x: 0,
+            y: 0
         })
         let line = new kv.Line({
-            points: [0, 0, width, height],
+            points: [x, y, x + width, y + height],
             stroke: SlopeModel.SLOPE_STROKE_COLOR,
             strokeWidth: Slope.SLOPE_STROKE_WIDTH
         });
         let endpoint1 = new kv.Ellipse({
-            x: 0,
-            y: 0,
+            x: x,
+            y: y,
             radiusX: SlopeModel.ENDPOINT_RADIUS,
             radiusY: SlopeModel.ENDPOINT_RADIUS,
             fill: SlopeModel.ENDPOINT_FILL,
@@ -70,8 +81,8 @@ export default class SlopeModel {
             strokeWidth: SlopeModel.ENDPOINT_STROKE_WIDTH
         })
         let endpoint2 = new kv.Ellipse({
-            x: width,
-            y: height,
+            x: x + width,
+            y: y + height,
             radiusX: SlopeModel.ENDPOINT_RADIUS,
             radiusY: SlopeModel.ENDPOINT_RADIUS,
             fill: SlopeModel.ENDPOINT_FILL,
