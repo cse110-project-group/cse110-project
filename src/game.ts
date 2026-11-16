@@ -2,7 +2,6 @@ import Input from './systems/input.ts';
 import kv from 'konva';
 import Player from './entities/player/player.ts';
 import { NodeConfig } from 'konva/lib/Node';
-import Spikes from './entities/spikes/spikes.ts';
 
 /**
  * Top-level game object. Creates the Konva stage, owns the shared
@@ -48,9 +47,6 @@ export default class Game {
 			this.input, this.stage.width()/2, this.stage.height()/2
 		);
 
-		let spikes = new Spikes(1080, 510, 210);
-
-		this.gameLayer.add(spikes.getSprite());
 		this.gameLayer.add(this.player.getSprite());
 		
 		this.gameLayer.draw();
