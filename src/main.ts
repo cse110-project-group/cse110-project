@@ -11,64 +11,82 @@ async function main() {
 
     let transitioning = false;
 
-    async function showMainMenu() {
-        if (transitioning) return;
-        transitioning = true;
+    
+async function showMainMenu() {
+    if (transitioning) return;
+    transitioning = true;
 
-       try {
-            // FIX: Load assets before destroying the level screen.
-            const loaded = await preloadMainMenuAssets();
-            if (!loaded) return;
+    try {
+        // Load assets before destroying the level screen.
+        const loaded = await preloadMainMenuAssets();
+        if (!loaded) return;
 
-            levelScreen?.destroy();
-            levelScreen = undefined;
+        levelScreen?.destroy();
+        levelScreen = undefined;
 
-            menu = await init(
-                () => {
-                    // EXISTING: Start Game behavior.
-                    if (transitioning) return;
-                    transitioning = true;
+        const newMenu = await init(
+            () => {
+                // EXISTING: Start Game behavior.
+                if (transitioning) return;
+                transitioning = true;
 
-                    menu?.destroy();
-                    menu = undefined;
+                menu?.destroy();
+                menu = undefined;
 
-                    const game = new Game();
-                    game.start();
-                },
-                () => {
-                    // Open the Level Selection screen.
-                    void showLevelScreen();
-                }
-            );
-        } catch (err) {
-            console.error("Failed to open main menu:", err);
-        } finally {
-            transitioning = false;
+                const game = new Game();
+                game.start();
+            },
+            () => {
+                // Open the Level Selection screen.
+                void showLevelScreen();
+            }
+        );
+
+        if (!newMenu) {
+            console.error("Main menu failed to initialize.");
+            return;
         }
+
+        menu = newMenu;
+    } catch (err) {
+        console.error("Failed to open main menu:", err);
+    } finally {
+        transitioning = false;
     }
+}
 
-	async function showLevelScreen() {
-        if (transitioning) return;
-        transitioning = true;
 
-        try {
-            // FIX: Load assets before destroying the main menu.
-            const loaded = await preloadLevelAssets();
-            if (!loaded) return;
+	
+async function showLevelScreen() {
+    if (transitioning) return;
+    transitioning = true;
 
-            menu?.destroy();
-            menu = undefined;
+    try {
+        // Load assets before destroying the main menu.
+        const loaded = await preloadLevelAssets();
+        if (!loaded) return;
 
-            levelScreen = await initLevelSelect(() => {
-                // Return to the Main Menu when Back is clicked.
-                void showMainMenu();
-            });
-        } catch (err) {
-            console.error("Failed to open level screen:", err);
-        } finally {
-            transitioning = false;
+        menu?.destroy();
+        menu = undefined;
+
+        const newLevelScreen = await initLevelSelect(() => {
+            // Return to the Main Menu when Back is clicked.
+            void showMainMenu();
+        });
+
+        if (!newLevelScreen) {
+            console.error("Level screen failed to initialize.");
+            return;
         }
+
+        levelScreen = newLevelScreen;
+    } catch (err) {
+        console.error("Failed to open level screen:", err);
+    } finally {
+        transitioning = false;
     }
+}
+
 
     await showMainMenu();
 }
