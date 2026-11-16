@@ -5,7 +5,7 @@ import { createScene } from "./sceneUtils";
 
 const WIDTH = 1280;
 const HEIGHT = 720;
-const LEVEL_TEXT_OFFSET_Y = -27;
+
 
 let levelAssetsPromise:
   | Promise<[HTMLImageElement, HTMLImageElement, HTMLImageElement]>
@@ -111,7 +111,7 @@ export async function initLevelSelect(
       y,
       width: btnW,
       height: btnH,
-      textOffsetY: LEVEL_TEXT_OFFSET_Y,
+      labelPosition: "above",
       onClick: () => {},
     });
 

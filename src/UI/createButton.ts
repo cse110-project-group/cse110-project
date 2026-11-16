@@ -12,6 +12,7 @@ interface ButtonOptions {
   width: number;
   height: number;
   textOffsetY?: number;
+  labelPosition?: "above" | "center";
   onClick: () => void;
 }
 
