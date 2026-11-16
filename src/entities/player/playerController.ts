@@ -1,12 +1,8 @@
 import Input from '../../systems/input.ts';
 import PlayerModel from './playerModel.ts';
 import type kv from 'konva';
-<<<<<<< HEAD
-import { BoundingBox, resolveHorizontalMovement, checkAABBCollision } from '../../systems/collision.ts';
-=======
-import { BoundingBox, resolveHorizontalMovement, resolveVerticalMovement } from '../../systems/collision.ts';
+import { BoundingBox, resolveHorizontalMovement, resolveVerticalMovement, checkAABBCollision } from '../../systems/collision.ts';
 import { GRAVITY, applyGravity } from '../../systems/physics.ts';
->>>>>>> 251d1fb (gravity, jumping, and other movement tweaks)
 
 /**
  * Moves the player in response to keyboard input.
@@ -44,10 +40,8 @@ export default class PlayerController {
 	/** Whether the current jump can still be cut short by releasing jump. */
 	private jumpCuttable: boolean = false;
 
-<<<<<<< HEAD
 	/** Bounding box that indnicates the player hitbox */
 	public AABB: BoundingBox;
-=======
 	/** Static readonlys as constants */
 	public static readonly MAX_X_SPEED: number = 450;
 
@@ -63,17 +57,7 @@ export default class PlayerController {
 	public static readonly JUMP_SPEED = Math.sqrt(
 		2 * GRAVITY * PlayerController.JUMP_HEIGHT
 	);
->>>>>>> 251d1fb (gravity, jumping, and other movement tweaks)
 
-<<<<<<< HEAD
-	/** Static readonlys as constants */
-	public static readonly MAX_X_SPEED: number = 300; 
-	/** Acceleration / deceleration for horizontal movement. 
-	 * (Note: Should be relatively large to ensure snappy movement.) */
-	public static readonly X_ACCELERATION: number = 1800;
-	public static readonly X_DECELERATION: number = 3600;
-	/** Collision offset for handling speed changes due to collisions. */
-=======
 	/** Seconds after leaving the ground during which the player can still jump. */
 	public static readonly COYOTE_TIME = 0.1;
 	/** Seconds before landing during which a jump press is remembered. */
@@ -85,7 +69,6 @@ export default class PlayerController {
 	 */
 	public static readonly JUMP_CUT = 0.5;
 
->>>>>>> 111a61e (coyote time, jump buffering, and variable jump height)
 	private static readonly COLLISION_OFFSET = 1e-6;
 
 	/**
@@ -95,22 +78,15 @@ export default class PlayerController {
 	constructor(input: Input, model: PlayerModel) {
 		this.input = input;
 		this.model = model;
-<<<<<<< HEAD
-<<<<<<< HEAD
-		this.currSpeed = 0;
 
 		this.SPAWN_X = model.getSprite().x();
 		this.SPAWN_Y = model.getSprite().y();
 
 		this.AABB = this.offsetBoundingBox(this.model.getBoundingBox(), 
 											this.SPAWN_X, this.SPAWN_Y);
-=======
 		this.xSpeed = 0;
 		this.ySpeed = 0;
 		this.grounded = false;
->>>>>>> 251d1fb (gravity, jumping, and other movement tweaks)
-=======
->>>>>>> 111a61e (coyote time, jump buffering, and variable jump height)
 	}
 
 	/**
@@ -128,7 +104,6 @@ export default class PlayerController {
 		const sprite = this.model.getSprite();
 		const parent = sprite.getParent() ?? undefined;
 
-<<<<<<< HEAD
 		// const playerBox: BoundingBox = sprite.getClientRect({ relativeTo: parent });
 
 		const obstacleBoxes: BoundingBox[] = [];
@@ -143,20 +118,17 @@ export default class PlayerController {
 				let boundingBox = node.getClientRect({ relativeTo: parent });
 				if(checkAABBCollision(this.AABB, boundingBox)){
 					this.respawn();
-					this.currSpeed = 0;
+					this.xSpeed = 0;
 					return;
 				}
 			}
 		}
 
-		const safeTopLeftX = resolveHorizontalMovement(this.AABB, dx, obstacleBoxes);
+		const boundingBoxes = this.getObstacleBoxes(obstacles);
 
-		const deltaApplied = safeTopLeftX - this.AABB.x;
-=======
 		let playerBox: BoundingBox = sprite.getClientRect({
 				relativeTo: parent
 		});
-		const boundingBoxes = this.getObstacleBoxes(obstacles);
 
 		if(dx !== 0) {
 			const safeTopLeftX = resolveHorizontalMovement(
@@ -178,32 +150,25 @@ export default class PlayerController {
 				playerBox, dy, boundingBoxes
 			);
 			const deltaYApplied = safeTopLeftY - playerBox.y;
->>>>>>> 251d1fb (gravity, jumping, and other movement tweaks)
 
 			const blocked = Math.abs(deltaYApplied) < Math.abs(dy) - PlayerController.COLLISION_OFFSET;
 			this.grounded = blocked && dy > 0;
 			if(blocked)
 				this.ySpeed = 0;
 
-<<<<<<< HEAD
-		sprite.x(sprite.x() + deltaApplied);
-
-		this.AABB = this.offsetBoundingBox(this.AABB, dx, 0);
-=======
 			sprite.y(sprite.y() + deltaYApplied);
 		}
->>>>>>> 251d1fb (gravity, jumping, and other movement tweaks)
 	}
 
 	/** 
-	 * Respawn player at level spawn after death and sets currSpeed to 0. 
+	 * Respawn player at level spawn after death and sets xSpeed to 0. 
 	 */
 	public respawn(){
 		this.model.getSprite().x(this.SPAWN_X);
 		this.model.getSprite().y(this.SPAWN_Y);
 		this.AABB = this.offsetBoundingBox(this.model.getBoundingBox(), 
 											this.SPAWN_X, this.SPAWN_Y);
-		this.currSpeed = 0;
+		this.xSpeed = 0;
 	}
 
 	/**
