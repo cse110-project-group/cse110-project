@@ -1,7 +1,7 @@
 import Input from '../../systems/input.ts';
 import PlayerModel from './playerModel.ts';
 import type kv from 'konva';
-import { BoundingBox, resolveHorizontalMovement } from '../../systems/collision.ts';
+import { BoundingBox, resolveHorizontalMovement, checkAABBCollision } from '../../systems/collision.ts';
 
 /**
  * Moves the player in response to keyboard input.
@@ -67,11 +67,20 @@ export default class PlayerController {
 		// const playerBox: BoundingBox = sprite.getClientRect({ relativeTo: parent });
 
 		const obstacleBoxes: BoundingBox[] = [];
+
 		for (const node of obstacles) {
 			if (node === sprite) continue;
 			// If obstacles are tagged with 'solid'  check here:
 			if (node.hasName('solid')) {
 				obstacleBoxes.push(node.getClientRect({ relativeTo: parent }));
+			}
+			else if (node.hasName('spikes')){
+				let boundingBox = node.getClientRect({ relativeTo: parent });
+				if(checkAABBCollision(this.AABB, boundingBox)){
+					this.respawn();
+					this.currSpeed = 0;
+					return;
+				}
 			}
 		}
 
@@ -84,8 +93,7 @@ export default class PlayerController {
 
 		sprite.x(sprite.x() + deltaApplied);
 
-		this.AABB = this.offsetBoundingBox(this.model.getBoundingBox(), 
-											this.SPAWN_X, this.SPAWN_Y);
+		this.AABB = this.offsetBoundingBox(this.AABB, dx, 0);
 	}
 
 	/** 
@@ -108,7 +116,7 @@ export default class PlayerController {
 	 * @returns A new bounding box with the same width and height as box, but
 	 * offsetted x pixels to the right and y pixels downwards. 
 	 */
-	public offsetBoundingBox(box: BoundingBox, x: number, y: number): BoundingBox{
+	private offsetBoundingBox(box: BoundingBox, x: number, y: number): BoundingBox{
 		return {
 			x: box.x + x,
 			y: box.y + y,

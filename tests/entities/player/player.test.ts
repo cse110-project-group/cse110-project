@@ -140,7 +140,7 @@ describe('PlayerController', () => {
 		for(let i = 0; i < 100; ++i) controller.update(0.005);
 		let modelX2 = model.getSprite().x();
 		expect(modelX1).toBeCloseTo(modelX2);
-	})
+	});
 
 	it.each([['KeyA', 'ArrowLeft'], ['KeyD', 'ArrowRight']])
 			('changes movement independent of framerate', (code1, code2) => {
@@ -161,7 +161,7 @@ describe('PlayerController', () => {
 		release(code2);
 		let modelX2 = model.getSprite().x();
 		expect(modelX1).toBeCloseTo(modelX2);
-	})
+	});
 
 	it.each([['KeyA', 'ArrowLeft'], ['KeyD', 'ArrowRight']])
 			('moves without getting affected by changing framerate', 
@@ -201,7 +201,27 @@ describe('PlayerController', () => {
 		release(code1);
 		let modelX2 = model.getSprite().x();
 		expect(modelX1).toBeCloseTo(modelX2);
-	})
+	});
+
+	it("respawns the player correctly", () => {
+		press("KeyD");
+		for(let i = 0; i < 10; ++i) controller.update(0.1);
+		release("KeyD");
+		for(let i = 0; i < 10; ++i) controller.update(0.1);
+		expect(model.getSprite().x()).toBeGreaterThan(100);
+		
+		controller.respawn();
+		expect(model.getSprite().x()).toBe(100);
+		expect(model.getSprite().y()).toBe(50);
+		expect(model.getSprite().width()).toBe(PlayerModel.SPRITE_RADIUS_X * 2);
+		expect(model.getSprite().height()).toBe(PlayerModel.SPRITE_RADIUS_Y * 2);
+		expect(controller.AABB).toStrictEqual({
+			x: 100 - PlayerModel.SPRITE_RADIUS_X, 
+			y: 50 - PlayerModel.SPRITE_RADIUS_Y,
+			width: PlayerModel.SPRITE_RADIUS_X * 2,
+			height: PlayerModel.SPRITE_RADIUS_Y * 2,
+		});
+	});
 });
 
 describe('Player', () => {

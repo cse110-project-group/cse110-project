@@ -26,7 +26,8 @@ export default class SpikesModel {
     constructor(x: number, y: number, width: number) {
         this.sprite = new kv.Group({
             x: x,
-            y: y
+            y: y,
+            name: 'spikes'
         });
         for(let i = 0; i < width / Game.GRID_UNIT; ++i){
             let tri = new kv.Line({

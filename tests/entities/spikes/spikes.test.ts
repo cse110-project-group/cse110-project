@@ -6,7 +6,16 @@ import Spikes from '../../../src/entities/spikes/spikes.ts';
 import SpikesController from '../../../src/entities/spikes/spikesController.ts';
 import SpikesModel from '../../../src/entities/spikes/spikesModel.ts';
 import Player from '../../../src/entities/player/player.ts';
+import PlayerModel from '../../../src/entities/player/playerModel.ts';
 import Game from '../../../src/game.ts';
+
+function press(code: string) {
+	window.dispatchEvent(new KeyboardEvent('keydown', { code }));
+}
+
+function release(code: string) {
+	window.dispatchEvent(new KeyboardEvent('keyup', { code }));
+}
 
 describe('Spikes', () => {
     it("gets instantiated and shows sprite correctly", () => {
@@ -42,6 +51,22 @@ describe('Spikes', () => {
                     "Invalid width, should be an integer multiple of grid unit length. (Maybe calculation error?)");    
             }
     ); 
+
+    it("kills the player and forces a respawn", () => {
+        const spikes = new Spikes(210, 210, 510);
+        const player = new Player(new Input(), 200, 210);
+        press("KeyD");
+        player.controller.update(0.1, [spikes.model.getSprite()]);
+        release("KeyD");
+        expect(player.getSprite().x()).toBe(200);
+        expect(player.getSprite().y()).toBe(210);
+        expect(player.getAABB()).toStrictEqual({
+            x: 200 - PlayerModel.SPRITE_RADIUS_X,
+            y: 210 - PlayerModel.SPRITE_RADIUS_Y,
+            width: PlayerModel.SPRITE_RADIUS_X * 2,
+            height: PlayerModel.SPRITE_RADIUS_Y * 2
+        })
+    });
 });
 
 describe('SpikesModel', () => {
