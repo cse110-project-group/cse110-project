@@ -11,6 +11,21 @@ let levelAssetsPromise:
   | Promise<[HTMLImageElement, HTMLImageElement, HTMLImageElement]>
   | undefined;
 
+  function loadLevelAssets() {
+  if (!levelAssetsPromise) {
+    levelAssetsPromise = Promise.all([
+      loadImage("/assets/background2.png"),
+      loadImage("/assets/button.png"),
+      loadImage("/assets/Locked_Level.png"),
+    ]).catch((err) => {
+      levelAssetsPromise = undefined;
+      throw err;
+    });
+  }
+
+  return levelAssetsPromise;
+}
+
 // The running level screen and its cleanup function.
 export interface LevelSelect {
   stage: Konva.Stage;
@@ -27,17 +42,8 @@ export async function initLevelSelect(
 
   // Load images before creating the Stage.
   try {
-  if (!levelAssetsPromise) {
-    levelAssetsPromise = Promise.all([
-      loadImage("/assets/background2.png"),
-      loadImage("/assets/button.png"),
-      loadImage("/assets/Locked_Level.png"),
-    ]);
-  }
-
-  [bgImg, buttonImg, Locked_LevelImg] = await levelAssetsPromise;
+  [bgImg, buttonImg, Locked_LevelImg] = await loadLevelAssets();
 } catch (err) {
-  levelAssetsPromise = undefined;
   console.error(err);
   return undefined;
 }
@@ -151,18 +157,9 @@ export async function initLevelSelect(
 
 export async function preloadLevelAssets(): Promise<boolean> {
   try {
-    if (!levelAssetsPromise) {
-      levelAssetsPromise = Promise.all([
-        loadImage("/assets/background2.png"),
-        loadImage("/assets/button.png"),
-        loadImage("/assets/Locked_Level.png"),
-      ]);
-    }
-
-    await levelAssetsPromise;
+    await loadLevelAssets();
     return true;
   } catch (err) {
-    levelAssetsPromise = undefined;
     console.error(err);
     return false;
   }

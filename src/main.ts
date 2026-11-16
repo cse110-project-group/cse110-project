@@ -1,7 +1,7 @@
 import Game from './game.ts'
-import { init } from './scenes/mainMenu.ts'
+import { init, preloadMainMenuAssets } from './scenes/mainMenu.ts'
 import type { MainMenu } from './scenes/mainMenu.ts'
-import { initLevelSelect } from './scenes/levelScene.ts'
+import { initLevelSelect, preloadLevelAssets } from './scenes/levelScene.ts'
 import type { LevelSelect } from './scenes/levelScene.ts'
 
 async function main() {
@@ -9,35 +9,68 @@ async function main() {
 
 	let levelScreen: LevelSelect | undefined;
 
-	async function showMainMenu() {
-        menu = await init(
-            () => {
-                // EXISTING: Start Game behavior.
-                menu?.destroy();
+    let transitioning = false;
 
-                const game = new Game();
-                game.start();
-            },
-			() => {
-                menu?.destroy();
-                menu = undefined;
+    async function showMainMenu() {
+        if (transitioning) return;
+        transitioning = true;
 
-                // Open the Level Selection screen.
-                void showLevelScreen();
-            }
-        );
-    }
+       try {
+            // FIX: Load assets before destroying the level screen.
+            const loaded = await preloadMainMenuAssets();
+            if (!loaded) return;
 
-	async function showLevelScreen() {
-        levelScreen = await initLevelSelect(() => {
             levelScreen?.destroy();
             levelScreen = undefined;
 
-            // Return to the Main Menu when Back is clicked.
-            void showMainMenu();
-        });
+            menu = await init(
+                () => {
+                    // EXISTING: Start Game behavior.
+                    if (transitioning) return;
+                    transitioning = true;
+
+                    menu?.destroy();
+                    menu = undefined;
+
+                    const game = new Game();
+                    game.start();
+                },
+                () => {
+                    // Open the Level Selection screen.
+                    void showLevelScreen();
+                }
+            );
+        } catch (err) {
+            console.error("Failed to open main menu:", err);
+        } finally {
+            transitioning = false;
+        }
     }
-	await showMainMenu();
+
+	async function showLevelScreen() {
+        if (transitioning) return;
+        transitioning = true;
+
+        try {
+            // FIX: Load assets before destroying the main menu.
+            const loaded = await preloadLevelAssets();
+            if (!loaded) return;
+
+            menu?.destroy();
+            menu = undefined;
+
+            levelScreen = await initLevelSelect(() => {
+                // Return to the Main Menu when Back is clicked.
+                void showMainMenu();
+            });
+        } catch (err) {
+            console.error("Failed to open level screen:", err);
+        } finally {
+            transitioning = false;
+        }
+    }
+
+    await showMainMenu();
 }
 
 main();

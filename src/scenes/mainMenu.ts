@@ -7,6 +7,38 @@ import { createButton } from "../UI/createButton";
 const WIDTH = 1280;
 const HEIGHT = 720;
 
+
+let mainMenuAssetsPromise:
+  | Promise<[HTMLImageElement, HTMLImageElement]>
+  | undefined;
+
+// Load images once and reuse them when returning to the menu.
+function loadMainMenuAssets() {
+  if (!mainMenuAssetsPromise) {
+    mainMenuAssetsPromise = Promise.all([
+      loadImage("/assets/background2.png"),
+      loadImage("/assets/button.png"),
+    ]).catch((err) => {
+      mainMenuAssetsPromise = undefined;
+      throw err;
+    });
+  }
+
+  return mainMenuAssetsPromise;
+}
+
+// Check that menu images load before switching scenes.
+export async function preloadMainMenuAssets(): Promise<boolean> {
+  try {
+    await loadMainMenuAssets();
+    return true;
+  } catch (err) {
+    console.error(err);
+    return false;
+  }
+}
+
+
 // The running menu: its stage, and a way to tear everything down.
 export interface MainMenu {
   stage: Konva.Stage;
@@ -28,14 +60,11 @@ export async function init(onStart: () => void, onLevels: () => void): Promise<M
 
   // Load images before creating the stage, so a failed load leaves no blank canvas.
   try {
-    [bgImg, playImg] = await Promise.all([
-      loadImage("/assets/background2.png"),
-      loadImage("/assets/button.png"),
-    ]);
-  } catch (err) {
-    console.error(err);
-    return undefined;
-  }
+  [bgImg, playImg] = await loadMainMenuAssets();
+} catch (err) {
+  console.error(err);
+  return undefined;
+}
 
   const stage = new Konva.Stage({
     container: "container",
