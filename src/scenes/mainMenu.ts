@@ -3,6 +3,7 @@ import Konva from "konva";
 import { loadImage } from "../systems/loadImage";
 import { createButton } from "../UI/createButton";
 
+
 // Virtual resolution: all coordinates below are in this space.
 const WIDTH = 1280;
 const HEIGHT = 720;
@@ -10,6 +11,12 @@ const HEIGHT = 720;
 let mainMenuAssetsPromise:
   | Promise<[HTMLImageElement, HTMLImageElement]>
   | undefined;
+
+
+// Reset cached assets between tests.
+export function resetMainMenuAssets(): void {
+  mainMenuAssetsPromise = undefined;
+}
 
 // Load images once and reuse them when returning to the menu.
 function loadMainMenuAssets() {
@@ -23,6 +30,7 @@ function loadMainMenuAssets() {
     });
   }
 
+  
   return mainMenuAssetsPromise;
 }
 

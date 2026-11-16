@@ -2,8 +2,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import "../helpers/canvasStub.ts";
 import Konva from "konva";
-import { init, fitStageToWindow } from "../../src/scenes/mainMenu.ts";
 import { loadImage } from "../../src/systems/loadImage.ts";
+import { init, fitStageToWindow, resetMainMenuAssets } from "../../src/scenes/mainMenu.ts";
 
 // Replace the real image loader so no files are needed. A canvas element
 // stands in for an image.
@@ -29,6 +29,7 @@ function findButton(layer: Konva.Layer, label: string): Konva.Group {
 beforeEach(() => {
   document.body.innerHTML = '<div id="container"></div>';
   setWindowSize(1280, 720);
+  resetMainMenuAssets();
 });
 
 afterEach(() => {
@@ -91,6 +92,24 @@ describe("init", () => {
     expect(menu).toBeUndefined();
     expect(Konva.stages).toHaveLength(0); // no blank canvas left behind
     expect(errorSpy).toHaveBeenCalled();
+  });
+
+  it('calls onLevels when Levels is clicked', async () => {
+    const onStart = vi.fn();
+    const onLevels = vi.fn();
+
+    const menu = await init(onStart, onLevels);
+
+    expect(menu).toBeDefined();
+
+    const layer = menu!.stage.getLayers()[0];
+    const levelsButton = findButton(layer, 'Levels');
+
+    levelsButton.fire('click');
+
+    expect(onLevels).toHaveBeenCalledTimes(1);
+
+    menu!.destroy();
   });
 
   it("destroy removes the stage and resize listener and resets the cursor", async () => {
