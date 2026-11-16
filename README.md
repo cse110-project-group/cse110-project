@@ -23,7 +23,7 @@ The game opens on a main menu. Click **Start Game** to enter the game (the **Lev
 | `D` / `→` | Move right |
 | `Space` / `W` / `↑` | Jump (while standing on something) |
 
-The player accelerates up to a top speed and decelerates when no direction (or both directions) is held. Gravity pulls the player down onto solid obstacles.
+The player accelerates up to a top speed and decelerates when no direction (or both directions) is held. Gravity pulls the player down onto solid obstacles. Releasing jump early gives a shorter jump, and a jump still works briefly after walking off a ledge (coyote time) or when pressed just before landing (jump buffering).
 
 ## Project structure
 
