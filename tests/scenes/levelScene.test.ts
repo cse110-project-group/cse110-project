@@ -2,7 +2,7 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import Konva from 'konva';
-import { initLevelSelect } from '../../src/scenes/levelScene';
+import { initLevelSelect, resetLevelAssets } from "../../src/scenes/levelScene.ts";
 import { loadImage } from '../../src/systems/loadImage';
 
 // Use the same canvasStub import/setup as mainMenu.test.ts.
@@ -45,6 +45,8 @@ function findButton(layer: Konva.Layer, label: string): Konva.Group {
 
 describe('Level Selection Screen', () => {
   beforeEach(() => {
+    resetLevelAssets();
+
     document.body.innerHTML = '<div id="container"></div>';
 
     setWindowSize(1280, 720);
@@ -127,7 +129,8 @@ describe('Level Selection Screen', () => {
 
     levelButton.fire('click');
 
-    expect(logSpy).toHaveBeenCalledWith('Level 1 clicked');
+    expect(levelButton.listening()).toBe(false);
+  expect(logSpy).not.toHaveBeenCalledWith('Level 1 clicked');
 
     screen!.destroy();
   });

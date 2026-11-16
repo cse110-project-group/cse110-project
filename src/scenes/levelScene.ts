@@ -11,6 +11,11 @@ let levelAssetsPromise:
   | Promise<[HTMLImageElement, HTMLImageElement, HTMLImageElement]>
   | undefined;
 
+// Reset cached level assets between tests.
+export function resetLevelAssets(): void {
+  levelAssetsPromise = undefined;
+}
+
 function loadLevelAssets() {
   if (!levelAssetsPromise) {
     levelAssetsPromise = Promise.all([
