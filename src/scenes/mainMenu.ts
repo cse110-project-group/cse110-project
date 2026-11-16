@@ -2,7 +2,7 @@
 import Konva from "konva";
 import { loadImage } from "../systems/loadImage";
 import { createButton } from "../UI/createButton";
-import { createScene } from "./sceneUtils";
+import { createScene } from "../scenes/sceneUtils";
 
 
 // Virtual resolution: all coordinates below are in this space.
@@ -54,7 +54,7 @@ export interface MainMenu {
 }
 
 // Scale the stage to fit the window while keeping the aspect ratio.
-export { fitStageToWindow } from "./sceneUtils";
+export { fitStageToWindow } from "../scenes/sceneUtils";
 
 // onStart runs when Start Game is clicked.
 export async function init(onStart: () => void, onLevels: () => void): Promise<MainMenu | undefined> {
