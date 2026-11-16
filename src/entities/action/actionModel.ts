@@ -1,4 +1,5 @@
 import kv from 'konva';
+import { loadImage } from '../../systems/loadImage.ts';
 import { createButton } from '../../UI/createButton.ts'
 import { ActionType } from './action.ts'
 
@@ -12,7 +13,7 @@ export default class ActionModel {
     /** Konva shape representing the sprite. */
     private sprite: kv.Group;
 
-    private buttonImage = new Image();
+    private buttonImage: HTMLImageElement;
 
     private static readonly PLAT_STROKE_COLOR: string = "#3a271c";
     private static readonly PLAT_STROKE_WIDTH: number = 15;
@@ -31,7 +32,33 @@ export default class ActionModel {
      * in pixels.
      */
     constructor(type: ActionType, x: number, y: number) {
-        this.sprite = new kv.Group();
+        this.buttonImage = new Image();
+        this.sprite = createButton({
+            image: new Image(),
+            label: type,
+            x: x,
+            y: y,
+            width: 0,
+            height: 0,
+            onClick: () => {} //replace with callback
+        });
+        this.initImage();
+    }
+
+    /** Helper for loading image in constructor */
+    private async initImage(){
+        let buttonImage: HTMLImageElement;
+        try{
+            [buttonImage] = 
+                await Promise.all([loadImage("assets/button.png")]);
+        }
+        catch (e){
+            console.log(e);
+            buttonImage =  new HTMLImageElement;
+        }
+        this.buttonImage = buttonImage;
+        this.sprite.setAttr("image", this.buttonImage);
+        console.log(this.sprite);
     }
 
     /** Returns the Konva group so it can be added to a layer or moved. */
