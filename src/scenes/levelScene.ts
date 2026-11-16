@@ -1,11 +1,7 @@
 import Konva from "konva";
 import { loadCachedImage, resetImageCache } from "../systems/imageCache";
 import { createButton } from "../UI/createButton";
-import { createScene } from "./sceneUtils";
-
-const WIDTH = 1280;
-const HEIGHT = 720;
-
+import { createScene, WIDTH, HEIGHT } from "./sceneUtils";
 
 let levelAssetsPromise:
   | Promise<[HTMLImageElement, HTMLImageElement, HTMLImageElement]>

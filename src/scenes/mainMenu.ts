@@ -2,12 +2,7 @@
 import Konva from "konva";
 import { loadCachedImage, resetImageCache } from "../systems/imageCache";
 import { createButton } from "../UI/createButton";
-import { createScene } from "../scenes/sceneUtils";
-
-
-// Virtual resolution: all coordinates below are in this space.
-const WIDTH = 1280;
-const HEIGHT = 720;
+import { createScene, WIDTH, HEIGHT } from "./sceneUtils";
 
 let mainMenuAssetsPromise:
   | Promise<[HTMLImageElement, HTMLImageElement]>

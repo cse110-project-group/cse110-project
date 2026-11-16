@@ -1,7 +1,7 @@
 import Konva from "konva";
 
-const WIDTH = 1280;
-const HEIGHT = 720;
+export const WIDTH = 1280;
+export const HEIGHT = 720;
 
 // Scale the stage to fit the window while keeping the aspect ratio.
 export function fitStageToWindow(stage: Konva.Stage): void {

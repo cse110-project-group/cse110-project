@@ -33,7 +33,7 @@ interface ButtonOptions {
  * @returns 
  */
 export function createButton(opts: ButtonOptions): Konva.Group {
-  const { image, label, x, y, width, height, onClick } = opts;
+  const { image, label, x, y, width, height, labelPosition = "center", onClick } = opts;
 
   // The group is the "button": position, scale, and events live here.
   const button = new Konva.Group({
@@ -45,16 +45,25 @@ export function createButton(opts: ButtonOptions): Konva.Group {
 
   // Children are positioned relative to the group's top-left (0, 0).
   button.add(new Konva.Image({ image, width, height }));
-
-  // Adds text only if a label is provided
+  
+  // Adds text only if a label is provided.
   if (label) {
+    const labelHeight = 36;
+    const labelGap = 8;
+
+    // Position the label above the image or centered on it.
+    const labelY =
+      labelPosition === "above"
+        ? -labelHeight - labelGap
+        : opts.textOffsetY ?? 0;
+
     button.add(
       new Konva.Text({
         text: label,
         x: 0,
-        y: opts.textOffsetY ?? 0,
+        y: labelY,
         width,
-        height,
+        height: labelPosition === "above" ? labelHeight : height,
         align: "center",
         verticalAlign: "middle",
         fontSize: 32,
@@ -63,6 +72,7 @@ export function createButton(opts: ButtonOptions): Konva.Group {
       })
     );
   }
+
 
   // Only one tween per button exists at a time: starting a new one destroys
   // the previous one, and a finished tween destroys itself, so none pile up.
