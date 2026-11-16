@@ -113,8 +113,8 @@ export function resolveMovement(
 /**
  * Checks if the player has completely run off the right edge of the stage.
  *
- * @param box Current bounding box of the player (in stage coordinate space).
- * @param stageWidth Total width of the stage in pixels.
+ * @param box - Current bounding box of the player (in stage coordinate space).
+ * @param stageWidth - Total width of the stage in pixels.
  * @returns True if the player's top-left edge has reached or passed the right boundary.
  */
 export function checkLevelClear(box: BoundingBox, stageWidth: number): boolean {
