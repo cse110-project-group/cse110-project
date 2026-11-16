@@ -34,7 +34,7 @@ export class LevelParser {
 	 * @returns {string} A JSON string that represents a level.
 	 */
 	serialize(level: Level): string {
-		return JSON.stringify(level, null, 2)
+		return JSON.stringify(level, null, 2);
 	}
 
 	/**
@@ -54,7 +54,7 @@ export class LevelParser {
 			walls: validList(object.walls, `${name}.walls`, validRectangle),
 			slopes: validList(object.slopes, `${name}.slopes`, validSlope)
 		}
-	}
+	};
 }
 
 // helper functions
@@ -179,7 +179,7 @@ export function validRectangle(data: unknown, name: string): Rectangle {
 		upperLeft: validPoint(platform.upperLeft, `${name}.upperLeft`),
 		width: validPositiveNumber(platform.width, `${name}.width`),
 		height: validPositiveNumber(platform.height, `${name}.height`)
-	}
+	};
 }
 
 /**
@@ -196,5 +196,5 @@ export function validSlope(data: unknown, name: string): Slope {
 		startPoint: validPoint(slope.startPoint, `${name}.startPoint`),
 		xComponent: validNonZeroNumber(slope.xComponent, `${name}.xComponent`),
 		yComponent: validNonZeroNumber(slope.yComponent, `${name}.yComponent`)
-	}
+	};
 }
