@@ -13,7 +13,6 @@ export default class PlayerModel {
 	public static readonly SPRITE_RADIUS_X = 25;
 	public static readonly SPRITE_RADIUS_Y = 50;
 
-
 	/**
 	 * @param x - Initial x position of the sprite's center, in pixels.
 	 * @param y - Initial y position of the sprite's center, in pixels.
@@ -26,11 +25,15 @@ export default class PlayerModel {
 			radiusY: PlayerModel.SPRITE_RADIUS_Y,
 			fill: 'gray',
 		});
-
 	}
 
 	/** Returns the Konva shape so it can be added to a layer or moved. */
 	public getSprite(): kv.Ellipse {
 		return this.sprite;
+	}
+
+	/** Returns the sprite's bounding box to be used for collision detection. */
+	public getBoundingBox(): kv.IRect{
+		return this.sprite.getSelfRect();
 	}
 }

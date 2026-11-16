@@ -35,7 +35,7 @@ describe('PlayerController', () => {
 	beforeEach(() => {
 		input = new Input();
 		model = new PlayerModel(100, 50);
-		controller = new PlayerController(input, model, 100, 50);
+		controller = new PlayerController(input, model);
 	});
 
 	afterEach(() => {
@@ -133,7 +133,7 @@ describe('PlayerController', () => {
 		for(let i = 0; i < 10; ++i) controller.update(0.05);
 		let modelX1 = model.getSprite().x();
 		model = new PlayerModel(100, 50);
-		controller = new PlayerController(input, model, 100, 50);
+		controller = new PlayerController(input, model);
 		press(code);
 		for(let i = 0; i < 100; ++i) controller.update(0.005);
 		release(code);
@@ -152,7 +152,7 @@ describe('PlayerController', () => {
 		release(code2);
 		let modelX1 = model.getSprite().x();
 		model = new PlayerModel(100, 50);
-		controller = new PlayerController(input, model, 100, 50);
+		controller = new PlayerController(input, model);
 		press(code1);
 		for(let i = 0; i < 50; ++i) controller.update(0.01);
 		release(code1);
@@ -183,7 +183,7 @@ describe('PlayerController', () => {
 		release(code1);
 		let modelX1 = model.getSprite().x();
 		model = new PlayerModel(100, 50);
-		controller = new PlayerController(input, model, 100, 50);
+		controller = new PlayerController(input, model);
 		press(code2);
 		let t2 = 0;
 		while(t2 < 0.5){

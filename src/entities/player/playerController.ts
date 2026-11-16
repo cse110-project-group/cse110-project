@@ -38,20 +38,16 @@ export default class PlayerController {
 	 * @param input - Shared input manager to poll key frame.
 	 * @param model - The player model whose sprite this controller moves.
 	 */
-	constructor(input: Input, model: PlayerModel, x: number, y: number) {
+	constructor(input: Input, model: PlayerModel) {
 		this.input = input;
 		this.model = model;
 		this.currSpeed = 0;
 
-		this.AABB = {
-			x: x - PlayerModel.SPRITE_RADIUS_X, 
-			y: y - PlayerModel.SPRITE_RADIUS_Y,
-			width: PlayerModel.SPRITE_RADIUS_X * 2,
-			height: PlayerModel.SPRITE_RADIUS_Y * 2
-		};
-
 		this.SPAWN_X = model.getSprite().x();
 		this.SPAWN_Y = model.getSprite().y();
+
+		this.AABB = this.offsetBoundingBox(this.model.getBoundingBox(), 
+											this.SPAWN_X, this.SPAWN_Y);
 	}
 
 	/**
@@ -68,7 +64,7 @@ export default class PlayerController {
 		const sprite = this.model.getSprite();
 		const parent = sprite.getParent() ?? undefined;
 
-		const playerBox: BoundingBox = sprite.getClientRect({ relativeTo: parent });
+		// const playerBox: BoundingBox = sprite.getClientRect({ relativeTo: parent });
 
 		const obstacleBoxes: BoundingBox[] = [];
 		for (const node of obstacles) {
@@ -79,20 +75,17 @@ export default class PlayerController {
 			}
 		}
 
-		const safeTopLeftX = resolveHorizontalMovement(playerBox, dx, obstacleBoxes);
+		const safeTopLeftX = resolveHorizontalMovement(this.AABB, dx, obstacleBoxes);
 
-		const deltaApplied = safeTopLeftX - playerBox.x;
+		const deltaApplied = safeTopLeftX - this.AABB.x;
 
 		if(Math.abs(deltaApplied) < Math.abs(dx) 
 			- PlayerController.COLLISION_OFFSET) this.currSpeed = 0;
 
 		sprite.x(sprite.x() + deltaApplied);
-		this.updateAABB(
-			this.model.getSprite().x() - PlayerModel.SPRITE_RADIUS_X, 
-			this.model.getSprite().y() - PlayerModel.SPRITE_RADIUS_Y,
-			PlayerModel.SPRITE_RADIUS_X * 2,
-			PlayerModel.SPRITE_RADIUS_Y * 2
-		);
+
+		this.AABB = this.offsetBoundingBox(this.model.getBoundingBox(), 
+											this.SPAWN_X, this.SPAWN_Y);
 	}
 
 	/** 
@@ -101,25 +94,27 @@ export default class PlayerController {
 	public respawn(){
 		this.model.getSprite().x(this.SPAWN_X);
 		this.model.getSprite().y(this.SPAWN_Y);
-		this.updateAABB(this.SPAWN_X, this.SPAWN_Y);
+		this.AABB = this.offsetBoundingBox(this.model.getBoundingBox(), 
+											this.SPAWN_X, this.SPAWN_Y);
 		this.currSpeed = 0;
 	}
 
 	/**
-	 * Updates the player hitbox parameters using new values.
+	 * Offsets a given bounding box by an x offset value and a y offset value.
 	 * 
-	 * @param x - New x position of the bounding box, in pixels.
-	 * @param y - New Y position of the bounding box, in pixels.
-	 * @param width - New width of the bounding box, in pixels.
-	 * @param height - New height of the bounding box, in pixels.
+	 * @param box - The bounding box to be offsetted.
+	 * @param x - The x offset value, in pixels.
+	 * @param y - The y offset value, in pixels.
+	 * @returns A new bounding box with the same width and height as box, but
+	 * offsetted x pixels to the right and y pixels downwards. 
 	 */
-	public updateAABB(x?: number, y?: number, width?: number, height?: number){
-		this.AABB = {
-			x: x === undefined ? this.AABB.x : x,
-			y: y === undefined ? this.AABB.y : y,
-			width: width === undefined ? this.AABB.width : width,
-			height: height === undefined ? this.AABB.height : height,
-		}
+	public offsetBoundingBox(box: BoundingBox, x: number, y: number): BoundingBox{
+		return {
+			x: box.x + x,
+			y: box.y + y,
+			width: box.width,
+			height: box.height
+		};
 	}
 
 	/**

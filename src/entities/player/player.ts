@@ -26,7 +26,7 @@ export default class Player {
 	 */
 	constructor(input: Input, x: number, y: number) {
 		this.model = new PlayerModel(x, y);
-		this.controller = new PlayerController(input, this.model, x, y);
+		this.controller = new PlayerController(input, this.model);
 	}
 
 	/** Returns the player's Konva shape, ready to add to a layer. */
