@@ -42,24 +42,24 @@ export default class ActionModel {
             height: 0,
             onClick: () => {} //replace with callback
         });
-        this.initImage();
+        //this.initImage();
     }
 
-    /** Helper for loading image in constructor */
-    private async initImage(){
-        let buttonImage: HTMLImageElement;
-        try{
-            [buttonImage] = 
-                await Promise.all([loadImage("assets/button.png")]);
-        }
-        catch (e){
-            console.log(e);
-            buttonImage =  new HTMLImageElement;
-        }
-        this.buttonImage = buttonImage;
-        this.sprite.setAttr("image", this.buttonImage);
-        console.log(this.sprite);
-    }
+    // /** Helper for loading image in constructor */
+    // private async initImage(){
+    //     let buttonImage: HTMLImageElement;
+    //     try{
+    //         [buttonImage] = 
+    //             await Promise.all([loadImage("assets/button.png")]);
+    //     }
+    //     catch (e){
+    //         console.log(e);
+    //         buttonImage =  new HTMLImageElement;
+    //     }
+    //     this.buttonImage = buttonImage;
+    //     this.sprite.setAttr("image", this.buttonImage);
+    //     console.log(this.sprite);
+    // }
 
     /** Returns the Konva group so it can be added to a layer or moved. */
     public getSprite(): kv.Group {
