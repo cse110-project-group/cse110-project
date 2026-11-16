@@ -2,6 +2,7 @@
 import Konva from "konva";
 import { loadImage } from "../systems/loadImage";
 import { createButton } from "../UI/createButton";
+import { createScene } from "./sceneUtils";
 
 
 // Virtual resolution: all coordinates below are in this space.
@@ -53,12 +54,7 @@ export interface MainMenu {
 }
 
 // Scale the stage to fit the window while keeping the aspect ratio.
-export function fitStageToWindow(stage: Konva.Stage): void {
-  const scale = Math.min(window.innerWidth / WIDTH, window.innerHeight / HEIGHT);
-  stage.width(WIDTH * scale);
-  stage.height(HEIGHT * scale);
-  stage.scale({ x: scale, y: scale });
-}
+export { fitStageToWindow } from "./sceneUtils";
 
 // onStart runs when Start Game is clicked.
 export async function init(onStart: () => void, onLevels: () => void): Promise<MainMenu | undefined> {
@@ -74,13 +70,7 @@ catch (err) {
   return undefined;
 }
 
-  const stage = new Konva.Stage({
-    container: "container",
-    width: WIDTH,
-    height: HEIGHT,
-  });
-
-  const menuLayer = new Konva.Layer({ imageSmoothingEnabled: false });
+  const { stage, layer: menuLayer, destroy } = createScene();
 
   menuLayer.add(
     new Konva.Image({ image: bgImg, width: WIDTH, height: HEIGHT })
@@ -114,16 +104,8 @@ catch (err) {
 
   stage.add(menuLayer);
 
-  fitStageToWindow(stage);
-  const onResize = () => fitStageToWindow(stage);
-  window.addEventListener("resize", onResize);
-
   return {
     stage,
-    destroy: () => {
-      window.removeEventListener("resize", onResize);
-      document.body.style.cursor = "default";
-      stage.destroy();
-    },
+    destroy,
   };
 }

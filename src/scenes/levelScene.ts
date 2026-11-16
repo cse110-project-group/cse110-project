@@ -1,7 +1,7 @@
 import Konva from "konva";
 import { loadImage } from "../systems/loadImage";
 import { createButton } from "../UI/createButton";
-import { fitStageToWindow } from "./mainMenu";
+import { createScene } from "./sceneUtils";
 
 const WIDTH = 1280;
 const HEIGHT = 720;
@@ -55,15 +55,7 @@ export async function initLevelSelect(
   }
 
   // Create the Stage and Layer.
-  const stage = new Konva.Stage({
-    container: "container",
-    width: WIDTH,
-    height: HEIGHT,
-  });
-
-  const levelLayer = new Konva.Layer({
-    imageSmoothingEnabled: false,
-  });
+  const { stage, layer: levelLayer, destroy } = createScene();
 
   // Add the background.
   levelLayer.add(
@@ -142,22 +134,9 @@ export async function initLevelSelect(
   );
 
   // Add the Layer to the Stage.
-  stage.add(levelLayer);
-
-  // Fit the screen to the browser window.
-  fitStageToWindow(stage);
-
-  const onResize = () => fitStageToWindow(stage);
-  window.addEventListener("resize", onResize);
-
-  // Return the Stage and cleanup function.
   return {
     stage,
-    destroy: () => {
-      window.removeEventListener("resize", onResize);
-      document.body.style.cursor = "default";
-      stage.destroy();
-    },
+    destroy,
   };
 }
 
