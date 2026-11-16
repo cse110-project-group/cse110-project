@@ -1,5 +1,5 @@
 import Konva from "konva";
-import { loadImage } from "../systems/loadImage";
+import { loadCachedImage, resetImageCache } from "../systems/imageCache";
 import { createButton } from "../UI/createButton";
 import { createScene } from "./sceneUtils";
 
@@ -14,14 +14,15 @@ let levelAssetsPromise:
 // Reset cached level assets between tests.
 export function resetLevelAssets(): void {
   levelAssetsPromise = undefined;
+  resetImageCache();
 }
 
 function loadLevelAssets() {
   if (!levelAssetsPromise) {
     levelAssetsPromise = Promise.all([
-      loadImage("/assets/background2.png"),
-      loadImage("/assets/button.png"),
-      loadImage("/assets/Locked_Level.png"),
+      loadCachedImage("/assets/background2.png"),
+      loadCachedImage("/assets/button.png"),
+      loadCachedImage("/assets/Locked_Level.png"),
     ]).catch((err) => {
       levelAssetsPromise = undefined;
       throw err;

@@ -1,6 +1,6 @@
 // src/mainMenu.ts
 import Konva from "konva";
-import { loadImage } from "../systems/loadImage";
+import { loadCachedImage, resetImageCache } from "../systems/imageCache";
 import { createButton } from "../UI/createButton";
 import { createScene } from "../scenes/sceneUtils";
 
@@ -17,14 +17,15 @@ let mainMenuAssetsPromise:
 // Reset cached assets between tests.
 export function resetMainMenuAssets(): void {
   mainMenuAssetsPromise = undefined;
+  resetImageCache();
 }
 
 // Load images once and reuse them when returning to the menu.
 function loadMainMenuAssets() {
   if (!mainMenuAssetsPromise) {
     mainMenuAssetsPromise = Promise.all([
-      loadImage("/assets/background2.png"),
-      loadImage("/assets/button.png"),
+      loadCachedImage("/assets/background2.png"),
+      loadCachedImage("/assets/button.png"),
     ]).catch((err) => {
       mainMenuAssetsPromise = undefined;
       throw err;

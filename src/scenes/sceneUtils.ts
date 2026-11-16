@@ -1,4 +1,3 @@
-
 import Konva from "konva";
 
 const WIDTH = 1280;
