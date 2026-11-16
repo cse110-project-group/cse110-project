@@ -38,6 +38,9 @@ export default class Game {
 		this.gameLayer = new kv.Layer();
 		this.stage.add(this.gameLayer);
 
+
+		// below are the test platforms so u can test movement, delete when we have levels
+		// START TEST PLATFORMS
 		const floor = new kv.Rect({
 			x: 0,
 			y: this.stage.height() - 50,
@@ -70,6 +73,7 @@ export default class Game {
 				name: 'solid'
 			}));
 		}
+		// END TEST PLATFORMS
 
 		this.input = new Input(this.stage.container());
 		this.player = new Player(

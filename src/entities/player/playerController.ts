@@ -15,18 +15,27 @@ import { GRAVITY, applyGravity } from '../../systems/physics.ts';
  *
  * Vertically, the player always falls under gravity (see moveY(dt)) and lands
  * on solid obstacles. While standing on one, `Space` / `ArrowUp` / `W` jumps.
+ * Jumps are forgiving: they still work shortly after walking off a ledge
+ * (coyote time) or when pressed shortly before landing (jump buffering), and
+ * releasing jump while rising cuts the jump short (variable jump height).
  */
 export default class PlayerController {
 	private input: Input;
 	private model: PlayerModel;
 
 	/** Signed horizontal velocity, in pixels per second (negative is left). */
-	private xSpeed: number;
+	private xSpeed: number = 0;
 	/** Signed vertical velocity, in pixels per second (negative is up). */
-	private ySpeed: number;
+	private ySpeed: number = 0;
 
 	/** Whether the player is standing on a solid obstacle (set each frame). */
-	private grounded: boolean;
+	private grounded: boolean = false;
+	/** Seconds left in which a jump is allowed after leaving the ground. */
+	private coyoteTimer: number = 0;
+	/** Seconds left in which a recent jump press still counts. */
+	private jumpBufferTimer: number = 0;
+	/** Whether the current jump can still be cut short by releasing jump. */
+	private jumpCuttable: boolean = false;
 
 	/** Static readonlys as constants */
 	public static readonly MAX_X_SPEED: number = 450;
@@ -44,6 +53,17 @@ export default class PlayerController {
 		2 * GRAVITY * PlayerController.JUMP_HEIGHT
 	);
 
+	/** Seconds after leaving the ground during which the player can still jump. */
+	public static readonly COYOTE_TIME = 0.1;
+	/** Seconds before landing during which a jump press is remembered. */
+	public static readonly JUMP_BUFFER_TIME = 0.1;
+	/**
+	 * Multiplier applied to upward speed when jump is released mid-rise.
+	 * Height scales with speed squared, so 0.5 gives at most a quarter of the
+	 * remaining rise.
+	 */
+	public static readonly JUMP_CUT = 0.5;
+
 	private static readonly COLLISION_OFFSET = 1e-6;
 
 	/**
@@ -53,9 +73,6 @@ export default class PlayerController {
 	constructor(input: Input, model: PlayerModel) {
 		this.input = input;
 		this.model = model;
-		this.xSpeed = 0;
-		this.ySpeed = 0;
-		this.grounded = false;
 	}
 
 	/**
@@ -204,8 +221,14 @@ export default class PlayerController {
 	}
 
 	/**
-	 * Applies a jump (if grounded and jump is held) and one frame of gravity.
-	 * Updates ySpeed to be the player's vertical speed after this frame.
+	 * Applies a jump (if one is allowed), cuts a rising jump short if jump was
+	 * released, and applies one frame of gravity. Updates ySpeed to be the
+	 * player's vertical speed after this frame.
+	 *
+	 * A jump happens when jump was held within the last JUMP_BUFFER_TIME and
+	 * the player was grounded within the last COYOTE_TIME. A buffered jump
+	 * whose key was already released gets cut on the next frame, so a quick
+	 * tap before landing gives a short hop.
 	 *
 	 * Gravity applies even while grounded so that the floor blocking it each
 	 * frame is what keeps grounded true; walking off a ledge clears it.
@@ -214,9 +237,22 @@ export default class PlayerController {
 	 * @returns Number of pixels moved this frame (positive is down).
 	 */
 	private moveY(dt: number): number {
-		if(this.grounded && this.isJump()) {
+		this.coyoteTimer = this.grounded
+			? PlayerController.COYOTE_TIME
+			: Math.max(0, this.coyoteTimer - dt);
+		this.jumpBufferTimer = this.isJump()
+			? PlayerController.JUMP_BUFFER_TIME
+			: Math.max(0, this.jumpBufferTimer - dt);
+
+		if(this.jumpBufferTimer && this.coyoteTimer) {
 			this.ySpeed = -PlayerController.JUMP_SPEED;
 			this.grounded = false;
+			this.coyoteTimer = 0;
+			this.jumpBufferTimer = 0;
+			this.jumpCuttable = true;
+		} else if(this.jumpCuttable && this.ySpeed < 0 && !this.isJump()) {
+			this.ySpeed *= PlayerController.JUMP_CUT;
+			this.jumpCuttable = false;
 		}
 
 		const {ySpeed, dy} = applyGravity(this.ySpeed, dt);
