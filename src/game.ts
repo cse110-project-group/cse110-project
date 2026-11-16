@@ -38,6 +38,43 @@ export default class Game {
 		this.gameLayer = new kv.Layer();
 		this.stage.add(this.gameLayer);
 
+
+		// below are the test platforms so u can test movement, delete when we have levels
+		// START TEST PLATFORMS
+		const floor = new kv.Rect({
+			x: 0,
+			y: this.stage.height() - 50,
+			width: this.stage.width(),
+			height: 50,
+			fill: '#555',
+			name: 'solid'
+		});
+		this.gameLayer.add(floor);
+
+		// Temporary test platforms, placed relative to the screen center and
+		// the floor's top. Each step rises 110px (under JUMP_HEIGHT) so every
+		// one is reachable, and none overlap the player's spawn point.
+		const centerX = this.stage.width() / 2;
+		const floorTop = floor.y();
+		const platforms = [
+			{ x: centerX + 100, rise: 110 },
+			{ x: centerX + 300, rise: 220 },
+			{ x: centerX + 100, rise: 330 },
+			{ x: centerX - 250, rise: 110 },
+			{ x: centerX - 450, rise: 220 },
+		];
+		for (const { x, rise } of platforms) {
+			this.gameLayer.add(new kv.Rect({
+				x: x,
+				y: floorTop - rise,
+				width: 150,
+				height: 20,
+				fill: '#555',
+				name: 'solid'
+			}));
+		}
+		// END TEST PLATFORMS
+
 		this.input = new Input(this.stage.container());
 		this.player = new Player(
 			this.input, this.stage.width() / 2, this.stage.height() / 2
