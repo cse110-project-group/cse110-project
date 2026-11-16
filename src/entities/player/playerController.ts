@@ -104,21 +104,14 @@ export default class PlayerController {
 		const sprite = this.model.getSprite();
 		const parent = sprite.getParent() ?? undefined;
 
-		// const playerBox: BoundingBox = sprite.getClientRect({ relativeTo: parent });
-
 		const obstacleBoxes: BoundingBox[] = [];
 
 		for (const node of obstacles) {
 			if (node === sprite) continue;
-			// If obstacles are tagged with 'solid'  check here:
-			if (node.hasName('solid')) {
-				obstacleBoxes.push(node.getClientRect({ relativeTo: parent }));
-			}
-			else if (node.hasName('spikes')){
+			if (node.hasName('spikes')){
 				let boundingBox = node.getClientRect({ relativeTo: parent });
 				if(checkAABBCollision(this.AABB, boundingBox)){
 					this.respawn();
-					this.xSpeed = 0;
 					return;
 				}
 			}
@@ -140,6 +133,7 @@ export default class PlayerController {
 				- PlayerController.COLLISION_OFFSET) this.xSpeed = 0;
 
 			sprite.x(sprite.x() + deltaXApplied);
+			this.AABB = this.offsetBoundingBox(this.AABB, deltaXApplied, 0);
 		}
 
 		if(dy !== 0) {
@@ -157,11 +151,12 @@ export default class PlayerController {
 				this.ySpeed = 0;
 
 			sprite.y(sprite.y() + deltaYApplied);
+			this.AABB = this.offsetBoundingBox(this.AABB, 0, deltaYApplied);
 		}
 	}
 
 	/** 
-	 * Respawn player at level spawn after death and sets xSpeed to 0. 
+	 * Respawns player at level spawn after death and sets currSpeed to 0. 
 	 */
 	public respawn(){
 		this.model.getSprite().x(this.SPAWN_X);
