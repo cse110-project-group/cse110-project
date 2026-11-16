@@ -11,7 +11,7 @@ let levelAssetsPromise:
   | Promise<[HTMLImageElement, HTMLImageElement, HTMLImageElement]>
   | undefined;
 
-  function loadLevelAssets() {
+function loadLevelAssets() {
   if (!levelAssetsPromise) {
     levelAssetsPromise = Promise.all([
       loadImage("/assets/background2.png"),
@@ -42,11 +42,12 @@ export async function initLevelSelect(
 
   // Load images before creating the Stage.
   try {
-  [bgImg, buttonImg, Locked_LevelImg] = await loadLevelAssets();
-} catch (err) {
-  console.error(err);
-  return undefined;
-}
+    [bgImg, buttonImg, Locked_LevelImg] = await loadLevelAssets();
+  } 
+  catch (err) {
+    console.error(err);
+    return undefined;
+  }
 
   // Create the Stage and Layer.
   const stage = new Konva.Stage({
@@ -159,7 +160,8 @@ export async function preloadLevelAssets(): Promise<boolean> {
   try {
     await loadLevelAssets();
     return true;
-  } catch (err) {
+  } 
+  catch (err) {
     console.error(err);
     return false;
   }

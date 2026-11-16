@@ -11,7 +11,6 @@ async function main() {
 
     let transitioning = false;
 
-    
 async function showMainMenu() {
     if (transitioning) return;
     transitioning = true;
@@ -80,9 +79,11 @@ async function showLevelScreen() {
         }
 
         levelScreen = newLevelScreen;
-    } catch (err) {
+    } 
+    catch (err) {
         console.error("Failed to open level screen:", err);
-    } finally {
+    } 
+    finally {
         transitioning = false;
     }
 }

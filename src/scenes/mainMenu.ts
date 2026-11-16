@@ -7,7 +7,6 @@ import { createButton } from "../UI/createButton";
 const WIDTH = 1280;
 const HEIGHT = 720;
 
-
 let mainMenuAssetsPromise:
   | Promise<[HTMLImageElement, HTMLImageElement]>
   | undefined;
@@ -58,10 +57,11 @@ export async function init(onStart: () => void, onLevels: () => void): Promise<M
   let bgImg: HTMLImageElement;
   let playImg: HTMLImageElement;
 
-  // Load images before creating the stage, so a failed load leaves no blank canvas.
-  try {
+// Load images before creating the stage, so a failed load leaves no blank canvas.
+try {
   [bgImg, playImg] = await loadMainMenuAssets();
-} catch (err) {
+} 
+catch (err) {
   console.error(err);
   return undefined;
 }
@@ -80,7 +80,6 @@ export async function init(onStart: () => void, onLevels: () => void): Promise<M
 
   const btnW = 50 * 5;
   const btnH = 15 * 5;
-  // Buttons sit left of center to line up with the background art.
   const buttonX = WIDTH / 2 - 190;
   const startY = 330;
   const gap = 110;
@@ -115,7 +114,6 @@ export async function init(onStart: () => void, onLevels: () => void): Promise<M
     stage,
     destroy: () => {
       window.removeEventListener("resize", onResize);
-      // mouseleave never fires on a destroyed button, so reset the cursor here.
       document.body.style.cursor = "default";
       stage.destroy();
     },
