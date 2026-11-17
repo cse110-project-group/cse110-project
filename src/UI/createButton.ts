@@ -11,6 +11,9 @@ interface ButtonOptions {
   y: number;
   width: number;
   height: number;
+  textOffsetY?: number;
+  labelPosition?: "above" | "center";
+  labelBackground?: boolean;
   onClick: () => void;
 }
 
@@ -31,7 +34,7 @@ interface ButtonOptions {
  * @returns 
  */
 export function createButton(opts: ButtonOptions): Konva.Group {
-  const { image, label, x, y, width, height, onClick } = opts;
+  const { image, label, x, y, width, height, labelPosition = "center", labelBackground = false, onClick } = opts;
 
   // The group is the "button": position, scale, and events live here.
   const button = new Konva.Group({
@@ -43,14 +46,42 @@ export function createButton(opts: ButtonOptions): Konva.Group {
 
   // Children are positioned relative to the group's top-left (0, 0).
   button.add(new Konva.Image({ image, width, height }));
-
-  // Adds text only if a label is provided
+  
+  // Adds text only if a label is provided.
   if (label) {
+    const labelHeight = 36;
+    const labelGap = 8;
+
+    const labelY =
+      labelPosition === "above"
+        ? -labelHeight - labelGap
+        : opts.textOffsetY ?? 0;
+
+    const textHeight =
+      labelPosition === "above" ? labelHeight : height;
+
+  // NEW: Add a background behind the label when requested.
+    if (labelBackground) {
+      button.add(
+        new Konva.Rect({
+          x: 0,
+          y: labelY,
+          width,
+          height: textHeight,
+          fill: "#27324A",
+          cornerRadius: 6,
+          opacity: 0.9,
+        })
+      );
+    }
+
     button.add(
       new Konva.Text({
         text: label,
+        x: 0,
+        y: labelY,
         width,
-        height,
+        height: textHeight,
         align: "center",
         verticalAlign: "middle",
         fontSize: 32,
@@ -88,7 +119,7 @@ export function createButton(opts: ButtonOptions): Konva.Group {
         document.body.style.cursor = "pointer";
         tweenTo(1.08);
     });
-
+    
     // Hover off: returns mouse to its original pointer and returns the button 
     // to its original size
     button.on("mouseleave", () => {

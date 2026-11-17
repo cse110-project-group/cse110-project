@@ -83,7 +83,7 @@ export default class Game {
 		this.player = new Player(
 			this.input, this.stage.width()/2, this.stage.height()/2
 		);
-
+    
 		this.gameLayer.add(this.player.getSprite());
 		
 		this.gameLayer.draw();
