@@ -21,6 +21,10 @@ export function loadLevel(
         }));
     }
 
+    // Reset player velocity, grounded state, and jump timers
+    player.controller.respawn();
+
+    // Place player at the new level's spawnPoint
     const sprite = player.getSprite();
     sprite.x(level.spawnPoint.x);
     sprite.y(level.spawnPoint.y);
