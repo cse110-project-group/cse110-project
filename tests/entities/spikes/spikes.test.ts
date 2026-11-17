@@ -60,7 +60,7 @@ describe('Spikes', () => {
         release("KeyD");
         expect(player.getSprite().x()).toBe(200);
         expect(player.getSprite().y()).toBe(210);
-        expect(player.getAABB()).toStrictEqual({
+        expect(player.model.getBoundingBox()).toStrictEqual({
             x: 200 - PlayerModel.SPRITE_RADIUS_X,
             y: 210 - PlayerModel.SPRITE_RADIUS_Y,
             width: PlayerModel.SPRITE_RADIUS_X * 2,

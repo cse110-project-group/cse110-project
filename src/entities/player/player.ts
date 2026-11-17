@@ -43,8 +43,4 @@ export default class Player {
 	public update(deltaTime: number, obstacles: kv.Node[] = []) {
 		this.controller.update(deltaTime, obstacles);
 	}
-
-	public getAABB(): BoundingBox{
-		return this.controller.AABB;
-	}
 }

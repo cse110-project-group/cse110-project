@@ -393,7 +393,7 @@ describe('PlayerController', () => {
 		expect(model.getSprite().y()).toBe(50);
 		expect(model.getSprite().width()).toBe(PlayerModel.SPRITE_RADIUS_X * 2);
 		expect(model.getSprite().height()).toBe(PlayerModel.SPRITE_RADIUS_Y * 2);
-		expect(controller.AABB).toStrictEqual({
+		expect(model.getBoundingBox()).toStrictEqual({
 			x: 100 - PlayerModel.SPRITE_RADIUS_X, 
 			y: 50 - PlayerModel.SPRITE_RADIUS_Y,
 			width: PlayerModel.SPRITE_RADIUS_X * 2,
@@ -435,7 +435,7 @@ describe('Player', () => {
 
 	it("instantiates an AABB correctly", () => {
 		const player = new Player(input, 100, 0);
-		expect(player.getAABB()).toStrictEqual({
+		expect(player.model.getBoundingBox()).toStrictEqual({
 			x: 100 - PlayerModel.SPRITE_RADIUS_X, 
 			y: - PlayerModel.SPRITE_RADIUS_Y,
 			width: 2 * PlayerModel.SPRITE_RADIUS_X,

@@ -31,7 +31,8 @@ describe('Platform', () => {
         const platform = new Platform(300, 510, 210, 600);
         const player = new Player(new Input(), 600, 800);
         const dx = -150;
-        const resolvedX = resolveHorizontalMovement(player.getAABB(), dx, [platform.AABB]);
+        const resolvedX = resolveHorizontalMovement(
+                            player.model.getBoundingBox(), dx, [platform.AABB]);
         expect(resolvedX).toBe(510);
     });
 

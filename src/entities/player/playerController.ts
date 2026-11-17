@@ -41,7 +41,7 @@ export default class PlayerController {
 	private jumpCuttable: boolean = false;
 
 	/** Bounding box that indnicates the player hitbox */
-	public AABB: BoundingBox;
+	//public AABB: BoundingBox;
 	/** Static readonlys as constants */
 	public static readonly MAX_X_SPEED: number = 450;
 
@@ -82,8 +82,8 @@ export default class PlayerController {
 		this.SPAWN_X = model.getSprite().x();
 		this.SPAWN_Y = model.getSprite().y();
 
-		this.AABB = this.offsetBoundingBox(this.model.getBoundingBox(), 
-											this.SPAWN_X, this.SPAWN_Y);
+		//this.AABB = this.offsetBoundingBox(this.model.getBoundingBox(), 
+											//this.SPAWN_X, this.SPAWN_Y);
 		this.xSpeed = 0;
 		this.ySpeed = 0;
 		this.grounded = false;
@@ -110,7 +110,7 @@ export default class PlayerController {
 			if (node === sprite) continue;
 			if (node.hasName('spikes')){
 				let boundingBox = node.getClientRect({ relativeTo: parent });
-				if(checkAABBCollision(this.AABB, boundingBox)){
+				if(checkAABBCollision(this.model.getBoundingBox(), boundingBox)){
 					this.respawn();
 					return;
 				}
@@ -133,7 +133,6 @@ export default class PlayerController {
 				- PlayerController.COLLISION_OFFSET) this.xSpeed = 0;
 
 			sprite.x(sprite.x() + deltaXApplied);
-			this.AABB = this.offsetBoundingBox(this.AABB, deltaXApplied, 0);
 		}
 
 		if(dy !== 0) {
@@ -151,7 +150,6 @@ export default class PlayerController {
 				this.ySpeed = 0;
 
 			sprite.y(sprite.y() + deltaYApplied);
-			this.AABB = this.offsetBoundingBox(this.AABB, 0, deltaYApplied);
 		}
 	}
 
@@ -161,9 +159,9 @@ export default class PlayerController {
 	public respawn(){
 		this.model.getSprite().x(this.SPAWN_X);
 		this.model.getSprite().y(this.SPAWN_Y);
-		this.AABB = this.offsetBoundingBox(this.model.getBoundingBox(), 
-											this.SPAWN_X, this.SPAWN_Y);
 		this.xSpeed = 0;
+		this.ySpeed = 0;
+		this.grounded = true;
 	}
 
 	/**

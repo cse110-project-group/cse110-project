@@ -34,6 +34,6 @@ export default class PlayerModel {
 
 	/** Returns the sprite's bounding box to be used for collision detection. */
 	public getBoundingBox(): kv.IRect{
-		return this.sprite.getSelfRect();
+		return this.sprite.getClientRect();
 	}
 }
