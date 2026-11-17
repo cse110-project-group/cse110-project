@@ -26,39 +26,41 @@ async function showMainMenu() {
         levelScreen = undefined;
 
         const newMenu = await init(
-            
-() => {
-    // TEMPORARY: Preview the completion screen.
-    if (transitioning) return;
-    transitioning = true;
+            () => {
+                // TEMPORARY: Preview the completion screen.
+                if (transitioning) return;
+                transitioning = true;
 
-    // Keep the main menu visible while assets load.
-    void (async () => {
-        try {
-            const completion = await initCompletionScene(
-                () => {
-                    // Main Menu button.
-                    completion?.destroy();
-                    void showMainMenu();
-                },
-                () => {
-                    // View Levels button.
-                    completion?.destroy();
-                    void showLevelScreen();
-                }
-            );
 
-            if (!completion) return;
+                // Keep the main menu visible while assets load.
+                void (async () => {
+                    try {
+                        const completion = await initCompletionScene(
+                            () => {
+                                // Main Menu button.
+                                completion?.destroy();
+                                void showMainMenu();
+                            },
+                            () => {
+                                // View Levels button.
+                                completion?.destroy();
+                                void showLevelScreen();
+                            }
+                        );
 
-            menu?.destroy();
-            menu = undefined;
-        } catch (err) {
-            console.error("Failed to preview completion screen:", err);
-        } finally {
-            transitioning = false;
-        }
-    })();
-},
+
+                        if (!completion) return;
+
+
+                        menu?.destroy();
+                        menu = undefined;
+                    } catch (err) {
+                        console.error("Failed to preview completion screen:", err);
+                    } finally {
+                        transitioning = false;
+                    }
+                })();
+            },
 
             () => {
                 // Open the Level Selection screen.
