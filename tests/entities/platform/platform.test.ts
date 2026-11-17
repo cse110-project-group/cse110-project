@@ -12,30 +12,7 @@ import PlayerModel from '../../../src/entities/player/playerModel.ts';
 import PlayerController from '../../../src/entities/player/playerController.ts';
 
 describe('Platform', () => {
-
-    it("gets instantiated and shows sprite correctly", () => {
-        const platform = new Platform(510, 810, 510, 210);
-        expect(platform.getSprite().x()).toBe(510 + PlatformModel.PLAT_STROKE_WIDTH / 2);
-        expect(platform.getSprite().y()).toBe(810 + PlatformModel.PLAT_STROKE_WIDTH / 2);
-        expect(platform.getSprite().width()).toBe(510 - PlatformModel.PLAT_STROKE_WIDTH);
-        expect(platform.getSprite().height()).toBe(210 - PlatformModel.PLAT_STROKE_WIDTH);
-        expect(platform.AABB).toStrictEqual({
-            x: 510, 
-            y: 810, 
-            width: 510, 
-            height: 210
-        });
-    });
-
-    it("stops players if they hit the side", () => {
-        const platform = new Platform(300, 510, 210, 600);
-        const player = new Player(new Input(), 600, 800);
-        const dx = -150;
-        const resolvedX = resolveHorizontalMovement(
-                            player.model.getBoundingBox(), dx, [platform.AABB]);
-        expect(resolvedX).toBe(510);
-    });
-
+    
     it("throws an error when either width or height is non-positive", () => {
         expect(() => {new Platform(0, 0, -120, 120)}).toThrow(
                         "Invalid width, should be positive.");
@@ -62,6 +39,37 @@ describe('Platform', () => {
 
         }
     );
+
+    it("gets instantiated and shows sprite correctly", () => {
+        const platform = new Platform(510, 810, 510, 210);
+        expect(platform.getSprite().x()).toBe(510 + PlatformModel.PLAT_STROKE_WIDTH / 2);
+        expect(platform.getSprite().y()).toBe(810 + PlatformModel.PLAT_STROKE_WIDTH / 2);
+        expect(platform.getSprite().width()).toBe(510 - PlatformModel.PLAT_STROKE_WIDTH);
+        expect(platform.getSprite().height()).toBe(210 - PlatformModel.PLAT_STROKE_WIDTH);
+        expect(platform.AABB).toStrictEqual({
+            x: 510, 
+            y: 810, 
+            width: 510, 
+            height: 210
+        });
+    });
+
+    it("stops players if they hit the side", () => {
+        const platform = new Platform(300, 510, 210, 600);
+        const player = new Player(new Input(), 600, 800);
+        const dx = -150;
+        const resolvedX = resolveHorizontalMovement(
+                            player.model.getBoundingBox(), dx, [platform.AABB]);
+        expect(resolvedX).toBe(510);
+    });
+
+    it("stops and resets players if they hit the top", () => {
+        const platform = new Platform(300, 510, 210, 600);
+        const player = new Player(new Input(), 400, 300);
+        for(let i = 0; i < 10; ++i) player.update(0.1, [platform.getSprite()]);
+        expect(player.model.getBoundingBox().x).toBe(400 - PlayerModel.SPRITE_RADIUS_X);
+        expect(player.model.getBoundingBox().y).toBe(510 - PlayerModel.SPRITE_RADIUS_Y * 2);
+    });
 });
 
 describe('PlatformModel', () => {

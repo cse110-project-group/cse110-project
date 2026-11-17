@@ -5,6 +5,7 @@ import Input from '../../../src/systems/input.ts';
 import Player from '../../../src/entities/player/player.ts';
 import PlayerController from '../../../src/entities/player/playerController.ts';
 import PlayerModel from '../../../src/entities/player/playerModel.ts';
+import Platform from '../../../src/entities/platform/platform.ts';
 import kv from 'konva';
 
 function press(code: string) {
@@ -399,6 +400,19 @@ describe('PlayerController', () => {
 			width: PlayerModel.SPRITE_RADIUS_X * 2,
 			height: PlayerModel.SPRITE_RADIUS_Y * 2,
 		});
+
+		press("KeyW");
+		expect(model.getSprite().x()).toBe(100);
+		expect(model.getSprite().y()).toBe(50);
+		expect(model.getSprite().width()).toBe(PlayerModel.SPRITE_RADIUS_X * 2);
+		expect(model.getSprite().height()).toBe(PlayerModel.SPRITE_RADIUS_Y * 2);
+		expect(model.getBoundingBox()).toStrictEqual({
+			x: 100 - PlayerModel.SPRITE_RADIUS_X, 
+			y: 50 - PlayerModel.SPRITE_RADIUS_Y,
+			width: PlayerModel.SPRITE_RADIUS_X * 2,
+			height: PlayerModel.SPRITE_RADIUS_Y * 2,
+		});
+
 	});
 });
 
