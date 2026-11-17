@@ -15,7 +15,7 @@ npm run preview  # preview the production build
 
 ## Controls
 
-The game opens on a main menu. Click **Start Game** to enter the game (the **Levels** and **Options** buttons are placeholders for now; a level select screen exists in `scenes/levelScene.ts` but is not wired into the menu yet).
+The game opens on a main menu. Click **Start Game** to enter the game (the **Levels** and **Options** buttons are placeholders for now).
 
 | Key | Action |
 | --- | --- |
@@ -144,22 +144,6 @@ Tests use [Vitest](https://vitest.dev/) with a [jsdom](https://github.com/jsdom/
 ```sh
 npm test            # run all tests once
 npm run test:watch  # rerun tests on file changes
-```
-
-Run a single file or folder with `npx vitest run <path>`, for example:
-
-```sh
-npx vitest run tests/save                       # all save-system tests
-npx vitest run tests/save/saveSerializer.test.ts
-npx vitest run tests/save/saveManager.test.ts
-npx vitest run tests/levels/levelParser.test.ts
-npx vitest run tests/scenes/levelScene.test.ts
-```
-
-Check types with:
-
-```sh
-npx tsc --noEmit
 ```
 
 Tests that touch browser APIs like `window` should start with:
