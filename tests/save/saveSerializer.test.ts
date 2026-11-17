@@ -43,6 +43,23 @@ describe('Save serialization', () => {
         expect(isSaveState(save)).toBe(true);
     });
 
+    it('accepts null best scores', () => {
+        const save = createInitialSaveState('level-1');
+
+        save.miniGames['memory-game'] = {
+            completed: true,
+            attempts: 2,
+            bestScore: null,
+        };
+
+        const json = serializeSaveState(save);
+        const restored = deserializeSaveState(json, 'level-1');
+
+        expect(isSaveState(save)).toBe(true);
+        expect(restored).toEqual(save);
+        expect(restored.miniGames['memory-game'].bestScore).toBeNull();
+    });
+
     it('creates a default save when no save exists', () => {
         const restored = deserializeSaveState(null, 'level-1');
 
@@ -88,6 +105,84 @@ describe('Save serialization', () => {
                 'memory-game': {
                     completed: 'yes',
                     attempts: -2,
+                },
+            },
+        };
+
+        expect(isSaveState(invalid)).toBe(false);
+    });
+
+    it('rejects a current level that is not unlocked', () => {
+        const invalid = {
+            ...createInitialSaveState('level-1'),
+            currentLevelId: 'level-3',
+        };
+
+        expect(isSaveState(invalid)).toBe(false);
+
+        const restored = deserializeSaveState(
+            JSON.stringify(invalid),
+            'level-1'
+        );
+
+        expect(restored.currentLevelId).toBe('level-1');
+    });
+
+    it('rejects completed levels that are not unlocked', () => {
+        const invalid = {
+            ...createInitialSaveState('level-1'),
+            completedLevelIds: ['level-3'],
+        };
+
+        expect(isSaveState(invalid)).toBe(false);
+    });
+
+    it('rejects duplicate level IDs', () => {
+        const invalid = {
+            ...createInitialSaveState('level-1'),
+            unlockedLevelIds: ['level-1', 'level-1'],
+        };
+
+        expect(isSaveState(invalid)).toBe(false);
+    });
+
+    it('rejects invalid timestamp formats', () => {
+        const save = createInitialSaveState('level-1');
+
+        save.savedAt = '1';
+        expect(isSaveState(save)).toBe(false);
+
+        save.savedAt = '2026-02-30T00:00:00.000Z';
+        expect(isSaveState(save)).toBe(false);
+
+        save.savedAt = '2026-11-16T12:00:00.000Z';
+        expect(isSaveState(save)).toBe(true);
+    });
+
+    it('rejects extra fields in a save', () => {
+        const invalid = {
+            ...createInitialSaveState('level-3'),
+            debugMode: true,
+        };
+
+        expect(isSaveState(invalid)).toBe(false);
+
+        const restored = deserializeSaveState(
+            JSON.stringify(invalid),
+            'level-1'
+        );
+
+        expect(restored.currentLevelId).toBe('level-1');
+    });
+
+    it('rejects extra fields in minigame progress', () => {
+        const invalid = {
+            ...createInitialSaveState('level-1'),
+            miniGames: {
+                'memory-game': {
+                    completed: true,
+                    attempts: 2,
+                    debugMode: true,
                 },
             },
         };
