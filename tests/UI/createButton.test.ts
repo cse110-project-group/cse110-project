@@ -109,4 +109,62 @@ describe("createButton", () => {
     button.fire("mouseleave");
     expect(document.body.style.cursor).toBe("default");
   });
+
+
+  // Verifies that labelPosition: "above" places the label above
+  // the button image instead of overlapping the artwork.
+  it("positions the label above the button when requested", () => {
+    const { button } = makeButton({ labelPosition: "above" });
+    const text = button.findOne<Konva.Text>("Text");
+
+    expect(text).toBeDefined();
+    expect(text!.y() + text!.height()).toBeLessThanOrEqual(0);
+  });
+
+  // Verifies that the default label position is inside
+  // the button image when labelPosition is not provided.
+  it("positions the label inside the button by default", () => {
+    const { button } = makeButton();
+    const text = button.findOne<Konva.Text>("Text");
+
+    expect(text).toBeDefined();
+    expect(text!.y()).toBeGreaterThanOrEqual(0);
+    expect(text!.y() + text!.height()).toBeLessThanOrEqual(100);
+  });
+
+  // Verifies that enabling labelBackground creates a
+  // rectangle behind the button text for readability.
+  it("adds a background rectangle when labelBackground is enabled", () => {
+    const { button } = makeButton({ labelBackground: true });
+
+    const text = button.findOne<Konva.Text>("Text");
+    const background = button.findOne<Konva.Rect>("Rect");
+
+    expect(text).toBeDefined();
+    expect(background).toBeDefined();
+    expect(background!.y()).toBeLessThanOrEqual(text!.y());
+    expect(background!.height()).toBeGreaterThanOrEqual(text!.height());
+  });
+
+  // Verifies that no background rectangle is added
+  // when labelBackground is not enabled.
+  it("does not add a label background by default", () => {
+    const { button } = makeButton();
+
+    expect(button.findOne<Konva.Rect>("Rect")).toBeUndefined();
+  });
+
+  // Verifies that textOffsetY changes the vertical
+  // position of the label by the specified amount.
+  it("applies a custom text Y-offset", () => {
+    const { button: defaultButton } = makeButton();
+    const { button: offsetButton } = makeButton({ textOffsetY: 15 });
+
+    const defaultText = defaultButton.findOne<Konva.Text>("Text");
+    const offsetText = offsetButton.findOne<Konva.Text>("Text");
+
+    expect(defaultText).toBeDefined();
+    expect(offsetText).toBeDefined();
+    expect(offsetText!.y() - defaultText!.y()).toBe(15);
+  });
 });
