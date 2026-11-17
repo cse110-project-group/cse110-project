@@ -23,19 +23,20 @@ export default class Platform {
      * @param y - Y position of the platform's upper left corner, in pixels.
      * @param width - Width of the platform, in pixels.
      * @param height - Height of the platform, in pixels.
+     * @param grid - Whether the platform is snapped to the grid (testing only)
      */    
-    constructor(x: number, y: number, width: number, height: number) {
+    constructor(x: number, y: number, width: number, height: number, grid: boolean = true) {
         if(width <= 0) throw new Error("Invalid width, should be positive.");
         if(height <= 0) throw new Error("Invalid height, should be positive.");
 
-        if(x % Game.GRID_UNIT != 0) throw new Error(
+        if(x % Game.GRID_UNIT != 0 && grid) throw new Error(
             "Invalid x, should be an integer multiple of grid unit length. (Maybe calculation error?)");
-        if(y % Game.GRID_UNIT != 0) throw new Error(
+        if(y % Game.GRID_UNIT != 0 && grid) throw new Error(
             "Invalid y, should be an integer multiple of grid unit length. (Maybe calculation error?)");
 
-        if(width % Game.GRID_UNIT != 0) throw new Error(
+        if(width % Game.GRID_UNIT != 0 && grid) throw new Error(
             "Invalid width, should be an integer multiple of grid unit length. (Maybe calculation error?)");
-        if(height % Game.GRID_UNIT != 0) throw new Error(
+        if(height % Game.GRID_UNIT != 0 && grid) throw new Error(
             "Invalid height, should be an integer multiple of grid unit length. (Maybe calculation error?)");
 
         this.model = new PlatformModel(x, y, width, height);
