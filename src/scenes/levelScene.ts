@@ -68,12 +68,12 @@ export async function initLevelSelect(
     new Konva.Text({
       text: "LEVEL SELECT",
       x: 0,
-      y: 70,
+      y: 40,
       width: WIDTH,
       align: "center",
       fontSize: 56,
       fontStyle: "bold",
-      fill: "white",
+      fill: "orange",
     })
   );
 
@@ -85,10 +85,10 @@ export async function initLevelSelect(
   const btnH = 100;
 
   const gapX = 260;
-  const gapY = 125;
+  const gapY = 155;
 
   const startX = WIDTH / 2 - ((columns - 1) * gapX) / 2;
-  const startY = 240;
+  const startY = 225;
 
   // Create the level buttons in a 4x3 grid.
   for (let level = 1; level <= totalLevels; level++) {
@@ -108,6 +108,7 @@ export async function initLevelSelect(
       width: btnW,
       height: btnH,
       labelPosition: "above",
+      labelBackground: true,
       onClick: () => {},
     });
 

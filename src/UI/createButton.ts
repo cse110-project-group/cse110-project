@@ -13,6 +13,7 @@ interface ButtonOptions {
   height: number;
   textOffsetY?: number;
   labelPosition?: "above" | "center";
+  labelBackground?: boolean;
   onClick: () => void;
 }
 
@@ -33,7 +34,7 @@ interface ButtonOptions {
  * @returns 
  */
 export function createButton(opts: ButtonOptions): Konva.Group {
-  const { image, label, x, y, width, height, labelPosition = "center", onClick } = opts;
+  const { image, label, x, y, width, height, labelPosition = "center", labelBackground = false, onClick } = opts;
 
   // The group is the "button": position, scale, and events live here.
   const button = new Konva.Group({
@@ -51,11 +52,28 @@ export function createButton(opts: ButtonOptions): Konva.Group {
     const labelHeight = 36;
     const labelGap = 8;
 
-    // Position the label above the image or centered on it.
     const labelY =
       labelPosition === "above"
         ? -labelHeight - labelGap
         : opts.textOffsetY ?? 0;
+
+    const textHeight =
+      labelPosition === "above" ? labelHeight : height;
+
+  // NEW: Add a background behind the label when requested.
+    if (labelBackground) {
+      button.add(
+        new Konva.Rect({
+          x: 0,
+          y: labelY,
+          width,
+          height: textHeight,
+          fill: "#27324A",
+          cornerRadius: 6,
+          opacity: 0.9,
+        })
+      );
+    }
 
     button.add(
       new Konva.Text({
@@ -63,7 +81,7 @@ export function createButton(opts: ButtonOptions): Konva.Group {
         x: 0,
         y: labelY,
         width,
-        height: labelPosition === "above" ? labelHeight : height,
+        height: textHeight,
         align: "center",
         verticalAlign: "middle",
         fontSize: 32,
@@ -72,7 +90,6 @@ export function createButton(opts: ButtonOptions): Konva.Group {
       })
     );
   }
-
 
   // Only one tween per button exists at a time: starting a new one destroys
   // the previous one, and a finished tween destroys itself, so none pile up.
