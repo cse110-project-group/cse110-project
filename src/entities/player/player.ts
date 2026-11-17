@@ -1,7 +1,6 @@
 import PlayerModel from './playerModel.ts';
 import PlayerController from './playerController.ts';
 import Input from '../../systems/input.ts';
-import { BoundingBox } from '../../systems/collision.ts';
 import type kv from 'konva';
 
 /**

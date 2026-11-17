@@ -159,7 +159,10 @@ export default class PlayerController {
 		this.model.getSprite().y(this.SPAWN_Y);
 		this.xSpeed = 0;
 		this.ySpeed = 0;
-		this.grounded = true;
+		this.grounded = false;
+		this.jumpCuttable = false;
+		this.coyoteTimer = 0;
+		this.jumpBufferTimer = 0;
 	}
 
 	/**
