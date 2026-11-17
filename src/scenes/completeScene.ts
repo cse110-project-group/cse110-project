@@ -35,4 +35,45 @@ export async function initCompletionScene(
       fill: "#111536",
     })
   );
+
+  // Add the completion title.
+  layer.add(
+    new Konva.Text({
+      text: "CONGRATULATIONS!",
+      x: 0,
+      y: 100,
+      width: WIDTH,
+      align: "center",
+      fontSize: 58,
+      fontStyle: "bold",
+      fill: "#FFE18A",
+    })
+  );
+
+  // Add the completion message.
+  layer.add(
+    new Konva.Text({
+      text: "You completed all 12 levels!",
+      x: 0,
+      y: 220,
+      width: WIDTH,
+      align: "center",
+      fontSize: 36,
+      fill: "white",
+    })
+  );
+
+  // Add achievement text.
+  layer.add(
+    new Konva.Text({
+      text: "12 / 12 LEVELS COMPLETED",
+      x: 0,
+      y: 315,
+      width: WIDTH,
+      align: "center",
+      fontSize: 30,
+      fontStyle: "bold",
+      fill: "#FCD56B",
+    })
+  );
 }
