@@ -76,4 +76,36 @@ export async function initCompletionScene(
       fill: "#FCD56B",
     })
   );
+
+  // Add Main Menu button.
+  layer.add(
+    createButton({
+      image: buttonImg,
+      label: "Main Menu",
+      x: WIDTH / 2,
+      y: 455,
+      width: 260,
+      height: 80,
+      onClick: onMainMenu,
+    })
+  );
+
+  // Add View Levels button.
+  layer.add(
+    createButton({
+      image: buttonImg,
+      label: "View Levels",
+      x: WIDTH / 2,
+      y: 565,
+      width: 260,
+      height: 80,
+      onClick: onLevels,
+    })
+  );
+
+  // Return the Stage and cleanup function.
+  return {
+    stage,
+    destroy,
+  };
 }
