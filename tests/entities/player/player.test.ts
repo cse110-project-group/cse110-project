@@ -5,7 +5,6 @@ import Input from '../../../src/systems/input.ts';
 import Player from '../../../src/entities/player/player.ts';
 import PlayerController from '../../../src/entities/player/playerController.ts';
 import PlayerModel from '../../../src/entities/player/playerModel.ts';
-import Platform from '../../../src/entities/platform/platform.ts';
 import kv from 'konva';
 
 function press(code: string) {
