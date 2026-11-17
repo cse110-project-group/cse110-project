@@ -104,8 +104,6 @@ export default class PlayerController {
 		const sprite = this.model.getSprite();
 		const parent = sprite.getParent() ?? undefined;
 
-		const obstacleBoxes: BoundingBox[] = [];
-
 		for (const node of obstacles) {
 			if (node === sprite) continue;
 			if (node.hasName('spikes')){
