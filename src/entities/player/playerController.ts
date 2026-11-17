@@ -1,7 +1,7 @@
 import Input from '../../systems/input.ts';
 import PlayerModel from './playerModel.ts';
 import type kv from 'konva';
-import { BoundingBox, resolveHorizontalMovement, resolveVerticalMovement } from '../../systems/collision.ts';
+import { BoundingBox, resolveHorizontalMovement, resolveVerticalMovement, checkAABBCollision } from '../../systems/collision.ts';
 import { GRAVITY, applyGravity } from '../../systems/physics.ts';
 
 /**
@@ -23,6 +23,9 @@ export default class PlayerController {
 	private input: Input;
 	private model: PlayerModel;
 
+	public readonly SPAWN_X: number;
+	public readonly SPAWN_Y: number;
+
 	/** Signed horizontal velocity, in pixels per second (negative is left). */
 	private xSpeed: number = 0;
 	/** Signed vertical velocity, in pixels per second (negative is up). */
@@ -37,6 +40,8 @@ export default class PlayerController {
 	/** Whether the current jump can still be cut short by releasing jump. */
 	private jumpCuttable: boolean = false;
 
+	/** Bounding box that indnicates the player hitbox */
+	//public AABB: BoundingBox;
 	/** Static readonlys as constants */
 	public static readonly MAX_X_SPEED: number = 450;
 
@@ -73,6 +78,15 @@ export default class PlayerController {
 	constructor(input: Input, model: PlayerModel) {
 		this.input = input;
 		this.model = model;
+
+		this.SPAWN_X = model.getSprite().x();
+		this.SPAWN_Y = model.getSprite().y();
+
+		//this.AABB = this.offsetBoundingBox(this.model.getBoundingBox(), 
+											//this.SPAWN_X, this.SPAWN_Y);
+		this.xSpeed = 0;
+		this.ySpeed = 0;
+		this.grounded = false;
 	}
 
 	/**
@@ -90,10 +104,22 @@ export default class PlayerController {
 		const sprite = this.model.getSprite();
 		const parent = sprite.getParent() ?? undefined;
 
+		for (const node of obstacles) {
+			if (node === sprite) continue;
+			if (node.hasName('spikes')){
+				let boundingBox = node.getClientRect({ relativeTo: parent });
+				if(checkAABBCollision(this.model.getBoundingBox(), boundingBox)){
+					this.respawn();
+					return;
+				}
+			}
+		}
+
+		const boundingBoxes = this.getObstacleBoxes(obstacles);
+
 		let playerBox: BoundingBox = sprite.getClientRect({
 				relativeTo: parent
 		});
-		const boundingBoxes = this.getObstacleBoxes(obstacles);
 
 		if(dx !== 0) {
 			const safeTopLeftX = resolveHorizontalMovement(
@@ -125,6 +151,37 @@ export default class PlayerController {
 		}
 	}
 
+	/** 
+	 * Respawns player at level spawn after death and sets currSpeed to 0. 
+	 */
+	public respawn(){
+		this.model.getSprite().x(this.SPAWN_X);
+		this.model.getSprite().y(this.SPAWN_Y);
+		this.xSpeed = 0;
+		this.ySpeed = 0;
+		this.grounded = false;
+		this.jumpCuttable = false;
+		this.coyoteTimer = 0;
+		this.jumpBufferTimer = 0;
+	}
+
+	/**
+	 * Offsets a given bounding box by an x offset value and a y offset value.
+	 * 
+	 * @param box - The bounding box to be offsetted.
+	 * @param x - The x offset value, in pixels.
+	 * @param y - The y offset value, in pixels.
+	 * @returns A new bounding box with the same width and height as box, but
+	 * offsetted x pixels to the right and y pixels downwards. 
+	 */
+	private offsetBoundingBox(box: BoundingBox, x: number, y: number): BoundingBox{
+		return {
+			x: box.x + x,
+			y: box.y + y,
+			width: box.width,
+			height: box.height
+		};
+	}
 
 	/**
 	 * Applies movement and acceleration to the player for one frame. Updates
