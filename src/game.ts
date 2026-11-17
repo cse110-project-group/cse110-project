@@ -2,7 +2,6 @@ import Input from './systems/input.ts';
 import kv from 'konva';
 import Player from './entities/player/player.ts';
 import { NodeConfig } from 'konva/lib/Node';
-import Platform from './entities/platform/platform.ts';
 
 /**
  * Top-level game object. Creates the Konva stage, owns the shared
@@ -85,9 +84,6 @@ export default class Game {
 			this.input, this.stage.width()/2, this.stage.height()/2
 		);
 
-		let platform = new Platform(1200, 600, 210, 600);
-
-		this.gameLayer.add(platform.getSprite());
 		this.gameLayer.add(this.player.getSprite());
 		
 		this.gameLayer.draw();
