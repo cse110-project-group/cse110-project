@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import "../helpers/canvasStub.ts";
 import Konva from "konva";
 import { loadImage } from "../../src/systems/loadImage.ts";
-import { init, fitStageToWindow, resetMainMenuAssets } from "../../src/scenes/mainMenu.ts";
+import { init, fitStageToWindow, preloadMainMenuAssets, resetMainMenuAssets,} from "../../src/scenes/mainMenu.ts";
 
 // Replace the real image loader so no files are needed. A canvas element
 // stands in for an image.
@@ -27,6 +27,11 @@ function findButton(layer: Konva.Layer, label: string): Konva.Group {
 }
 
 beforeEach(() => {
+  vi.mocked(loadImage).mockReset();
+  vi.mocked(loadImage).mockImplementation(() =>
+    Promise.resolve(document.createElement("canvas") as unknown as HTMLImageElement)
+  );
+
   document.body.innerHTML = '<div id="container"></div>';
   setWindowSize(1280, 720);
   resetMainMenuAssets();
@@ -123,4 +128,65 @@ describe("init", () => {
     expect(removeSpy).toHaveBeenCalledWith("resize", expect.any(Function));
     expect(document.body.style.cursor).toBe("default");
   });
+
+
+  it("reuses cached images when reopening the main menu", async () => {
+    const firstMenu = await init(vi.fn(), vi.fn());
+
+    expect(firstMenu).toBeDefined();
+    expect(loadImage).toHaveBeenCalledTimes(2);
+
+    firstMenu!.destroy();
+
+    const secondMenu = await init(vi.fn(), vi.fn());
+
+    expect(secondMenu).toBeDefined();
+
+    // Reopening should not load the same images again.
+    expect(loadImage).toHaveBeenCalledTimes(2);
+
+    secondMenu!.destroy();
+  });
+
+  it("allows the main menu to load after an image failure", async () => {
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    vi.mocked(loadImage).mockRejectedValueOnce(
+      new Error("Image failed to load")
+    );
+
+    const failedMenu = await init(vi.fn(), vi.fn());
+
+    expect(failedMenu).toBeUndefined();
+    expect(Konva.stages).toHaveLength(0);
+    expect(errorSpy).toHaveBeenCalled();
+
+    // The failed image should be retried successfully.
+    const recoveredMenu = await init(vi.fn(), vi.fn());
+
+    expect(recoveredMenu).toBeDefined();
+    expect(recoveredMenu!.stage.getLayers()).toHaveLength(1);
+
+    recoveredMenu!.destroy();
+  });
+
+  it("preloads menu images without creating a stage", async () => {
+    const loaded = await preloadMainMenuAssets();
+
+    expect(loaded).toBe(true);
+    expect(loadImage).toHaveBeenCalledTimes(2);
+
+    // Image preloading should not create a Konva stage.
+    expect(Konva.stages).toHaveLength(0);
+
+    const menu = await init(vi.fn(), vi.fn());
+
+    expect(menu).toBeDefined();
+
+    // init() should reuse the preloaded images.
+    expect(loadImage).toHaveBeenCalledTimes(2);
+
+    menu!.destroy();
+  });
+
 });
