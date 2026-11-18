@@ -15,7 +15,7 @@ npm run preview  # preview the production build
 
 ## Controls
 
-The game opens on a main menu. Click **Start Game** to enter the game (the **Levels** and **Options** buttons are placeholders for now).
+The game opens on a main menu. Click **Start Game** to enter the game, or **Levels** to open the level select screen (the **Options** button is a placeholder for now).
 
 | Key | Action |
 | --- | --- |
@@ -41,9 +41,10 @@ src/
   scenes/
     mainMenu.ts           main menu: background, buttons, scales to fit the window
     levelScene.ts         level select screen: 4x3 grid of level buttons plus a back button
+    sceneUtils.ts         shared stage creation, scaling, and cleanup
     gameScene.ts          (empty, reserved)
   UI/
-    createButton.ts       reusable image button with hover/press animations
+    createButton.ts       reusable image button with animations and label positioning
   levels/
     level.ts              Level interface: the structure of a level's data
     levelParser.ts        LevelParser: converts level JSON strings to Level objects and back
@@ -57,6 +58,7 @@ src/
     input.ts              tracks which keys are held down
     collision.ts          AABB overlap checks and per-axis movement resolution
     loadImage.ts          Promise-based image loader
+    imageCache.ts         shared image caching across scenes
     trigGenerator.ts      trig question sources built on RandMatQuGeA
     physics.ts            gravity constants and applyGravity()
 tests/                    mirrors src/ (e.g. tests/systems/input.test.ts)
@@ -81,11 +83,11 @@ Each frame the game passes the game layer's children to `player.update(deltaTime
 
 ### Scenes and UI
 
-The main menu (`scenes/mainMenu.ts`) lays itself out in a fixed 1280×720 virtual resolution and scales the stage to fit the window while keeping the aspect ratio. `init(onStart)` loads its images with `loadImage`, builds the buttons with `createButton`, and returns a `MainMenu` whose `destroy()` removes the stage and its resize listener.
+The main menu (`scenes/mainMenu.ts`) lays itself out in a fixed 1280×720 virtual resolution and scales the stage to fit the window while keeping the aspect ratio. `init(onStart)` loads its images with `loadImage`, builds the buttons with `createButton`, and returns a `MainMenu` whose `destroy()` removes the stage and its resize listener. `createButton` returns a Konva group that is not yet added to a layer, so any scene can reuse it. It accepts an optional y offset for the label (`offsetY`) to nudge the text and avoid overlapping any text baked into the button image.
 
-The level select scene (`scenes/levelScene.ts`) shows a 4×3 grid of level buttons (the grid size may change) and a button that returns to the main menu. Like the main menu, it loads its images with `loadImage`, builds its buttons with `createButton`, and exposes a `destroy()` that cleans the scene up when switching screens so nothing leaks. Locked levels use the `public/assets/Locked_Level.png` image.
+The level select scene (`scenes/levelScene.ts`) shows a 4×3 grid of 12 level buttons and a button that returns to the main menu. Like the main menu, it loads its images with `loadImage`, builds its buttons with `createButton`, and exposes a `destroy()` that cleans the scene up when switching screens so nothing leaks. Locked levels use the `public/assets/Locked_Level.png` image and have pointer interactions disabled.
 
-`createButton` returns a Konva group that is not yet added to a layer, so any scene can reuse it. It accepts an optional y offset for the label (`offsetY`) to nudge the text and avoid overlapping any text baked into the button image.
+To reduce duplicated code, `sceneUtils.ts` provides a reusable `createScene()` helper for Konva stage and layer creation, window resizing, and cleanup. The shared `imageCache.ts` utility caches loaded assets across scenes. Scene transitions preload required assets before destroying the current scene and use a transition lock to prevent overlapping transitions. The `createButton()` helper also supports label positioning and backgrounds.
 
 ### Levels
 
@@ -99,8 +101,6 @@ const level = parser.unserialize(data, level1); // data: JSON string for level 1
 const string = parser.serialize(level);         // back to a JSON string
 ```
 
-`unserialize` takes the JSON string for a level (`data`) along with a `Level` object (`level1` above) and returns the parsed `Level`.
-
 ### Trig questions
 
 `systems/trigGenerator.ts` wraps [RandMatQuGeA](https://github.com/richie-rich90454/RandMatQuGeA) to generate questions for the minigames. Each source takes a difficulty of `'easy'`, `'medium'`, or `'hard'` (default `'easy'`) and returns prompts and answers as LaTeX:
@@ -110,32 +110,17 @@ const string = parser.serialize(level);         // back to a JSON string
 
 ### Saving
 
-The save system is split into four layers, each with one job:
+`save/saveState.ts` defines the `SaveState` (current, unlocked, and completed levels, minigame progress, claimed rewards) and `createInitialSaveState(startingLevelId)`. Saves are stored through the `StorageAdapter` interface; `BrowserStorageAdapter` implements it with `localStorage`, prefixing keys with `cse110-game-saves:`.
 
-| Layer | File | Responsibility |
-| --- | --- | --- |
-| Data shape | `save/saveState.ts` | Defines `SaveState` (current, unlocked, and completed levels, minigame progress, claimed rewards, timestamps) and `createInitialSaveState(startingLevelId)`. |
-| Serialization | `save/saveSerializer.ts` | Converts a `SaveState` to and from JSON strings and validates it. |
-| Storage | `save/storageAdapter.ts`, `save/browserStorageAdapter.ts` | `StorageAdapter` reads, writes, and removes strings by key. `BrowserStorageAdapter` implements it with `localStorage`, prefixing keys with `cse110-game-saves:`. |
-| Management | `save/saveManager.ts` | `SaveManager` ties the other layers together so the rest of the game never touches storage or serialization directly. |
+`save/saveSerializer.ts` converts a `SaveState` to and from JSON with `serializeSaveState()` and `deserializeSaveState()`. When loading, it validates the data and its schema version. If the data is corrupted, incomplete, or from an unsupported version, it returns a fresh default save and leaves the stored data untouched.
 
-#### Serialization
+`save/saveManager.ts` provides `SaveManager`, which handles progress through the adapter and serializer:
 
-- `serializeSaveState()` converts valid save data into JSON.
-- `deserializeSaveState()` restores saved progress from JSON. It validates level progress, minigame data, rewards, and timestamps, and checks that the schema version is the current one.
-- If the stored data is missing, is corrupted JSON, has missing fields or wrong types, or uses an older or unsupported schema version, `deserializeSaveState()` returns a fresh default save instead of crashing. The fallback does not overwrite the original stored data.
-- Serialization is kept separate from the storage adapter, so storage only deals in strings and doesn't depend on the shape of the game's progress. Validation lives in small helper functions.
+- `load()`: restores an existing save, or starts default progress.
+- `completeLevel()`: records a completed level (no duplicates) and unlocks new ones.
+- `completeMinigame()`: records completion status, attempts, and best score.
 
-#### SaveManager
-
-`SaveManager` loads, updates, and saves player progress through a `StorageAdapter`, so the storage implementation can be swapped later.
-
-- `load()`: restores an existing save (validated by the serializer), or initializes default progress if there is none or it is invalid.
-- `completeLevel()`: marks a level completed and unlocks new levels. Levels are tracked with Sets, so completing the same level twice never creates duplicates.
-- `completeMinigame()`: records a minigame's completion status, attempts, and best score.
-- Every update made through the manager updates the save's timestamp and is persisted automatically.
-
-Saves are not yet wired into gameplay. Next steps are to call the `SaveManager` methods from real level and minigame completion events, to use `load()` during game startup so returning players resume their progress, and to add schema migrations so progress survives future changes to the save format.
+Updates made through the manager are saved automatically. Saves are not yet wired into the game.
 
 ## Testing
 
