@@ -413,6 +413,21 @@ describe('PlayerController', () => {
 		});
 
 	});
+
+	it("sets the player's spawn point correctly", () => {
+		controller.setSpawn(500, 1000);
+		controller.respawn();
+		expect(model.getSprite().x()).toBe(500);
+		expect(model.getSprite().y()).toBe(1000);
+		expect(model.getSprite().width()).toBe(PlayerModel.SPRITE_RADIUS_X * 2);
+		expect(model.getSprite().height()).toBe(PlayerModel.SPRITE_RADIUS_Y * 2);
+		expect(model.getBoundingBox()).toStrictEqual({
+			x: 500 - PlayerModel.SPRITE_RADIUS_X, 
+			y: 1000 - PlayerModel.SPRITE_RADIUS_Y,
+			width: PlayerModel.SPRITE_RADIUS_X * 2,
+			height: PlayerModel.SPRITE_RADIUS_Y * 2,
+		});
+	});
 });
 
 describe('Player', () => {

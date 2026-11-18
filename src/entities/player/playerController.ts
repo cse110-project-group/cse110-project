@@ -23,8 +23,8 @@ export default class PlayerController {
 	private input: Input;
 	private model: PlayerModel;
 
-	public readonly SPAWN_X: number;
-	public readonly SPAWN_Y: number;
+	private spawnX: number;
+	private spawnY: number;
 
 	/** Signed horizontal velocity, in pixels per second (negative is left). */
 	private xSpeed: number = 0;
@@ -79,8 +79,8 @@ export default class PlayerController {
 		this.input = input;
 		this.model = model;
 
-		this.SPAWN_X = model.getSprite().x();
-		this.SPAWN_Y = model.getSprite().y();
+		this.spawnX = model.getSprite().x();
+		this.spawnY = model.getSprite().y();
 
 		//this.AABB = this.offsetBoundingBox(this.model.getBoundingBox(), 
 											//this.SPAWN_X, this.SPAWN_Y);
@@ -155,14 +155,25 @@ export default class PlayerController {
 	 * Respawns player at level spawn after death and sets currSpeed to 0. 
 	 */
 	public respawn(){
-		this.model.getSprite().x(this.SPAWN_X);
-		this.model.getSprite().y(this.SPAWN_Y);
+		this.model.getSprite().x(this.spawnX);
+		this.model.getSprite().y(this.spawnY);
 		this.xSpeed = 0;
 		this.ySpeed = 0;
 		this.grounded = false;
 		this.jumpCuttable = false;
 		this.coyoteTimer = 0;
 		this.jumpBufferTimer = 0;
+	}
+
+	/**
+	 * Sets a new spawn point for the player. May be useful when transitioning
+	 * between levels.
+	 * @param x - The new player spanw point's x coordinate.
+	 * @param y - The new player spanw point's y coordinate.
+	 */	
+	public setSpawn(x: number, y: number){
+		this.spawnX = x;
+		this.spawnY = y;
 	}
 
 	/**
