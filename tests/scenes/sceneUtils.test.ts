@@ -2,23 +2,18 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import "../helpers/canvasStub";
 import Konva from "konva";
-import {
-  createScene,
-  fitStageToWindow,
-  WIDTH,
-  HEIGHT,
-} from "../../src/scenes/sceneUtils";
+import { createScene, WIDTH, HEIGHT,} from "../../src/scenes/sceneUtils";
 
 function setWindowSize(width: number, height: number) {
-  Object.defineProperty(window, "innerWidth", {
-    configurable: true,
-    value: width,
-  });
+    Object.defineProperty(window, "innerWidth", {
+        configurable: true,
+        value: width,
+    });
 
-  Object.defineProperty(window, "innerHeight", {
-    configurable: true,
-    value: height,
-  });
+    Object.defineProperty(window, "innerHeight", {
+        configurable: true,
+        value: height,
+    });
 }
 
 describe("sceneUtils", () => {
@@ -37,16 +32,16 @@ describe("sceneUtils", () => {
         container.id = "container";
         document.body.appendChild(container);
 
-    setWindowSize(1280, 720);
+        setWindowSize(1280, 720);
     });
 
     afterEach(() => {
-    createdScenes.forEach((scene) => scene.destroy());
-    createdScenes.length = 0;
+        createdScenes.forEach((scene) => scene.destroy());
+        createdScenes.length = 0;
 
-    Konva.stages.forEach((stage) => stage.destroy());
-    container.remove();
-    vi.restoreAllMocks();
+        Konva.stages.forEach((stage) => stage.destroy());
+        container.remove();
+        vi.restoreAllMocks();
     });
 
     it("creates a stage and layer", () => {
@@ -56,8 +51,6 @@ describe("sceneUtils", () => {
         expect(scene.layer).toBeInstanceOf(Konva.Layer);
         expect(scene.stage.getLayers().length).toBe(1);
         expect(scene.stage.getLayers()[0]).toBe(scene.layer);
-
-        scene.destroy();
     });
 
     it("scales the stage while preserving aspect ratio", () => {
@@ -69,8 +62,6 @@ describe("sceneUtils", () => {
         expect(scene.stage.height()).toBe(360);
         expect(scene.stage.scaleX()).toBe(0.5);
         expect(scene.stage.scaleY()).toBe(0.5);
-
-        scene.destroy();
     });
 
     it("updates the stage when the window is resized", () => {
@@ -85,8 +76,6 @@ describe("sceneUtils", () => {
         expect(scene.stage.scaleY()).toBe(expectedScale);
         expect(scene.stage.width()).toBe(WIDTH * expectedScale);
         expect(scene.stage.height()).toBe(HEIGHT * expectedScale);
-
-        scene.destroy();
     });
 
     it("removes the original resize listener and destroys the stage", () => {
@@ -107,6 +96,7 @@ describe("sceneUtils", () => {
         document.body.style.cursor = "pointer";
 
         scene.destroy();
+        createdScenes.splice(createdScenes.indexOf(scene), 1);
 
         expect(destroySpy).toHaveBeenCalledTimes(1);
 
