@@ -35,6 +35,7 @@ describe("sceneUtils", () => {
   afterEach(() => {
     container.remove();
     vi.restoreAllMocks();
+    Konva.stages.forEach((stage) => stage.destroy());
   });
 
   it("creates a stage and layer", () => {
@@ -64,13 +65,10 @@ describe("sceneUtils", () => {
   it("updates the stage when the window is resized", () => {
     const scene = createScene();
 
-    setWindowSize(960, 540);
+    setWindowSize(960, 720);
     window.dispatchEvent(new Event("resize"));
 
-    const expectedScale = Math.min(
-      960 / WIDTH,
-      540 / HEIGHT
-    );
+    const expectedScale = 0.75;
 
     expect(scene.stage.scaleX()).toBe(expectedScale);
     expect(scene.stage.scaleY()).toBe(expectedScale);
@@ -80,20 +78,33 @@ describe("sceneUtils", () => {
     scene.destroy();
   });
 
-  it("removes the resize listener and destroys the stage", () => {
+  it("removes the original resize listener and destroys the stage", () => {
+    const addSpy = vi.spyOn(window, "addEventListener");
     const removeSpy = vi.spyOn(window, "removeEventListener");
+
     const scene = createScene();
     const destroySpy = vi.spyOn(scene.stage, "destroy");
+
+    const resizeCall = addSpy.mock.calls.find(
+        ([event]) => event === "resize"
+    );
+
+    expect(resizeCall).toBeDefined();
+
+    const originalHandler = resizeCall![1];
 
     document.body.style.cursor = "pointer";
 
     scene.destroy();
 
     expect(destroySpy).toHaveBeenCalledTimes(1);
+
+    // Must remove the exact handler originally registered.
     expect(removeSpy).toHaveBeenCalledWith(
-      "resize",
-      expect.any(Function)
+        "resize",
+        originalHandler
     );
+
     expect(document.body.style.cursor).toBe("default");
-  });
+    });
 });
