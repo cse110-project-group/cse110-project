@@ -36,7 +36,7 @@ describe("sceneUtils", () => {
     });
 
     afterEach(() => {
-        createdScenes.forEach((scene) => scene.destroy());
+        [...Konva.stages].forEach((s) => s.destroy());
         createdScenes.length = 0;
 
         Konva.stages.forEach((stage) => stage.destroy());
