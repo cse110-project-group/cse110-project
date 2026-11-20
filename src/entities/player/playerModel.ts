@@ -34,7 +34,7 @@ export default class PlayerModel {
 
 		if (!image) {
 			const img = new Image();
-			img.src = '/assets/player-sprite.png'; // Update filename if needed
+			img.src = '/assets/player-sprite.png';
 			img.onload = () => {
 				this.sprite.image(img);
 				this.sprite.getLayer()?.batchDraw();
