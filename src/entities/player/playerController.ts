@@ -82,7 +82,7 @@ export default class PlayerController {
 		this.spawnX = model.getSprite().x();
 		this.spawnY = model.getSprite().y();
 
-		//this.AABB = this.offsetBoundingBox(this.model.getBoundingBox(), 
+		//this.AABB = this.offsetBoundingBox(this.model.getBoundingBox(),
 											//this.SPAWN_X, this.SPAWN_Y);
 		this.xSpeed = 0;
 		this.ySpeed = 0;
@@ -103,6 +103,13 @@ export default class PlayerController {
 
 		const sprite = this.model.getSprite();
 		const parent = sprite.getParent() ?? undefined;
+
+		if (dx < 0) {
+			sprite.scaleX(-1);
+		}
+		else if (dx > 0) {
+			sprite.scaleX(1);
+		}
 
 		for (const node of obstacles) {
 			if (node === sprite) continue;
@@ -151,8 +158,8 @@ export default class PlayerController {
 		}
 	}
 
-	/** 
-	 * Respawns player at level spawn after death and sets currSpeed to 0. 
+	/**
+	 * Respawns player at level spawn after death and sets currSpeed to 0.
 	 */
 	public respawn(){
 		this.model.getSprite().x(this.spawnX);
@@ -170,7 +177,7 @@ export default class PlayerController {
 	 * between levels.
 	 * @param x - The new player spanw point's x coordinate.
 	 * @param y - The new player spanw point's y coordinate.
-	 */	
+	 */
 	public setSpawn(x: number, y: number){
 		this.spawnX = x;
 		this.spawnY = y;
@@ -178,12 +185,12 @@ export default class PlayerController {
 
 	/**
 	 * Offsets a given bounding box by an x offset value and a y offset value.
-	 * 
+	 *
 	 * @param box - The bounding box to be offsetted.
 	 * @param x - The x offset value, in pixels.
 	 * @param y - The y offset value, in pixels.
 	 * @returns A new bounding box with the same width and height as box, but
-	 * offsetted x pixels to the right and y pixels downwards. 
+	 * offsetted x pixels to the right and y pixels downwards.
 	 */
 	private offsetBoundingBox(box: BoundingBox, x: number, y: number): BoundingBox{
 		return {
