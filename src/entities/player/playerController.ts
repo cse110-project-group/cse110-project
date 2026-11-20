@@ -151,11 +151,6 @@ export default class PlayerController {
 		}
 	}
 
-	public setSpawnPoint(x: number, y: number){
-		this.spawnX = x;
-		this.spawnY = y;
-	}
-
 	/**
 	 * Respawns player at level spawn after death and sets currSpeed to 0.
 	 */
