@@ -169,9 +169,25 @@ describe("createButton", () => {
     expect(button.findOne<Konva.Rect>("Rect")).toBeUndefined();
   });
 
-  // Verifies that textOffsetY changes the vertical
-  // position of the label by the specified amount.
-  // Above-positioned labels use a fixed position regardless of textOffsetY.
+  // Verifies that textOffsetY changes the vertical position
+  // of the label when using the default centered position.
+  it("applies a custom text Y-offset in the default position", () => {
+    const { button: defaultButton } = makeButton();
+    const { button: offsetButton } = makeButton({
+      textOffsetY: 15,
+    });
+
+    const defaultText = defaultButton.findOne<Konva.Text>("Text");
+    const offsetText = offsetButton.findOne<Konva.Text>("Text");
+
+    expect(defaultText).toBeDefined();
+    expect(offsetText).toBeDefined();
+
+    expect(offsetText!.y() - defaultText!.y()).toBe(15);
+});
+
+  // Verifies that textOffsetY is ignored when labelPosition
+  // is "above", preserving the fixed label position.
   it("ignores textOffsetY when labelPosition is above", () => {
     const { button } = makeButton({
       labelPosition: "above",
