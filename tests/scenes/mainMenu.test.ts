@@ -35,7 +35,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-  Konva.stages.forEach((s) => s.destroy());
+  [...Konva.stages].forEach((s) => s.destroy());
   vi.restoreAllMocks();
   document.body.innerHTML = "";
 });
