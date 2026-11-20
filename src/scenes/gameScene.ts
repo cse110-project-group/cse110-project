@@ -41,7 +41,7 @@ export function loadLevel(
 		const platform = new Platform(
 			rect.upperLeft.x, rect.upperLeft.y, rect.width, rect.height
 		);
-		gameLayer.add(platform.getSprite()); // PlatformModel already names it 'solid'
+		gameLayer.add(platform.getSprite());
 	}
 
 	// Holder for slopes until implemented
