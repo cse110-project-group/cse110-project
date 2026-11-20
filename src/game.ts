@@ -1,8 +1,6 @@
 import Input from './systems/input.ts';
 import kv from 'konva';
 import Player from './entities/player/player.ts';
-import { NodeConfig } from 'konva/lib/Node';
-import Platform from './entities/platform/platform.ts';
 import { checkLevelClear } from './systems/collision.ts';
 import type { Level } from './levels/level.ts';
 import { loadLevel } from './scenes/gameScene.ts';
@@ -78,7 +76,8 @@ export default class Game {
                 }))
             ],
             walls: [],
-            slopes: []
+            slopes: [],
+            spikes: []
         };
 
         const tempLevel2: Level = {
@@ -96,11 +95,12 @@ export default class Game {
                 { upperLeft: { x: 980, y: floorTop - 250 }, width: 180, height: 20 },
             ],
             walls: [],
-            slopes: []
+            slopes: [],
+            spikes: []
         };
         // END TEST PLATFORMS
 
-		this.input = new Input(this.stage.container());
+        this.input = new Input(this.stage.container());
         this.player = new Player(
             this.input, this.stage.width() / 2, this.stage.height() / 2
         );
