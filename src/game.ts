@@ -47,14 +47,19 @@ export default class Game {
 
 		// below are the test platforms so u can test movement, delete when we have levels
 		// START TEST PLATFORMS
-		const centerX = this.stage.width() / 2;
-		const floorTop = this.stage.height() - 50;
+		const unit = Game.GRID_UNIT; // 30
+		const snap = (val: number) => Math.floor(val / unit) * unit;
+
+		const gridWidth = snap(this.stage.width());
+		const centerX = snap(this.stage.width() / 2);
+		const floorTop = snap(this.stage.height() - 60);
+
 		const platforms = [
-			{ x: centerX + 100, rise: 110 },
-			{ x: centerX + 300, rise: 220 },
-			{ x: centerX + 100, rise: 330 },
-			{ x: centerX - 250, rise: 110 },
-			{ x: centerX - 450, rise: 220 },
+			{ x: centerX + 90, rise: 120 },
+			{ x: centerX + 300, rise: 210 },
+			{ x: centerX + 90, rise: 330 },
+			{ x: centerX - 240, rise: 120 },
+			{ x: centerX - 450, rise: 210 },
 		];
 
 		const tempLevel1: Level = {
@@ -63,16 +68,16 @@ export default class Game {
 			platforms: [
 				{
 					upperLeft: { x: 0, y: floorTop },
-					width: this.stage.width(),
-					height: 50
+					width: gridWidth,
+					height: 60
 				},
 				// Temporary test platforms, placed relative to the screen center and
-				// the floor's top. Each step rises 110px (under JUMP_HEIGHT) so every
+				// the floor's top. Each step rises 120px (under JUMP_HEIGHT) so every
 				// one is reachable, and none overlap the player's spawn point.
 				...platforms.map(({ x, rise }) => ({
 					upperLeft: { x, y: floorTop - rise },
 					width: 150,
-					height: 20
+					height: 30
 				}))
 			],
 			walls: [],
@@ -86,13 +91,13 @@ export default class Game {
 			platforms: [
 				{
 					upperLeft: { x: 0, y: floorTop },
-					width: this.stage.width(),
-					height: 50
+					width: gridWidth,
+					height: 60
 				},
-				{ upperLeft: { x: 200, y: floorTop - 100 }, width: 180, height: 20 },
-				{ upperLeft: { x: 460, y: floorTop - 200 }, width: 180, height: 20 },
-				{ upperLeft: { x: 720, y: floorTop - 150 }, width: 180, height: 20 },
-				{ upperLeft: { x: 980, y: floorTop - 250 }, width: 180, height: 20 },
+				{ upperLeft: { x: 210, y: floorTop - 90 }, width: 180, height: 30 },
+				{ upperLeft: { x: 450, y: floorTop - 210 }, width: 180, height: 30 },
+				{ upperLeft: { x: 720, y: floorTop - 150 }, width: 180, height: 30 },
+				{ upperLeft: { x: 990, y: floorTop - 240 }, width: 180, height: 30 },
 			],
 			walls: [],
 			slopes: [],
