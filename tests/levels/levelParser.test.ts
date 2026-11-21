@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Level } from '../../src/levels/level.ts';
+import { ActionType } from '../../src/entities/action/action.ts';
 import {
 	LevelParser,
 	validNumber,
@@ -8,6 +9,8 @@ import {
 	validSlope,
 	validList,
 	validPoint,
+	validActionType,
+	validSpike
 } from '../../src/levels/levelParser.ts';
 
 function validLevel(): Level {
@@ -15,8 +18,10 @@ function validLevel(): Level {
 		levelId: 1,
 		spawnPoint: { x: 10, y: 20 },
 		platforms: [{ upperLeft: { x: 0, y: 500 }, width: 800, height: 40 }],
+		actions: [ActionType.COS, ActionType.SIN],
 		walls: [{ upperLeft: { x: 780, y: 0 }, width: 20, height: 500 }],
-		slopes: [{ startPoint: { x: 100, y: 300 }, xComponent: 200, yComponent: 80 }],
+		spikes: [{upperLeft: {x: 780, y: 0}, width: 4}],
+		slopes: [{ startPoint: { x: 100, y: 300 }, xComponent: 200, yComponent: 80 }]
 	};
 }
 
@@ -118,6 +123,30 @@ describe('validRectangle', () => {
 	it('names the exact field when the corner point is wrong', () => {
 		const data = { upperLeft: { x: 0 }, width: 10, height: 10 };
 		expect(() => validRectangle(data, 'level.walls[2]')).toThrow('level.walls[2].upperLeft.y');
+	});
+});
+
+describe('validActionType', () => {
+	it('accepts every ActionType and rejects anything else', () => {
+		for (const type of Object.values(ActionType)) {
+			expect(validActionType(type, 'level.actions[0]')).toBe(type);
+		}
+		for (const bad of ['blah','cos', '', 5, null, undefined]) {
+			expect(() => validActionType(bad, 'level.actions[0]')).toThrow('level.actions[0] must be one of');
+		}
+	});
+});
+
+describe('validSpikes', () => {
+	it('accepts a corner and a positive width, and rejects anything else', () => {
+		const spikes = { upperLeft: { x: 12, y: 34 }, width: 3 };
+		expect(validSpike(spikes, 'level.spikes[0]')).toEqual(spikes);
+		expect(() => validSpike({ upperLeft: { x: 12, y: 34 } }, 'level.spikes[0]')).toThrow('level.spikes[0].width must be a valid number');
+		expect(() => validSpike({ ...spikes, width: 0 }, 'level.spikes[0]')).toThrow('level.spikes[0].width must be greater than 0');
+		expect(() => validSpike({ ...spikes, width: -2 }, 'level.spikes[0]')).toThrow('level.spikes[0].width must be greater than 0');
+		expect(() => validSpike({ width: 3 }, 'level.spikes[0]')).toThrow('level.spikes[0].upperLeft');
+		expect(() => validSpike({ ...spikes, upperLeft: { x: 12 } }, 'level.spikes[0]')).toThrow('level.spikes[0].upperLeft.y');
+		expect(() => validSpike('spikes', 'level.spikes[0]')).toThrow('level.spikes[0] is an invalid object');
 	});
 });
 
