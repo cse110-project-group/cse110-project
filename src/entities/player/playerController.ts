@@ -104,10 +104,10 @@ export default class PlayerController {
 		const sprite = this.model.getSprite();
 		const parent = sprite.getParent() ?? undefined;
 
-		if (dx < 0) {
+		if (this.isLeft() && !this.isRight()) {
 			sprite.scaleX(-1);
 		}
-		else if (dx > 0) {
+		else if (this.isRight() && !this.isLeft()) {
 			sprite.scaleX(1);
 		}
 
