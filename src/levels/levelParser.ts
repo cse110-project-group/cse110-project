@@ -52,7 +52,8 @@ export class LevelParser {
 			spawnPoint: validPoint(object.spawnPoint, `${name}.spawnPoint`),
 			platforms: validList(object.platforms, `${name}.platforms`, validRectangle),
 			walls: validList(object.walls, `${name}.walls`, validRectangle),
-			slopes: validList(object.slopes, `${name}.slopes`, validSlope)
+			slopes: validList(object.slopes, `${name}.slopes`, validSlope),
+			spikes: validList(object.spikes, `${name}.spikes`, validRectangle)
 		}
 	};
 }
