@@ -11,7 +11,7 @@ export default class PlayerModel {
 	/** Konva shape representing the player. Its position is the player's position. */
 	private sprite: kv.Image;
 
-	public static readonly SPRITE_RADIUS_X = 35;
+	public static readonly SPRITE_RADIUS_X = 25;
 	public static readonly SPRITE_RADIUS_Y = 50;
 
 	/**
@@ -20,7 +20,7 @@ export default class PlayerModel {
 	 * @param image - Image for the sprite.
 	 */
 	constructor(x: number, y: number, image?: HTMLImageElement) {
-		const width = PlayerModel.SPRITE_RADIUS_X * 1.5;
+		const width = PlayerModel.SPRITE_RADIUS_X * 2;
 		const height = PlayerModel.SPRITE_RADIUS_Y * 2;
 
 		this.sprite = new kv.Image({
