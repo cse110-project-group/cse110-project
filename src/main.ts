@@ -3,6 +3,8 @@ import { init, preloadMainMenuAssets } from './scenes/mainMenu.ts'
 import type { MainMenu } from './scenes/mainMenu.ts'
 import { initLevelSelect, preloadLevelAssets } from './scenes/levelScene.ts'
 import type { LevelSelect } from './scenes/levelScene.ts'
+import { initCompletionScene } from "./scenes/completeScene.ts";
+import type { CompletionScene } from "./scenes/completeScene.ts";
 
 async function main() {
 	let menu: MainMenu | undefined;
@@ -25,16 +27,41 @@ async function showMainMenu() {
 
         const newMenu = await init(
             () => {
-                // EXISTING: Start Game behavior.
+                // TEMPORARY: Preview the completion screen.
                 if (transitioning) return;
                 transitioning = true;
 
-                menu?.destroy();
-                menu = undefined;
 
-                const game = new Game();
-                game.start();
+                // Keep the main menu visible while assets load.
+                void (async () => {
+                    try {
+                        const completion = await initCompletionScene(
+                            () => {
+                                // Main Menu button.
+                                completion?.destroy();
+                                void showMainMenu();
+                            },
+                            () => {
+                                // View Levels button.
+                                completion?.destroy();
+                                void showLevelScreen();
+                            }
+                        );
+
+
+                        if (!completion) return;
+
+
+                        menu?.destroy();
+                        menu = undefined;
+                    } catch (err) {
+                        console.error("Failed to preview completion screen:", err);
+                    } finally {
+                        transitioning = false;
+                    }
+                })();
             },
+
             () => {
                 // Open the Level Selection screen.
                 void showLevelScreen();
