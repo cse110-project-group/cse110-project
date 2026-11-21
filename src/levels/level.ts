@@ -19,6 +19,7 @@ export interface Level {
 	platforms: Platform[];
 	walls: Wall[];
 	slopes: Slope[];
+	spikes: Spikes[];
 }
 
 /**
@@ -63,6 +64,19 @@ export interface Platform extends Rectangle {}
 export interface Wall extends Rectangle {}
 
 /**
+ * Interface to represent a row of spikes.
+ * Stores the upper left corner as a point and the width.
+ * The height is fixed by the spikes' model (one grid unit),
+ * and the width should be a multiple of the grid unit length.
+ * @example
+ * const spikes: Spikes = { upperLeft: {x: 1, y: 2}, width: 3 };
+ */
+export interface Spikes {
+	upperLeft: Point;
+	width: number;
+}
+
+/**
  * Interface to store a slope.
  * Stores the start point as a
  * point and the x and y components
@@ -78,5 +92,3 @@ export interface Slope {
 	xComponent: number;
 	yComponent: number;
 }
-
-

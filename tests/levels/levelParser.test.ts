@@ -17,6 +17,7 @@ function validLevel(): Level {
 		platforms: [{ upperLeft: { x: 0, y: 500 }, width: 800, height: 40 }],
 		walls: [{ upperLeft: { x: 780, y: 0 }, width: 20, height: 500 }],
 		slopes: [{ startPoint: { x: 100, y: 300 }, xComponent: 200, yComponent: 80 }],
+		spikes: []
 	};
 }
 
