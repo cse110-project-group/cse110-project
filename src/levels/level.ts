@@ -26,7 +26,6 @@ export interface Level {
 	walls: Wall[];
 	spikes: Spike[];
 	slopes: Slope[];
-	spikes: Spikes[];
 }
 
 /**
