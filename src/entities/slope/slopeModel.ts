@@ -45,19 +45,43 @@ export default class SlopeModel {
      * endpoints), in pixels.
      */
     public updateSprite(x: number, y: number, width: number, height: number) {
-        let line = this.sprite.getChildren(function(node){
+        let lineList = this.sprite.getChildren(function(node){
             return node.getClassName() === 'Line';
         });
-        line[0].setAttrs({points: [x, y, x + width, y + height]});
-        line[0].setAttrs({stroke: Slope.slopeStrokeColor});
+        let line = lineList[0];
+        let lineTween = new kv.Tween({
+            node: line,
+            duration: 0.5,
+            points: [x, y, x + width, y + height],
+            stroke: Slope.slopeStrokeColor,
+            easing: kv.Easings.BounceEaseOut,
+            onFinish: () => {lineTween.destroy()}
+        });
 
         let endpoints = this.sprite.getChildren(function(node){
             return node.getClassName() === 'Ellipse';
         });
-        endpoints[0].x(x);
-        endpoints[0].y(y);
-        endpoints[1].x(x + width);
-        endpoints[1].y(y + height);
+        let endpoint0 = endpoints[0];
+        let endpoint1 = endpoints[1];
+        let endpoint0Tween = new kv.Tween({
+            node: endpoint0,
+            duration: 0.5,
+            x: x,
+            y: y,
+            easing: kv.Easings.BounceEaseOut,
+            onFinish: () => {endpoint0Tween.destroy()}
+        });
+        let endpoint1Tween = new kv.Tween({
+            node: endpoint1,
+            duration: 0.5,
+            x: x + width,
+            y: y + height,
+            easing: kv.Easings.BounceEaseOut,
+            onFinish: () => {endpoint1Tween.destroy()}
+        });
+        lineTween.play();
+        endpoint0Tween.play();
+        endpoint1Tween.play();
     }
 
     private constructSprite(x: number, y: number, 
