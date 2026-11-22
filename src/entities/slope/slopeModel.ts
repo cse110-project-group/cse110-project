@@ -1,5 +1,6 @@
 import kv from 'konva';
 import Slope from './slope';
+import { BoundingBox } from '../../systems/collision';
 
 /**
  * Holds the slope's visual state: the Konva shape drawn on the game layer.
@@ -11,12 +12,10 @@ export default class SlopeModel {
     /** Konva shape representing the sprite. */
     private sprite: kv.Group;
 
-    private static readonly SLOPE_STROKE_COLOR: string = "#A0A0A0";
-
     private static readonly ENDPOINT_FILL: string = "#FFFFFF";
     private static readonly ENDPOINT_STROKE_COLOR: string = "#000000";
     private static readonly ENDPOINT_STROKE_WIDTH: number = 5;
-    private static readonly ENDPOINT_RADIUS: number = 12.5;
+    private static readonly ENDPOINT_INDICATOR_RADIUS: number = 25;
 
     /**
      * @param x - X position of one of the slope's endpoints, in pixels.
@@ -50,6 +49,7 @@ export default class SlopeModel {
             return node.getClassName() === 'Line';
         });
         line[0].setAttrs({points: [x, y, x + width, y + height]});
+        line[0].setAttrs({stroke: Slope.slopeStrokeColor});
 
         let endpoints = this.sprite.getChildren(function(node){
             return node.getClassName() === 'Ellipse';
@@ -64,35 +64,87 @@ export default class SlopeModel {
                             width: number, height: number): kv.Group{
         let sprite = new kv.Group({
             x: 0,
-            y: 0
+            y: 0,
+            name: 'slope'
         })
         let line = new kv.Line({
             points: [x, y, x + width, y + height],
-            stroke: SlopeModel.SLOPE_STROKE_COLOR,
-            strokeWidth: Slope.SLOPE_STROKE_WIDTH
+            stroke: Slope.slopeStrokeColor,
+            strokeWidth: Slope.SLOPE_STROKE_WIDTH,
+            shadowColor: "#EEEE00",
+            shadowBlur: 20,
+            shadowOpacity: 0.0
         });
         let endpoint1 = new kv.Ellipse({
             x: x,
             y: y,
-            radiusX: SlopeModel.ENDPOINT_RADIUS,
-            radiusY: SlopeModel.ENDPOINT_RADIUS,
+            radiusX: Slope.ENDPOINT_RADIUS,
+            radiusY: Slope.ENDPOINT_RADIUS,
             fill: SlopeModel.ENDPOINT_FILL,
             stroke: SlopeModel.ENDPOINT_STROKE_COLOR,
             strokeWidth: SlopeModel.ENDPOINT_STROKE_WIDTH
-        })
+        });
         let endpoint2 = new kv.Ellipse({
             x: x + width,
             y: y + height,
-            radiusX: SlopeModel.ENDPOINT_RADIUS,
-            radiusY: SlopeModel.ENDPOINT_RADIUS,
+            radiusX: Slope.ENDPOINT_RADIUS,
+            radiusY: Slope.ENDPOINT_RADIUS,
             fill: SlopeModel.ENDPOINT_FILL,
             stroke: SlopeModel.ENDPOINT_STROKE_COLOR,
             strokeWidth: SlopeModel.ENDPOINT_STROKE_WIDTH
-        })
+        });
+        let endpoint1Indicator = new kv.Ellipse({
+            x: x,
+            y: y,
+            radiusX: SlopeModel.ENDPOINT_INDICATOR_RADIUS,
+            radiusY: SlopeModel.ENDPOINT_INDICATOR_RADIUS,
+            stroke: SlopeModel.ENDPOINT_STROKE_COLOR,
+            strokeWidth: SlopeModel.ENDPOINT_STROKE_WIDTH,
+            dash: [8, 8],
+            opacity: 0.0
+        });
+        let endpoint2Indicator = new kv.Ellipse({
+            x: x + width,
+            y: y + height,
+            radiusX: SlopeModel.ENDPOINT_INDICATOR_RADIUS,
+            radiusY: SlopeModel.ENDPOINT_INDICATOR_RADIUS,
+            stroke: SlopeModel.ENDPOINT_STROKE_COLOR,
+            strokeWidth: SlopeModel.ENDPOINT_STROKE_WIDTH,
+            dash: [8, 8],
+            opacity: 0.0
+        });
         sprite.add(line);
         sprite.add(endpoint1);
         sprite.add(endpoint2);
+        sprite.add(endpoint1Indicator);
+        sprite.add(endpoint2Indicator);
 
         return sprite;
+    }
+
+    /** Makes the connecting line glow faintly */
+    public glow(){
+        let line = this.sprite.getChildren(function(node){
+            return node.getClassName() === 'Line';
+        });
+        line[0].setAttrs({"shadowBlur": 20});
+        line[0].setAttrs({"shadowOpacity": 0.6});
+    }
+
+    /** Makes the connecting line glow strongly */
+    public strongGlow(){
+        let line = this.sprite.getChildren(function(node){
+            return node.getClassName() === 'Line';
+        });
+        line[0].setAttrs({"shadowBlur": 30});
+        line[0].setAttrs({"shadowOpacity": 1.0});
+    }
+
+    /** Stops the connecting line from glowing */
+    public unglow(){
+        let line = this.sprite.getChildren(function(node){
+            return node.getClassName() === 'Line';
+        });
+        line[0].setAttrs({"shadowOpacity": 0.0});
     }
 }

@@ -1,6 +1,7 @@
 import PlayerModel from './playerModel.ts';
 import PlayerController from './playerController.ts';
 import Input from '../../systems/input.ts';
+import Slope from '../slope/slope.ts';
 import type kv from 'konva';
 
 /**
@@ -39,7 +40,7 @@ export default class Player {
 	 * @param deltaTime - Seconds elapsed since the last frame.
 	 * @param obstacles - Collection of Konva nodes on the stage.
 	 */
-	public update(deltaTime: number, obstacles: kv.Node[] = []) {
-		this.controller.update(deltaTime, obstacles);
+	public update(deltaTime: number, obstacles: kv.Node[] = [], slopes: Slope[] = []) {
+		this.controller.update(deltaTime, obstacles, slopes);
 	}
 }

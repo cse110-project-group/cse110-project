@@ -24,6 +24,7 @@ export default class PlayerModel {
 			radiusX: PlayerModel.SPRITE_RADIUS_X,
 			radiusY: PlayerModel.SPRITE_RADIUS_Y,
 			fill: 'gray',
+			name: 'player'
 		});
 	}
 

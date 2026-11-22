@@ -3,6 +3,7 @@ import PlayerModel from './playerModel.ts';
 import type kv from 'konva';
 import { BoundingBox, resolveHorizontalMovement, resolveVerticalMovement, checkAABBCollision } from '../../systems/collision.ts';
 import { GRAVITY, applyGravity } from '../../systems/physics.ts';
+import Slope from '../slope/slope.ts';
 
 /**
  * Moves the player in response to keyboard input.
@@ -39,6 +40,9 @@ export default class PlayerController {
 	private jumpBufferTimer: number = 0;
 	/** Whether the current jump can still be cut short by releasing jump. */
 	private jumpCuttable: boolean = false;
+
+	/** Whether the player has just respawned and not let go of the respawn button. */
+	private respawned: boolean = false;
 
 	/** Bounding box that indnicates the player hitbox */
 	//public AABB: BoundingBox;
@@ -95,7 +99,14 @@ export default class PlayerController {
 	 * @param dt - Seconds elapsed since the last frame.
 	 * @param obstacles - Collection of Konva nodes on the stage to test for collisions.
 	 */
-	public update(dt: number, obstacles: kv.Node[] = []): void {
+	public update(dt: number, obstacles: kv.Node[] = [], slopes: Slope[] = []): void {
+		if(this.isRespawn() && !this.respawned){
+			this.respawn();
+			this.respawned = true;
+		}
+
+		if(!this.isRespawn()) this.respawned = false;
+
 		const dx = this.moveX(dt);
 		const dy = this.moveY(dt);
 
@@ -115,7 +126,8 @@ export default class PlayerController {
 			}
 		}
 
-		const boundingBoxes = this.getObstacleBoxes(obstacles);
+		let boundingBoxes = this.getObstacleBoxes(obstacles);
+		boundingBoxes = boundingBoxes.concat(this.getSlopeBoxes(slopes));
 
 		let playerBox: BoundingBox = sprite.getClientRect({
 				relativeTo: parent
@@ -168,8 +180,8 @@ export default class PlayerController {
 	/**
 	 * Sets a new spawn point for the player. May be useful when transitioning
 	 * between levels.
-	 * @param x - The new player spanw point's x coordinate.
-	 * @param y - The new player spanw point's y coordinate.
+	 * @param x - The new player spawn point's x coordinate.
+	 * @param y - The new player spawn point's y coordinate.
 	 */	
 	public setSpawn(x: number, y: number){
 		this.spawnX = x;
@@ -350,6 +362,14 @@ export default class PlayerController {
 		return boxes;
 	}
 
+	private getSlopeBoxes(slopes: Slope[]): BoundingBox[]{
+		let boxes: BoundingBox[] = [];
+		slopes.forEach(s => {
+			if(s.stabilized) boxes.push(s.getLineBox());
+		});
+		return boxes;
+	}
+
 	/**
 	 * Checks whether any "left" button is pressed in Input.
 	 *
@@ -379,5 +399,13 @@ export default class PlayerController {
 		return this.input.isKeyDown('Space')
 				|| this.input.isKeyDown('ArrowUp')
 				|| this.input.isKeyDown('KeyW');
+	}
+
+	/**
+	 * Checks whether the respawn button is pressed in Input.
+	 * @returns whether the respawn button is pressed in Input.
+	 */
+	private isRespawn(){
+		return this.input.isKeyDown('KeyR');
 	}
 }

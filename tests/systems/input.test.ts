@@ -125,66 +125,58 @@ describe('Input pointer', () => {
 		input.destroy();
 	});
 
-	it('reports no location before any press', () => {
-		expect(input.getMouseDownLocation()).toBeNull();
-	});
-
-	it('reports the location after pointerdown', () => {
+	it('reports the location of the pointer', () => {
 		pointer('pointerdown', 120, 80);
-		expect(input.getMouseDownLocation()).toEqual([120, 80]);
+		expect(input.getMouseLocation()).toEqual([120, 80]);
 	});
 
 	it('follows the pointer while it is held down', () => {
 		pointer('pointerdown', 10, 10);
 		pointer('pointermove', 50, 60);
-		expect(input.getMouseDownLocation()).toEqual([50, 60]);
+		expect(input.getMouseLocation()).toEqual([50, 60]);
 	});
 
-	it('reports no location after pointerup', () => {
+	it('reports whether the pointer is held down correctly', () => {
 		pointer('pointerdown', 10, 10);
+		expect(input.getPointerDown()).toBe(true);
 		pointer('pointerup', 10, 10);
-		expect(input.getMouseDownLocation()).toBeNull();
+		expect(input.getPointerDown()).toBe(false);
 	});
 
-	it('reports no location after pointercancel', () => {
+	it('reports that the pointer is not down after pointercancel', () => {
 		pointer('pointerdown', 10, 10);
 		pointer('pointercancel');
-		expect(input.getMouseDownLocation()).toBeNull();
-	});
-
-	it('ignores pointermove while not pressed', () => {
-		pointer('pointermove', 50, 60);
-		expect(input.getMouseDownLocation()).toBeNull();
+		expect(input.getPointerDown()).toBe(false);
 	});
 
 	it('uses the latest position when pressed after moving', () => {
 		pointer('pointermove', 50, 60);
 		pointer('pointerdown', 70, 90);
-		expect(input.getMouseDownLocation()).toEqual([70, 90]);
+		expect(input.getMouseLocation()).toEqual([70, 90]);
 	});
 
 	it('releases the pointer when the window loses focus', () => {
 		pointer('pointerdown', 10, 10);
 		window.dispatchEvent(new Event('blur'));
-		expect(input.getMouseDownLocation()).toBeNull();
+		expect(input.getPointerDown()).toBe(false);
 	});
 
 	it('reports positions relative to the target element', () => {
 		input.destroy();
 		input = new Input(elementAt(100, 50));
 		pointer('pointerdown', 130, 70);
-		expect(input.getMouseDownLocation()).toEqual([30, 20]);
+		expect(input.getMouseLocation()).toEqual([30, 20]);
 	});
 
 	it('measures the target position at read time', () => {
 		pointer('pointerdown', 130, 70);
 		target.getBoundingClientRect = () => new DOMRect(100, 50, 800, 600);
-		expect(input.getMouseDownLocation()).toEqual([30, 20]);
+		expect(input.getMouseLocation()).toEqual([30, 20]);
 	});
 
 	it('stops tracking the pointer after destroy', () => {
 		input.destroy();
 		pointer('pointerdown', 10, 10);
-		expect(input.getMouseDownLocation()).toBeNull();
+		expect(input.getMouseLocation()).toStrictEqual([0, 0]);
 	});
 });

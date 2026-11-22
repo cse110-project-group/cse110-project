@@ -77,8 +77,9 @@ export default class Input {
 	}
 
 	/** Marks the pointer as released. Also handles `pointercancel`. */
-	private onPointerUp = () => {
+	private onPointerUp = (e: PointerEvent) => {
 		this.isPointerDown = false;
+		this.pointerPos = [e.clientX, e.clientY];
 	}
 
 	/**
@@ -102,19 +103,19 @@ export default class Input {
 	}
 
 	/**
-	 * Gets where the pointer is currently pressed, relative to the target
-	 * element's top-left corner. The element's position is measured at call
-	 * time, so the result stays correct if the page scrolls or the layout
-	 * shifts.
+	 * Gets the pointer's current position, relative to the target element's 
+	 * top-left corner. The element's position is measured at call time, so the 
+	 * result stays correct if the page scrolls or the layout shifts.
 	 *
-	 * @returns The `[x, y]` position in pixels, or `null` if the pointer is
-	 *   not pressed.
+	 * @returns The `[x, y]` position in pixels.
 	 */
-	public getMouseDownLocation(): [x: number, y: number] | null {
-		if (!this.isPointerDown) return null;
+	public getMouseLocation(): [x: number, y: number]{
 		const rect = this.target.getBoundingClientRect();
 		return [this.pointerPos[0] - rect.left, this.pointerPos[1] - rect.top];
 	}
+
+	/** Getter that returns whether the pointer is down. */
+	public getPointerDown(): boolean { return this.isPointerDown; }
 
 	/**
 	 * Removes all event listeners. Call this when the instance is no longer

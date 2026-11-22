@@ -1,7 +1,24 @@
 import kv from 'konva';
-import { loadImage } from '../../systems/loadImage.ts';
+import { loadCachedImage } from '../../systems/imageCache.ts';
 import { createButton } from '../../UI/createButton.ts'
 import { ActionType } from './action.ts'
+import { Image } from 'konva/lib/shapes/Image';
+import ActionManager from '../../systems/actionManager.ts';
+import Konva from 'konva';
+
+/**
+ * Interface for options relating to instantiating an image. Must specify the 
+ * image source. Can optionally specify the width, height, class name, or id
+ * of the image.
+ * Original from: https://stackoverflow.com/questions/34208398
+ */
+interface CreateImgOptions {
+    src: string;
+    width?: number,
+    height?: number,
+    className?: string;
+    id?: string;
+}
 
 /**
  * Holds the action's visual state: the Konva shape drawn on the game layer.
@@ -11,19 +28,17 @@ import { ActionType } from './action.ts'
  */
 export default class ActionModel {
     /** Konva shape representing the sprite. */
-    private sprite: kv.Group;
+    private sprite: kv.Group = new kv.Group();
 
-    private buttonImage: HTMLImageElement;
+    private image : HTMLImageElement;
 
-    private static readonly PLAT_STROKE_COLOR: string = "#3a271c";
-    private static readonly PLAT_STROKE_WIDTH: number = 15;
-    private static readonly PLAT_FILL: string = "#645c50";
-    private static readonly PLAT_CORNER_RADIUS: number = 1;
+    private static readonly BUTTON_WIDTH: number = 250;
+    private static readonly BUTTON_HEIGHT: number = 75;
 
     /**
-     * Note: Should be a button (hence the createButton() import), haven't 
-     * written yet.
+     * Creates a button that corresponds to the specified action type.
      * 
+     * @param manager - Shared manager between all actions.
      * @param type - The type of the action (i.e. how it will modify a slope),
      * typed using the ActionType enum.
      * @param x - X position of the action button's upper left corner, 
@@ -31,35 +46,40 @@ export default class ActionModel {
      * @param y - Y position of the action button's upper left corner, 
      * in pixels.
      */
-    constructor(type: ActionType, x: number, y: number) {
-        this.buttonImage = new Image();
-        this.sprite = createButton({
-            image: new Image(),
-            label: type,
-            x: x,
-            y: y,
-            width: 0,
-            height: 0,
-            onClick: () => {} //replace with callback
+    constructor(manager: ActionManager, type: ActionType, x: number, y: number) {
+        this.image = this.createImg({
+            src: 'assets/button.png', 
+            width: ActionModel.BUTTON_WIDTH, 
+            height: ActionModel.BUTTON_HEIGHT
         });
-        //this.initImage();
+        this.sprite = createButton({
+            image: this.image,
+            label: type,
+            x: x - ActionModel.BUTTON_WIDTH / 2,
+            y: y - ActionModel.BUTTON_HEIGHT / 2,
+            width: ActionModel.BUTTON_WIDTH,
+            height: ActionModel.BUTTON_HEIGHT,
+            onClick: () => {manager.switchAction(type)}
+        });
     }
 
-    // /** Helper for loading image in constructor */
-    // private async initImage(){
-    //     let buttonImage: HTMLImageElement;
-    //     try{
-    //         [buttonImage] = 
-    //             await Promise.all([loadImage("assets/button.png")]);
-    //     }
-    //     catch (e){
-    //         console.log(e);
-    //         buttonImage =  new HTMLImageElement;
-    //     }
-    //     this.buttonImage = buttonImage;
-    //     this.sprite.setAttr("image", this.buttonImage);
-    //     console.log(this.sprite);
-    // }
+    /**
+     * Helper for creating an image using a CreateImgOptions interface.
+     * Original from: https://stackoverflow.com/questions/34208398
+     * 
+     * @param options A CreateImgOptions that at the very least specifies the 
+     * image source.
+     * @returns An instantiated HTMLImageELement with the given source.
+     */
+    private createImg(options: CreateImgOptions): HTMLImageElement {
+        let img = <HTMLImageElement> document.createElement("img");
+        img.src = options.src;
+        if (options.width) img.width = options.width;
+        if (options.height) img.height = options.height;
+        if (options.className) img.className = options.className;
+        if (options.id) img.id = options.id;
+        return img;
+    }
 
     /** Returns the Konva group so it can be added to a layer or moved. */
     public getSprite(): kv.Group {

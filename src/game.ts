@@ -2,6 +2,10 @@ import Input from './systems/input.ts';
 import kv from 'konva';
 import Player from './entities/player/player.ts';
 import { NodeConfig } from 'konva/lib/Node';
+import Action from './entities/action/action.ts';
+import { ActionType } from './entities/action/action.ts';
+import ActionManager from './systems/actionManager.ts';
+import Slope from './entities/slope/slope.ts';
 
 /**
  * Top-level game object. Creates the Konva stage, owns the shared
@@ -29,8 +33,11 @@ export default class Game {
 	private stage: kv.Stage;
 	private gameLayer: kv.Layer;
 	private player: Player;
+	private actionManager: ActionManager;
 	/** Timestamp of the previous frame, in milliseconds. */
 	private lastTime = 0;
+
+	slopeArray: Slope[] = [];
 
 	/** Builds the stage and layer and places the player at the center. */
 	constructor() {
@@ -47,9 +54,9 @@ export default class Game {
 		// START TEST PLATFORMS
 		const floor = new kv.Rect({
 			x: 0,
-			y: this.stage.height() - 50,
+			y: this.stage.height() - 100,
 			width: this.stage.width(),
-			height: 50,
+			height: 100,
 			fill: '#555',
 			name: 'solid'
 		});
@@ -83,9 +90,22 @@ export default class Game {
 		this.player = new Player(
 			this.input, this.stage.width()/2, this.stage.height()/2
 		);
-    
-		this.gameLayer.add(this.player.getSprite());
+
+		this.actionManager = new ActionManager(this.input);
+
+		// SLOPES AND ACTIONS TEST
+		let action = new Action(this.input, this.actionManager, ActionType.COS, 960, this.stage.height() - 10);
+		this.gameLayer.add(action.getSprite())
+
+		let slope1 = new Slope(this.input, 1080, 420, 300, -90);
+		let slope2 = new Slope(this.input, 120, 540, 300, 0);
+		this.slopeArray = [slope1, slope2];
+		this.gameLayer.add(slope1.getSprite());
+		this.gameLayer.add(slope2.getSprite());
+		// SLOPES AND ACTIONS TEST END
 		
+		this.gameLayer.add(this.player.getSprite());
+
 		this.gameLayer.draw();
 	}
 
@@ -104,10 +124,15 @@ export default class Game {
 		);
 		this.lastTime = time;
 
-		this.player.update(deltaTime, this.gameLayer.getChildren());
+		/** Remember to populate slopeArray with array containing level slopes */
+
+		this.player.update(deltaTime, this.gameLayer.getChildren(), this.slopeArray);
+		this.actionManager.update(this.slopeArray);
 
 		requestAnimationFrame(this.gameLoop);
 	}
+
+	public getPlayer() { return this.player; }
 
 	/** Starts the game loop. Call once after constructing the game. */
 	public start() {
