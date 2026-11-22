@@ -4,14 +4,14 @@ import Slope from "../entities/slope/slope";
 import { dot, normalize, vecNorm, vecDiff, vecSum, vecScale } from "./linearAlgebra";
 import { Ellipse } from "konva/lib/shapes/Ellipse";
 
+// Mode of the current selection. Can be thought of as states.
 enum SelectionMode{
     SLOPES,
     ENDPOINTS,
     OPERATE
 }
 
-/** Class that manages actions on slopes. Tentative, may be unnecessary. */
-
+/** Class that manages actions on slopes. */
 export default class ActionManager {
     private currentAction: ActionType | undefined = undefined;
     private currParams: number[] | undefined = undefined;
@@ -36,19 +36,29 @@ export default class ActionManager {
         this.input = input;
     }
 
+    /**
+     * Switches currentAction to a new action. Also resets all variables that
+     * contain the current selection.
+     * @param action - The incoming action.
+     */
     public switchAction(action: ActionType){
         if(this.currentAction == action) this.currentAction = undefined;
-        else this.currentAction = action;
+        else{
+            this.clearCurrentSelections();
+            this.currentAction = action;
+        }
         console.log(action);
     }
 
+    /**
+     * Updates the actionManager based on the current action. Should be called
+     * per frame.
+     * @param slopes - An array that contains all slopes in the game.
+     */
     public update(slopes: Slope[]){
         // If not in action, return.
         if(this.currentAction == undefined){
-            this.currParams = undefined;
-            this.currSelection = SelectionMode.SLOPES;
-            if(this.selectedEndpoints.length != 0) this.clearEndpoints();
-            if(this.selectedSlopes.length != 0) this.clearSlopes();
+            this.clearCurrentSelections();
             return;
         }
 
@@ -240,19 +250,26 @@ export default class ActionManager {
         else return [dist2, 1];
     }
 
-    private operate(type: ActionType, slopes: Slope[], endpoints: number[]){
+    /**
+     * Operates based on the given action. Defines a unique behavior for each
+     * actionType.
+     * @param type - The type of the incoming action.
+     * @param slopes - An array containing all selected slopes.
+     * @param endpoints - An array containing all selected endpoints.
+     */
+    private operate(type: ActionType, selectedSlopes: Slope[], selectedEndpoints: number[]){
         switch(type){
             case ActionType.COS:
-                let slope = slopes[0];
-                let endpoint = endpoints[0];
+                var slope = selectedSlopes[0];
+                var endpoint = selectedEndpoints[0];
                 if(endpoint == 0) slope.updateParams(slope.x, slope.y, slope.width, 0);
                 else slope.updateParams(slope.x, slope.y + slope.height, slope.width, 0);
                 break;
             case ActionType.SIN:
-                // var slope = slopes[0];
-                // var endpoint = endpoints[0];
-                // if(endpoint == 0) slope.updateParams(slope.x, slope.y, 0, slope.height);
-                // else slope.updateParams(slope.x + slope.width, slope.y, 0, slope.height);
+                var slope = selectedSlopes[0];
+                var endpoint = selectedEndpoints[0];
+                if(endpoint == 0) slope.updateParams(slope.x, slope.y, 0, slope.height);
+                else slope.updateParams(slope.x + slope.width, slope.y, 0, slope.height);
                 break;
             case ActionType.TEST:
                 break;
@@ -283,6 +300,8 @@ export default class ActionManager {
         }  
     }
 
+    /** Helper that returns whether each actionType should exclude considering
+     * slopes that are already stabilized. */
     private excludeStabilized(type: ActionType): boolean{
         switch (type){
             case ActionType.COS:
@@ -297,5 +316,13 @@ export default class ActionManager {
             default:
                 throw new Error("Action does not match any valid type (maybe forgot to add?)");
         }  
+    }
+
+    /** Helper to clear all variables related to current selection. */
+    private clearCurrentSelections(){
+        this.currParams = undefined;
+        this.currSelection = SelectionMode.SLOPES;
+        if(this.selectedEndpoints.length != 0) this.clearEndpoints();
+        if(this.selectedSlopes.length != 0) this.clearSlopes();
     }
 }

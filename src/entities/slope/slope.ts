@@ -107,26 +107,48 @@ export default class Slope {
         
     }
 
+    /** Helper to determine how the slope should be stabilized. */
     private stabilize(){
         if (this.width == 0 && this.height == 0){
             throw new Error("Width and height of a slope cannot both be 0.");
         }
 
         if(this.width == 0){
-            this.AABB = {
-                x: this.x - Slope.SLOPE_STROKE_WIDTH / 2,
-                y: this.y,
-                width: Slope.SLOPE_STROKE_WIDTH,
-                height: this.height
+            if(this.height < 0){
+                this.AABB = {
+                    x: this.x - Slope.SLOPE_STROKE_WIDTH / 2,
+                    y: this.y + this.height,
+                    width: Slope.SLOPE_STROKE_WIDTH,
+                    height: -this.height
+                }
             }
+            else{
+                this.AABB = {
+                    x: this.x - Slope.SLOPE_STROKE_WIDTH / 2,
+                    y: this.y,
+                    width: Slope.SLOPE_STROKE_WIDTH,
+                    height: this.height
+                }
+            }
+            
         }
         else{
-            this.AABB = {
-                x: this.x,
-                y: this.y - Slope.SLOPE_STROKE_WIDTH / 2,
-                width: this.width,
-                height: Slope.SLOPE_STROKE_WIDTH,
+            if(this.width < 0){
+                this.AABB = {
+                    x: this.x + this.width,
+                    y: this.y - Slope.SLOPE_STROKE_WIDTH / 2,
+                    width: -this.width,
+                    height: Slope.SLOPE_STROKE_WIDTH,
+                }
             }
+            else{
+                this.AABB = {
+                    x: this.x,
+                    y: this.y - Slope.SLOPE_STROKE_WIDTH / 2,
+                    width: this.width,
+                    height: Slope.SLOPE_STROKE_WIDTH,
+                }
+            }   
         }
         this.stabilized = true;
         Slope.slopeStrokeColor = "#A0A0A0";

@@ -94,8 +94,10 @@ export default class Game {
 		this.actionManager = new ActionManager(this.input);
 
 		// SLOPES AND ACTIONS TEST
-		let action = new Action(this.input, this.actionManager, ActionType.COS, 960, this.stage.height() - 10);
-		this.gameLayer.add(action.getSprite())
+		let cosAction = new Action(this.input, this.actionManager, ActionType.COS, 960 - 150, this.stage.height() - 10);
+		let sinAction = new Action(this.input, this.actionManager, ActionType.SIN, 960 + 150, this.stage.height() - 10);
+		this.gameLayer.add(cosAction.getSprite());
+		this.gameLayer.add(sinAction.getSprite());
 
 		let slope1 = new Slope(this.input, 1080, 420, 300, -90);
 		let slope2 = new Slope(this.input, 120, 540, 300, 0);
