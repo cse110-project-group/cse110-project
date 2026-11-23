@@ -170,6 +170,13 @@ export default class SlopeModel {
             strokeWidth: SlopeModel.HINT_STROKE_WIDTH,
             lineCap: "round",
             dash: [16, 16],
+            opacity: SlopeModel.HINT_OPACITY
+        });
+        let cosNewPlat1 = new kv.Line({
+            points: [0, 0, width, 0],
+            stroke: Slope.slopeStrokeColor,
+            strokeWidth: SlopeModel.HINT_STROKE_WIDTH,
+            lineCap: "round",
             opacity: SlopeModel.HINT_OPACITY_STRONG
         });
         let cosEndpoint1 = new kv.Ellipse({
@@ -182,6 +189,7 @@ export default class SlopeModel {
         });
         cosGroup1.add(cosAxis1);
         cosGroup1.add(cosProjection1);
+        cosGroup1.add(cosNewPlat1);
         cosGroup1.add(cosEndpoint1);
 
         let sinGroup1 = new kv.Group({
@@ -202,6 +210,13 @@ export default class SlopeModel {
             strokeWidth: SlopeModel.HINT_STROKE_WIDTH,
             lineCap: "round",
             dash: [16, 16],
+            opacity: SlopeModel.HINT_OPACITY
+        });
+        let sinNewPlat1 = new kv.Line({
+            points: [0, 0, 0, height],
+            stroke: Slope.slopeStrokeColor,
+            strokeWidth: SlopeModel.HINT_STROKE_WIDTH,
+            lineCap: "round",
             opacity: SlopeModel.HINT_OPACITY_STRONG
         });
         let sinEndpoint1 = new kv.Ellipse({
@@ -214,6 +229,7 @@ export default class SlopeModel {
         });
         sinGroup1.add(sinAxis1);
         sinGroup1.add(sinProjection1);
+        sinGroup1.add(sinNewPlat1);
         sinGroup1.add(sinEndpoint1);
 
         let indicator2 = new kv.Group({
@@ -258,6 +274,13 @@ export default class SlopeModel {
             strokeWidth: SlopeModel.HINT_STROKE_WIDTH,
             lineCap: "round",
             dash: [16, 16],
+            opacity: SlopeModel.HINT_OPACITY
+        });
+        let cosNewPlat2 = new kv.Line({
+            points: [0, 0, -width, 0],
+            stroke: Slope.slopeStrokeColor,
+            strokeWidth: SlopeModel.HINT_STROKE_WIDTH,
+            lineCap: "round",
             opacity: SlopeModel.HINT_OPACITY_STRONG
         });
         let cosEndpoint2 = new kv.Ellipse({
@@ -270,6 +293,7 @@ export default class SlopeModel {
         });
         cosGroup2.add(cosAxis2);
         cosGroup2.add(cosProjection2);
+        cosGroup2.add(cosNewPlat2);
         cosGroup2.add(cosEndpoint2);
 
         let sinGroup2 = new kv.Group({
@@ -290,6 +314,13 @@ export default class SlopeModel {
             strokeWidth: SlopeModel.HINT_STROKE_WIDTH,
             lineCap: "round",
             dash: [16, 16],
+            opacity: SlopeModel.HINT_OPACITY
+        });
+        let sinNewPlat2 = new kv.Line({
+            points: [0, 0, 0, -height],
+            stroke: Slope.slopeStrokeColor,
+            strokeWidth: SlopeModel.HINT_STROKE_WIDTH,
+            lineCap: "round",
             opacity: SlopeModel.HINT_OPACITY_STRONG
         });
         let sinEndpoint2 = new kv.Ellipse({
@@ -302,6 +333,7 @@ export default class SlopeModel {
         });
         sinGroup2.add(sinAxis2);
         sinGroup2.add(sinProjection2);
+        sinGroup2.add(sinNewPlat2);
         sinGroup2.add(sinEndpoint2);
 
         indicator1.add(endpoint1Indicator);
