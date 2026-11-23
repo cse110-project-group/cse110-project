@@ -11,7 +11,7 @@ export default class PlayerModel {
 	/** Konva shape representing the player. Its position is the player's position. */
 	private sprite: kv.Image;
 
-	public static readonly SPRITE_RADIUS_X = 25;
+	public static readonly SPRITE_RADIUS_X = 30;
 	public static readonly SPRITE_RADIUS_Y = 50;
 
 	/**
