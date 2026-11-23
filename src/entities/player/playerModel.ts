@@ -1,5 +1,5 @@
 import kv from 'konva';
-import { loadImage } from '../../systems/loadImage.ts';
+import { loadCachedImage } from '../../systems/imageCache.ts';
 
 /**
  * Holds the player's visual state: the Konva shape drawn on the game layer.
@@ -35,12 +35,8 @@ export default class PlayerModel {
 		});
 
 		if (!image) {
-			loadImage('/assets/player-sprite.png')
+			loadCachedImage('/assets/player-sprite.png')
 				.then((loadedImg) => {
-					if (!loadedImg) {
-						console.error('Failed to load player sprite.');
-						return;
-					}
 					this.sprite.fill(undefined);
 					this.sprite.image(loadedImg);
 					this.sprite.getLayer()?.batchDraw();
