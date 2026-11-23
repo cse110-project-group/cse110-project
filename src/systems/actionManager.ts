@@ -3,6 +3,8 @@ import Input from "./input";
 import Slope from "../entities/slope/slope";
 import { dot, normalize, vecNorm, vecDiff, vecSum, vecScale } from "./linearAlgebra";
 import { Ellipse } from "konva/lib/shapes/Ellipse";
+import kv from "konva";
+import SlopeModel from "../entities/slope/slopeModel";
 
 // Mode of the current selection. Can be thought of as states.
 enum SelectionMode{
@@ -29,8 +31,6 @@ export default class ActionManager {
 
     public static readonly SLOPE_DETECTION_THRESHOLD = 15;
     public static readonly ENDPOINT_DETECTION_THRESHOLD = 20;
-
-    private static readonly OUTLINE_INDEX_OFFSET = 2;
 
     constructor(input: Input){
         this.input = input;
@@ -81,7 +81,7 @@ export default class ActionManager {
                 }
 
                 // Check if closest slope is within detection threshold
-                if(minSlopeDist < Slope.SLOPE_STROKE_WIDTH / 2
+                if(minSlopeDist < SlopeModel.SLOPE_STROKE_WIDTH / 2
                                 + ActionManager.SLOPE_DETECTION_THRESHOLD){
                     // Make closest slope glow and previous slope unglow
                     let minSlope = slopes[minSlopeIndex];
@@ -137,22 +137,41 @@ export default class ActionManager {
                 let minDist, minPoint;
                 [minDist, minPoint] = this.getClosestEndpoint(position, endpointCoords);
 
-                if(minDist < Slope.ENDPOINT_RADIUS 
+                let indicators = slope.model.getSprite().getChildren(function(node){
+                    return node.getClassName() === 'Group';
+                }) as kv.Group[]; 
+
+                if(minDist < SlopeModel.ENDPOINT_RADIUS 
                             + ActionManager.ENDPOINT_DETECTION_THRESHOLD){
-                    let indicator = ellipses[minPoint + ActionManager.OUTLINE_INDEX_OFFSET];
+                            
+                    let indicator = indicators[minPoint];
                     indicator.setAttrs({"opacity": 1.0});
 
-                    let otherIdx = (minPoint + 1) % 2 + ActionManager.OUTLINE_INDEX_OFFSET;
+                    let hints = indicator.getChildren(function(node){
+                        return node.getClassName() === 'Group';
+                    }); 
+
+                    if(this.currentAction == ActionType.COS) hints[0].setAttrs({"opacity": 1.0});
+                    else if(this.currentAction == ActionType.SIN) hints[1].setAttrs({"opacity": 1.0});
+
+                    let otherIdx = (minPoint + 1) % 2;
                     if(!this.selectedEndpoints.includes(otherIdx)){
-                        let other = ellipses[otherIdx];
-                        other.setAttrs({"opacity": 0.0});
-                        this.prevEndpoint = minPoint + ActionManager.OUTLINE_INDEX_OFFSET;
+                        let other = indicators[otherIdx];
+                        this.setOpacityRecursive(other, 0.0);
+                        this.prevEndpoint = minPoint;
                     }
                     
                     if(this.input.getPointerDown() && !this.prevPointer){
                         if(!this.selectedEndpoints.includes(minPoint)){
                             this.selectedEndpoints.push(minPoint);
-                            ellipses[minPoint + ActionManager.OUTLINE_INDEX_OFFSET].setAttrs({"opacity": 1.0});
+                            indicators[minPoint].setAttrs({"opacity": 1.0});
+                            let hints = indicators[minPoint].getChildren(function(node){
+                                return node.getClassName() === 'Group';
+                            }); 
+
+                            if(this.currentAction == ActionType.COS) hints[0].setAttrs({"opacity": 1.0});
+                            else if(this.currentAction == ActionType.SIN) hints[1].setAttrs({"opacity": 1.0});
+
                         }
                         else{
                             let idx = this.selectedEndpoints.indexOf(minPoint);
@@ -161,18 +180,17 @@ export default class ActionManager {
                         this.prevPointer = true;
                     }
                     if(!this.input.getPointerDown()) this.prevPointer = false;
-                    this.prevEndpoint = minPoint + ActionManager.OUTLINE_INDEX_OFFSET;
+                    this.prevEndpoint = minPoint;
 
                 }
                 else{
                     if(this.prevEndpoint != undefined 
                         && !this.selectedEndpoints.includes(this.prevEndpoint))
-                        ellipses[this.prevEndpoint].setAttrs({"opacity": 0.0});      
+                        this.setOpacityRecursive(indicators[this.prevEndpoint], 0.0);
                 }
 
                 if(this.selectedEndpoints.length == this.currParams[1])
                     this.currSelection = SelectionMode.OPERATE;
-
                 break;
 
             case SelectionMode.OPERATE:
@@ -186,22 +204,34 @@ export default class ActionManager {
 
     /** Helper to clear all endpoint selections. 
      * MUST BE CALLED BEFORE CLEARSLOPES() */
-    public clearEndpoints(){
+    private clearEndpoints(){
         let slope = this.selectedSlopes[0];
         this.selectedEndpoints.forEach((s) => {
-            let ellipses = slope.model.getSprite().getChildren(function(node){
-                return node.getClassName() === 'Ellipse';
+            let indicators = slope.model.getSprite().getChildren(function(node){
+                return node.getClassName() === 'Group';
             });
-            ellipses[s + ActionManager.OUTLINE_INDEX_OFFSET].setAttrs({"opacity": 0.0});
+            indicators[s].setAttrs({"opacity": 0.0});
         });
         this.selectedEndpoints = [];
     }
 
     /** Helper to clear all slope selections.  */
-    public clearSlopes(){
+    private clearSlopes(){
         this.selectedSlopes.forEach((s) => s.model.unglow());
         this.selectedSlopes = [];
     }
+
+    /** Helper to set the opacity of a group along with all groups within 
+     * it recursively. */
+    private setOpacityRecursive(group: kv.Group, opacity: number){
+        let subgroups = group.getChildren(function(node){
+            return node.getClassName() === 'Group';
+        }) as kv.Group[]; 
+        subgroups.forEach(group => {
+            this.setOpacityRecursive(group, opacity);
+        });
+        if(group.getAttr("opacity") != opacity) group.setAttrs({"opacity": opacity});
+    } 
 
     /**
      * Helper for getting the minimum distance to a slope within an array of 

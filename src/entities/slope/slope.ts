@@ -23,9 +23,6 @@ export default class Slope {
     width: number;
     height: number;
 
-    public static readonly SLOPE_STROKE_WIDTH: number = 15;
-    public static readonly ENDPOINT_RADIUS: number = 12.5;
-
     public static slopeStrokeColor = "#ff7575";
 
     /** BoundingBox for when the slope becomes stabilized (e.g. becomes a 
@@ -51,9 +48,9 @@ export default class Slope {
         if(width == 0){
             this.stabilized = true;
             this.AABB = {
-                x: x - Slope.SLOPE_STROKE_WIDTH / 2,
+                x: x - SlopeModel.SLOPE_STROKE_WIDTH / 2,
                 y: y,
-                width: Slope.SLOPE_STROKE_WIDTH,
+                width: SlopeModel.SLOPE_STROKE_WIDTH,
                 height: height
             }
             Slope.slopeStrokeColor = "#A0A0A0";
@@ -62,9 +59,9 @@ export default class Slope {
             this.stabilized = true;
             this.AABB = {
                 x: x,
-                y: y - Slope.SLOPE_STROKE_WIDTH / 2,
+                y: y - SlopeModel.SLOPE_STROKE_WIDTH / 2,
                 width: width,
-                height: Slope.SLOPE_STROKE_WIDTH,
+                height: SlopeModel.SLOPE_STROKE_WIDTH,
             }
             Slope.slopeStrokeColor = "#A0A0A0";
         }
@@ -116,17 +113,17 @@ export default class Slope {
         if(this.width == 0){
             if(this.height < 0){
                 this.AABB = {
-                    x: this.x - Slope.SLOPE_STROKE_WIDTH / 2,
+                    x: this.x - SlopeModel.SLOPE_STROKE_WIDTH / 2,
                     y: this.y + this.height,
-                    width: Slope.SLOPE_STROKE_WIDTH,
+                    width: SlopeModel.SLOPE_STROKE_WIDTH,
                     height: -this.height
                 }
             }
             else{
                 this.AABB = {
-                    x: this.x - Slope.SLOPE_STROKE_WIDTH / 2,
+                    x: this.x - SlopeModel.SLOPE_STROKE_WIDTH / 2,
                     y: this.y,
-                    width: Slope.SLOPE_STROKE_WIDTH,
+                    width: SlopeModel.SLOPE_STROKE_WIDTH,
                     height: this.height
                 }
             }
@@ -136,17 +133,17 @@ export default class Slope {
             if(this.width < 0){
                 this.AABB = {
                     x: this.x + this.width,
-                    y: this.y - Slope.SLOPE_STROKE_WIDTH / 2,
+                    y: this.y - SlopeModel.SLOPE_STROKE_WIDTH / 2,
                     width: -this.width,
-                    height: Slope.SLOPE_STROKE_WIDTH,
+                    height: SlopeModel.SLOPE_STROKE_WIDTH,
                 }
             }
             else{
                 this.AABB = {
                     x: this.x,
-                    y: this.y - Slope.SLOPE_STROKE_WIDTH / 2,
+                    y: this.y - SlopeModel.SLOPE_STROKE_WIDTH / 2,
                     width: this.width,
-                    height: Slope.SLOPE_STROKE_WIDTH,
+                    height: SlopeModel.SLOPE_STROKE_WIDTH,
                 }
             }   
         }
