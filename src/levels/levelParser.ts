@@ -1,4 +1,5 @@
-import { Level, Point, Slope, Rectangle } from './level.ts';
+import { Level, Point, Slope, Rectangle, Spike } from './level.ts';
+import { ActionType } from '../entities/action/action.ts';
 
 /**
  * Class that parses JSON strings and
@@ -51,7 +52,9 @@ export class LevelParser {
 			levelId: validPosInt(object.levelId, `${name}.levelId`),
 			spawnPoint: validPoint(object.spawnPoint, `${name}.spawnPoint`),
 			platforms: validList(object.platforms, `${name}.platforms`, validRectangle),
+			actions: validList(object.actions, `${name}.actions`, validActionType),
 			walls: validList(object.walls, `${name}.walls`, validRectangle),
+			spikes: validList(object.spikes, `${name}.spikes`, validSpike),
 			slopes: validList(object.slopes, `${name}.slopes`, validSlope)
 		}
 	};
@@ -183,6 +186,37 @@ export function validRectangle(data: unknown, name: string): Rectangle {
 }
 
 /**
+ * Takes in an unknown object and verifies that it is a valid Spike.
+ * @param {unknown} data - An unknown object being validated as a Spike.
+ * @param {string} name - The spike that the object is supposed to represent in a Spikes array, eg. Spikes[0].
+ * @returns {Spike} A Spike object with data read from the object.
+ * @throws {Error} If data is not a valid object or data has an invalid
+ * upperLeft or width.
+ */
+export function validSpike(data: unknown, name: string): Spike {
+	const spike = validObject(data, name);
+	return {
+		upperLeft: validPoint(spike.upperLeft, `${name}.upperLeft`),
+		width: validPositiveNumber(spike.width, `${name}.width`)
+	}
+}
+
+/**
+ * Takes in an unknown object and verifies that it is a valid ActionType.
+ * @param {unknown} data - An unknown object being validated as an ActionType.
+ * @param name - The level that the ActionType is supposed to belong to.
+ * @returns {ActionType} An ActionType with data read from the object.
+ * @throws {Error} If data is not a valid ActionType.
+ */
+export function validActionType(data: unknown, name: string): ActionType {
+	const actionType = Object.values(ActionType).find((type) => type === data);
+	if (actionType === undefined) {
+		throw new Error(`${name} must be one of: ${Object.values(ActionType).join(', ')}`);
+	}
+	return actionType;
+}
+
+/**
  * Takes in an unknown object and checks that it is a valid Slope.
  * @param {unknown} data - An unknown object being validated as a Slope.
  * @param {string} name - The slope the object is supposed to represent in a Slopes array, eg. Slopes[0].
@@ -198,3 +232,4 @@ export function validSlope(data: unknown, name: string): Slope {
 		yComponent: validNonZeroNumber(slope.yComponent, `${name}.yComponent`)
 	};
 }
+
