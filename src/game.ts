@@ -82,7 +82,8 @@ export default class Game {
 			],
 			walls: [],
 			slopes: [],
-			spikes: []
+			spikes: [],
+			actions: []
 		};
 
 		const tempLevel2: Level = {
@@ -101,7 +102,8 @@ export default class Game {
 			],
 			walls: [],
 			slopes: [],
-			spikes: []
+			spikes: [],
+			actions: []
 		};
 		// END TEST PLATFORMS
 
