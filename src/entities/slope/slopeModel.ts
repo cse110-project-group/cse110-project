@@ -25,6 +25,8 @@ export default class SlopeModel {
     private static readonly HINT_OPACITY: number = 0.1;
     private static readonly HINT_OPACITY_STRONG: number = 0.6;
 
+    public slopeStrokeColor = "#ff7575";
+
     /**
      * @param x - X position of one of the slope's endpoints, in pixels.
      * @param y - Y position of one of the slope's endpoints, in pixels.
@@ -61,7 +63,7 @@ export default class SlopeModel {
             node: line,
             duration: 0.5,
             points: [x, y, x + width, y + height],
-            stroke: Slope.slopeStrokeColor,
+            stroke: this.slopeStrokeColor,
             easing: kv.Easings.BounceEaseOut,
             onFinish: () => {lineTween.destroy()}
         });
@@ -90,6 +92,12 @@ export default class SlopeModel {
         lineTween.play();
         endpoint0Tween.play();
         endpoint1Tween.play();
+
+        let indicators = this.sprite.getChildren(function(node){
+            return node.getClassName() === 'Group';
+        });
+        indicators[0].setAttrs({x: x, y: y});
+        indicators[1].setAttrs({x: x + width, y: y + height});
     }
 
     private constructSprite(x: number, y: number, 
@@ -103,7 +111,7 @@ export default class SlopeModel {
         })
         let line = new kv.Line({
             points: [x, y, x + width, y + height],
-            stroke: Slope.slopeStrokeColor,
+            stroke: this.slopeStrokeColor,
             strokeWidth: SlopeModel.SLOPE_STROKE_WIDTH,
             shadowColor: "#EEEE00",
             shadowBlur: 20,
@@ -159,14 +167,14 @@ export default class SlopeModel {
         });
         let cosAxis1 = new kv.Line({
             points: [0, 0, Math.sign(width) * radius, 0],
-            stroke: Slope.slopeStrokeColor,
+            stroke: this.slopeStrokeColor,
             strokeWidth: SlopeModel.HINT_STROKE_WIDTH,
             lineCap: "round",
             opacity: SlopeModel.HINT_OPACITY
         });
         let cosProjection1 = new kv.Line({
             points: [width, 0, width, height],
-            stroke: Slope.slopeStrokeColor,
+            stroke: this.slopeStrokeColor,
             strokeWidth: SlopeModel.HINT_STROKE_WIDTH,
             lineCap: "round",
             dash: [16, 16],
@@ -174,7 +182,7 @@ export default class SlopeModel {
         });
         let cosNewPlat1 = new kv.Line({
             points: [0, 0, width, 0],
-            stroke: Slope.slopeStrokeColor,
+            stroke: this.slopeStrokeColor,
             strokeWidth: SlopeModel.HINT_STROKE_WIDTH,
             lineCap: "round",
             opacity: SlopeModel.HINT_OPACITY_STRONG
@@ -184,7 +192,7 @@ export default class SlopeModel {
             y: 0,
             radiusX: SlopeModel.ENDPOINT_RADIUS,
             radiusY: SlopeModel.ENDPOINT_RADIUS,
-            fill: Slope.slopeStrokeColor,
+            fill: this.slopeStrokeColor,
             opacity: SlopeModel.HINT_OPACITY_STRONG
         });
         cosGroup1.add(cosAxis1);
@@ -199,14 +207,14 @@ export default class SlopeModel {
         });
         let sinAxis1 = new kv.Line({
             points: [0, 0, 0, Math.sign(height) * radius],
-            stroke: Slope.slopeStrokeColor,
+            stroke: this.slopeStrokeColor,
             strokeWidth: SlopeModel.HINT_STROKE_WIDTH,
             lineCap: "round",
             opacity: SlopeModel.HINT_OPACITY
         });
         let sinProjection1 = new kv.Line({
             points: [0, height, width, height],
-            stroke: Slope.slopeStrokeColor,
+            stroke: this.slopeStrokeColor,
             strokeWidth: SlopeModel.HINT_STROKE_WIDTH,
             lineCap: "round",
             dash: [16, 16],
@@ -214,7 +222,7 @@ export default class SlopeModel {
         });
         let sinNewPlat1 = new kv.Line({
             points: [0, 0, 0, height],
-            stroke: Slope.slopeStrokeColor,
+            stroke: this.slopeStrokeColor,
             strokeWidth: SlopeModel.HINT_STROKE_WIDTH,
             lineCap: "round",
             opacity: SlopeModel.HINT_OPACITY_STRONG
@@ -224,7 +232,7 @@ export default class SlopeModel {
             y: height,
             radiusX: SlopeModel.ENDPOINT_RADIUS,
             radiusY: SlopeModel.ENDPOINT_RADIUS,
-            fill: Slope.slopeStrokeColor,
+            fill: this.slopeStrokeColor,
             opacity: SlopeModel.HINT_OPACITY_STRONG
         });
         sinGroup1.add(sinAxis1);
@@ -263,14 +271,14 @@ export default class SlopeModel {
         });
         let cosAxis2 = new kv.Line({
             points: [0, 0, -Math.sign(width) * radius, 0],
-            stroke: Slope.slopeStrokeColor,
+            stroke: this.slopeStrokeColor,
             strokeWidth: SlopeModel.HINT_STROKE_WIDTH,
             lineCap: "round",
             opacity: SlopeModel.HINT_OPACITY
         });
         let cosProjection2 = new kv.Line({
             points: [-width, -height, -width, 0],
-            stroke: Slope.slopeStrokeColor,
+            stroke: this.slopeStrokeColor,
             strokeWidth: SlopeModel.HINT_STROKE_WIDTH,
             lineCap: "round",
             dash: [16, 16],
@@ -278,7 +286,7 @@ export default class SlopeModel {
         });
         let cosNewPlat2 = new kv.Line({
             points: [0, 0, -width, 0],
-            stroke: Slope.slopeStrokeColor,
+            stroke: this.slopeStrokeColor,
             strokeWidth: SlopeModel.HINT_STROKE_WIDTH,
             lineCap: "round",
             opacity: SlopeModel.HINT_OPACITY_STRONG
@@ -288,7 +296,7 @@ export default class SlopeModel {
             y: 0,
             radiusX: SlopeModel.ENDPOINT_RADIUS,
             radiusY: SlopeModel.ENDPOINT_RADIUS,
-            fill: Slope.slopeStrokeColor,
+            fill: this.slopeStrokeColor,
             opacity: SlopeModel.HINT_OPACITY_STRONG
         });
         cosGroup2.add(cosAxis2);
@@ -303,14 +311,14 @@ export default class SlopeModel {
         });
         let sinAxis2 = new kv.Line({
             points: [0, 0, 0, -Math.sign(height) * radius],
-            stroke: Slope.slopeStrokeColor,
+            stroke: this.slopeStrokeColor,
             strokeWidth: SlopeModel.HINT_STROKE_WIDTH,
             lineCap: "round",
             opacity: SlopeModel.HINT_OPACITY
         });
         let sinProjection2 = new kv.Line({
             points: [-width, -height, 0, -height],
-            stroke: Slope.slopeStrokeColor,
+            stroke: this.slopeStrokeColor,
             strokeWidth: SlopeModel.HINT_STROKE_WIDTH,
             lineCap: "round",
             dash: [16, 16],
@@ -318,7 +326,7 @@ export default class SlopeModel {
         });
         let sinNewPlat2 = new kv.Line({
             points: [0, 0, 0, -height],
-            stroke: Slope.slopeStrokeColor,
+            stroke: this.slopeStrokeColor,
             strokeWidth: SlopeModel.HINT_STROKE_WIDTH,
             lineCap: "round",
             opacity: SlopeModel.HINT_OPACITY_STRONG
@@ -328,7 +336,7 @@ export default class SlopeModel {
             y: -height,
             radiusX: SlopeModel.ENDPOINT_RADIUS,
             radiusY: SlopeModel.ENDPOINT_RADIUS,
-            fill: Slope.slopeStrokeColor,
+            fill: this.slopeStrokeColor,
             opacity: SlopeModel.HINT_OPACITY_STRONG
         });
         sinGroup2.add(sinAxis2);
@@ -379,5 +387,13 @@ export default class SlopeModel {
             return node.getClassName() === 'Line';
         });
         line[0].setAttrs({"shadowOpacity": 0.0});
+    }
+
+    /** Recolors line to current stroke color */
+    public recolorLine(){
+        let line = this.sprite.getChildren(function(node){
+            return node.getClassName() === 'Line';
+        });
+        line[0].setAttrs({"stroke": this.slopeStrokeColor});
     }
 }

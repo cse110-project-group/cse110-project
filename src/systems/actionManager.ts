@@ -1,8 +1,10 @@
 import { ActionType } from "../entities/action/action";
 import Input from "./input";
 import Slope from "../entities/slope/slope";
+import { createAABB } from "../entities/slope/slope";
+import Player from "../entities/player/player";
 import { dot, normalize, vecNorm, vecDiff, vecSum, vecScale } from "./linearAlgebra";
-import { Ellipse } from "konva/lib/shapes/Ellipse";
+import { BoundingBox, checkAABBCollision } from "./collision";
 import kv from "konva";
 import SlopeModel from "../entities/slope/slopeModel";
 
@@ -13,17 +15,26 @@ enum SelectionMode{
     OPERATE
 }
 
+// Pair interface to simplify storing.
+interface Pair<T, U> {
+    first: T,
+    second: U
+};
+
 /** Class that manages actions on slopes. */
 export default class ActionManager {
     private currentAction: ActionType | undefined = undefined;
     private currParams: number[] | undefined = undefined;
     
     private input: Input;
+    private player: Player;
 
     private selectedSlopes: Slope[] = [];
     private selectedEndpoints: number[] = [];
     private prevSlope: Slope | undefined = undefined;
     private prevEndpoint: number | undefined = undefined;
+
+    private stabilizeList: Pair<Slope, BoundingBox>[] = [];
 
     private currSelection: SelectionMode = SelectionMode.SLOPES;
 
@@ -32,8 +43,9 @@ export default class ActionManager {
     public static readonly SLOPE_DETECTION_THRESHOLD = 15;
     public static readonly ENDPOINT_DETECTION_THRESHOLD = 20;
 
-    constructor(input: Input){
+    constructor(input: Input, player: Player){
         this.input = input;
+        this.player = player;
     }
 
     /**
@@ -56,6 +68,17 @@ export default class ActionManager {
      * @param slopes - An array that contains all slopes in the game.
      */
     public update(slopes: Slope[]){
+        // Check if each slope in list can stabilize.
+        for(let i = this.stabilizeList.length - 1; i >= 0; --i){
+            let stabilize = this.stabilizeList[i]
+            if(checkAABBCollision(this.player.model.getBoundingBox(), 
+                createAABB(stabilize.second.x, stabilize.second.y,
+                    stabilize.second.width, stabilize.second.height))) continue;
+            stabilize.first.updateParams(undefined, undefined, 
+                                        undefined, undefined, stabilize.second);
+            this.stabilizeList.splice(i, 1);
+        }
+
         // If not in action, return.
         if(this.currentAction == undefined){
             this.clearCurrentSelections();
@@ -82,7 +105,13 @@ export default class ActionManager {
 
                 // Check if closest slope is within detection threshold
                 if(minSlopeDist < SlopeModel.SLOPE_STROKE_WIDTH / 2
-                                + ActionManager.SLOPE_DETECTION_THRESHOLD){
+                                + ActionManager.SLOPE_DETECTION_THRESHOLD
+                    && this.inRange(position[0] - slopes[minSlopeIndex].x, 
+                                    Math.min(0, slopes[minSlopeIndex].width), 
+                                    Math.max(0, slopes[minSlopeIndex].width))
+                    && this.inRange(position[1] - slopes[minSlopeIndex].y, 
+                                    Math.min(0, slopes[minSlopeIndex].height), 
+                                    Math.max(0, slopes[minSlopeIndex].height))){
                     // Make closest slope glow and previous slope unglow
                     let minSlope = slopes[minSlopeIndex];
                     if(!this.selectedSlopes.includes(minSlope)) minSlope.model.glow();
@@ -124,7 +153,11 @@ export default class ActionManager {
                 break;
 
             case SelectionMode.ENDPOINTS:
-                if(this.selectedSlopes.length == 0) this.currentAction = undefined;
+                if(this.selectedSlopes.length == 0){
+                    this.currentAction = undefined;
+                    return;
+                }
+
                 let slope = this.selectedSlopes[0];
 
                 let ellipses = slope.model.getSprite().getChildren(function(node){
@@ -292,14 +325,18 @@ export default class ActionManager {
             case ActionType.COS:
                 var slope = selectedSlopes[0];
                 var endpoint = selectedEndpoints[0];
-                if(endpoint == 0) slope.updateParams(slope.x, slope.y, slope.width, 0);
-                else slope.updateParams(slope.x, slope.y + slope.height, slope.width, 0);
+                if(endpoint == 0) this.stabilizeList.push({first: slope, 
+                    second: {x: slope.x, y: slope.y, width: slope.width, height: 0}});
+                else this.stabilizeList.push({first: slope,
+                    second: {x: slope.x, y: slope.y + slope.height, width: slope.width, height: 0}});
                 break;
             case ActionType.SIN:
                 var slope = selectedSlopes[0];
                 var endpoint = selectedEndpoints[0];
-                if(endpoint == 0) slope.updateParams(slope.x, slope.y, 0, slope.height);
-                else slope.updateParams(slope.x + slope.width, slope.y, 0, slope.height);
+                if(endpoint == 0) this.stabilizeList.push({first: slope,
+                    second: {x: slope.x, y: slope.y, width: 0, height: slope.height}});
+                else this.stabilizeList.push({first: slope,
+                    second: {x: slope.x + slope.width, y: slope.y, width: 0, height: slope.height}});
                 break;
             case ActionType.TEST:
                 break;
@@ -354,5 +391,10 @@ export default class ActionManager {
         this.currSelection = SelectionMode.SLOPES;
         if(this.selectedEndpoints.length != 0) this.clearEndpoints();
         if(this.selectedSlopes.length != 0) this.clearSlopes();
+    }
+
+    /** Helper to check if a <= n <= b. */
+    private inRange(n: number, a: number, b: number): boolean{
+        return n >= a && n <= b;
     }
 }

@@ -91,15 +91,15 @@ export default class Game {
 			this.input, this.stage.width()/2, this.stage.height()/2
 		);
 
-		this.actionManager = new ActionManager(this.input);
+		this.actionManager = new ActionManager(this.input, this.player);
 
 		// SLOPES AND ACTIONS TEST
-		let cosAction = new Action(this.input, this.actionManager, ActionType.COS, 960 - 150, this.stage.height() - 10);
-		let sinAction = new Action(this.input, this.actionManager, ActionType.SIN, 960 + 150, this.stage.height() - 10);
+		let cosAction = new Action(this.input, this.actionManager, ActionType.COS, this.stage.width() / 2 - 150, this.stage.height() - 50);
+		let sinAction = new Action(this.input, this.actionManager, ActionType.SIN, this.stage.width() / 2 + 150, this.stage.height() - 50);
 		this.gameLayer.add(cosAction.getSprite());
 		this.gameLayer.add(sinAction.getSprite());
 
-		let slope1 = new Slope(this.input, 1080, 420, 300, -90);
+		let slope1 = new Slope(this.input, 1080, 510, 300, -90);
 		let slope2 = new Slope(this.input, 120, 540, 300, 0);
 		this.slopeArray = [slope1, slope2];
 		this.gameLayer.add(slope1.getSprite());
