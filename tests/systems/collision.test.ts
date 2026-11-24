@@ -4,6 +4,7 @@ import {
 	resolveHorizontalMovement,
 	resolveMovement,
 	resolveVerticalMovement,
+	checkLevelClear,
 	type BoundingBox,
 } from '../../src/systems/collision';
 
@@ -441,4 +442,25 @@ describe('Collision System - escape-only rules for overlapped obstacles', () => 
 			resolveHorizontalMovement(playerBox, 5, [sunkFloor])
 		);
 	});
+});
+
+describe('Collision System - checkLevelClear', () => {
+    const stageWidth = 800;
+
+    it('returns false when the player is still inside the stage', () => {
+        const insideBox: BoundingBox = { x: 740, y: 100, width: 50, height: 100 };
+        expect(checkLevelClear(insideBox, stageWidth)).toBe(false);
+    });
+
+    it('returns false when only part of the player has crossed the right edge', () => {
+        const partialBox: BoundingBox = { x: 775, y: 100, width: 50, height: 100 };
+        expect(checkLevelClear(partialBox, stageWidth)).toBe(false);
+    });
+
+    it('returns true when the player top-left corner reaches or crosses the right edge', () => {
+        const atEdgeBox: BoundingBox = { x: 800, y: 100, width: 50, height: 100 };
+        const pastEdgeBox: BoundingBox = { x: 820, y: 100, width: 50, height: 100 };
+        expect(checkLevelClear(atEdgeBox, stageWidth)).toBe(true);
+        expect(checkLevelClear(pastEdgeBox, stageWidth)).toBe(true);
+    });
 });
