@@ -3,11 +3,19 @@ import { init, preloadMainMenuAssets } from './scenes/mainMenu.ts'
 import type { MainMenu } from './scenes/mainMenu.ts'
 import { initLevelSelect, preloadLevelAssets } from './scenes/levelScene.ts'
 import type { LevelSelect } from './scenes/levelScene.ts'
+import {
+ initMiniGameScene,
+ preloadMiniGameAssets,
+ type MiniGameScene,
+} from "./scenes/miniGameScene";
+
 
 async function main() {
 	let menu: MainMenu | undefined;
 
 	let levelScreen: LevelSelect | undefined;
+
+    let miniGameScreen: MiniGameScene | undefined;
 
     let transitioning = false;
 
@@ -22,6 +30,9 @@ async function showMainMenu() {
 
         levelScreen?.destroy();
         levelScreen = undefined;
+
+        miniGameScreen?.destroy();
+        miniGameScreen = undefined;
 
         const newMenu = await init(
             () => {
@@ -38,7 +49,12 @@ async function showMainMenu() {
             () => {
                 // Open the Level Selection screen.
                 void showLevelScreen();
+            },
+
+            () => {
+                void showMiniGameScreen();
             }
+
         );
 
         if (!newMenu) {
@@ -88,7 +104,47 @@ async function showLevelScreen() {
     }
 }
 
+async function showMiniGameScreen() {
+   if (transitioning) return;
+   transitioning = true;
 
+
+   try {
+       const loaded = await preloadMiniGameAssets();
+       if (!loaded) return;
+
+
+       menu?.destroy();
+       menu = undefined;
+
+
+       levelScreen?.destroy();
+       levelScreen = undefined;
+
+
+       const newMiniGameScreen = await initMiniGameScene(
+           () => {
+               void showMainMenu();
+           },
+           (gameId) => {
+               console.log(`Mini Game ${gameId} selected`);
+           }
+       );
+
+
+       if (!newMiniGameScreen) {
+           console.error("Mini Games screen failed to initialize.");
+           return;
+       }
+
+
+       miniGameScreen = newMiniGameScreen;
+   } catch (err) {
+       console.error("Failed to open Mini Games screen:", err);
+   } finally {
+       transitioning = false;
+   }
+}
     await showMainMenu();
 }
 
