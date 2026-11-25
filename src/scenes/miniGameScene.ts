@@ -71,6 +71,68 @@ export async function initMiniGameScene(
    })
  );
 
+// Add the title.
+ layer.add(
+   new Konva.Text({
+     text: "MINI GAMES",
+     x: 0,
+     y: 65,
+     width: WIDTH,
+     align: "center",
+     fontSize: 56,
+     fontStyle: "bold",
+     fill: "orange",
+   })
+ );
 
+
+ // Create the two Mini Game buttons.
+ const miniGames = [
+   { id: 1, label: "Mini Game 1" },
+   { id: 2, label: "Mini Game 2" },
+ ];
+
+
+ const btnW = 260;
+ const btnH = 100;
+ const gapX = 340;
+ const startX = WIDTH / 2 - gapX / 2;
+ const buttonY = 350;
+
+
+ miniGames.forEach((game, index) => {
+   const miniGameButton = createButton({
+     image: buttonImg,
+     label: game.label,
+     x: startX + index * gapX,
+     y: buttonY,
+     width: btnW,
+     height: btnH,
+     onClick: () => onSelectMiniGame(game.id),
+   });
+
+
+   layer.add(miniGameButton);
+ });
+
+
+ // Create the Back button.
+ layer.add(
+   createButton({
+     image: buttonImg,
+     label: "Back",
+     x: WIDTH / 2,
+     y: 580,
+     width: 220,
+     height: 75,
+     onClick: onBack,
+   })
+ );
+
+
+ return {
+   stage,
+   destroy,
+ };
  
 }
