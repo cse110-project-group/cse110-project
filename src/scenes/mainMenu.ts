@@ -79,8 +79,8 @@ catch (err) {
   const btnW = 50 * 5;
   const btnH = 15 * 5;
   const buttonX = WIDTH / 2 - 190;
-  const startY = 330;
-  const gap = 110;
+  const startY = 270;
+  const gap = 100;
 
   const buttons = [
     { label: "Start Game", onClick: onStart },
