@@ -3,6 +3,8 @@ import { loadCachedImage, resetImageCache } from "../systems/imageCache";
 import { createButton } from "../UI/createButton";
 import { createScene, WIDTH, HEIGHT } from "./sceneUtils";
 
+export const TOTAL_LEVELS = 12;
+
 let levelAssetsPromise:
   | Promise<[HTMLImageElement, HTMLImageElement, HTMLImageElement]>
   | undefined;
@@ -78,7 +80,6 @@ export async function initLevelSelect(
   );
 
   // Level button dimensions and spacing.
-  const totalLevels = 12;
   const columns = 4;
 
   const btnW = 190;
@@ -91,7 +92,7 @@ export async function initLevelSelect(
   const startY = 225;
 
   // Create the level buttons in a 4x3 grid.
-  for (let level = 1; level <= totalLevels; level++) {
+  for (let level = 1; level <= TOTAL_LEVELS; level++) {
     const index = level - 1;
 
     const col = index % columns;

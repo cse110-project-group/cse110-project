@@ -1,0 +1,168 @@
+// @vitest-environment jsdom
+import {
+  describe,
+  it,
+  expect,
+  vi,
+  beforeEach,
+  afterEach,
+} from "vitest";
+import Konva from "konva";
+import "../helpers/canvasStub";
+import {
+  initCompletionScene,
+  preloadCompletionAssets,
+  type CompletionScene,
+} from "../../src/scenes/completeScene";
+import { TOTAL_LEVELS } from "../../src/scenes/levelScene";
+import { loadImage } from "../../src/systems/loadImage";
+import { resetImageCache } from "../../src/systems/imageCache";
+
+// Mock image loading so no real PNG files are required.
+vi.mock("../../src/systems/loadImage", () => ({
+  loadImage: vi.fn(),
+}));
+
+// Simulate different browser window sizes.
+function setWindowSize(width: number, height: number) {
+  Object.defineProperty(window, "innerWidth", {
+    configurable: true,
+    value: width,
+  });
+
+  Object.defineProperty(window, "innerHeight", {
+    configurable: true,
+    value: height,
+  });
+}
+
+// Find a button by its text label.
+function findButton(
+  layer: Konva.Layer,
+  label: string
+): Konva.Group {
+  const button = layer
+    .find<Konva.Group>("Group")
+    .find((group) =>
+      group
+        .find<Konva.Text>("Text")
+        .some((node) => node.text() === label)
+    );
+
+  if (!button) {
+    throw new Error(`Button "${label}" not found`);
+  }
+
+  return button;
+}
+
+describe("Completion Screen", () => {
+  const screens: CompletionScene[] = [];
+
+  // Create a screen and track it for cleanup.
+  async function createTestScreen(
+    onMainMenu = vi.fn(),
+    onLevels = vi.fn()
+  ): Promise<CompletionScene> {
+    const screen = await initCompletionScene(
+      onMainMenu,
+      onLevels
+    );
+
+    expect(screen).toBeDefined();
+
+    if (!screen) {
+      throw new Error("Completion Screen failed to initialize");
+    }
+
+    screens.push(screen);
+    return screen;
+  }
+
+  beforeEach(() => {
+    // Reset the cache and mocked image loading.
+    resetImageCache();
+    vi.mocked(loadImage).mockReset();
+
+    vi.mocked(loadImage).mockResolvedValue(
+      document.createElement("canvas") as unknown as HTMLImageElement
+    );
+
+    // Create a fresh Konva container.
+    document.body.innerHTML = '<div id="container"></div>';
+    document.body.style.cursor = "default";
+
+    setWindowSize(1280, 720);
+  });
+
+  afterEach(() => {
+    // Properly clean up scenes and resize listeners.
+    screens.splice(0).forEach((screen) => screen.destroy());
+
+    // Remove any remaining Konva Stages.
+    [...Konva.stages].forEach((stage) => stage.destroy());
+
+    document.body.style.cursor = "default";
+    document.body.innerHTML = "";
+
+    vi.restoreAllMocks();
+  });
+
+  // TEST 1: The Completion Screen initializes.
+  it("creates the Completion Screen", async () => {
+    const screen = await createTestScreen();
+
+    expect(screen.stage).toBeInstanceOf(Konva.Stage);
+    expect(screen.stage.getLayers()).toHaveLength(1);
+  });
+
+  // TEST 2: The background is created.
+  it("creates the completion background", async () => {
+    const screen = await createTestScreen();
+    const layer = screen.stage.getLayers()[0];
+
+    const background = layer.findOne<Konva.Rect>("Rect");
+
+    expect(background).not.toBeNull();
+    expect(background!.fill()).toBe("#111536");
+  });
+
+  // TEST 3: The congratulations title is displayed.
+  it("displays the congratulations title", async () => {
+    const screen = await createTestScreen();
+    const layer = screen.stage.getLayers()[0];
+
+    const texts = layer
+      .find<Konva.Text>("Text")
+      .map((node) => node.text());
+
+    expect(texts).toContain("CONGRATULATIONS!");
+  });
+
+  // TEST 4: The correct total level count is displayed.
+  it("displays the total number of completed levels", async () => {
+    const screen = await createTestScreen();
+    const layer = screen.stage.getLayers()[0];
+
+    const texts = layer
+      .find<Konva.Text>("Text")
+      .map((node) => node.text());
+
+    expect(texts).toContain(
+      `You completed all ${TOTAL_LEVELS} levels!`
+    );
+
+    expect(texts).toContain(
+      `${TOTAL_LEVELS} / ${TOTAL_LEVELS} LEVELS COMPLETED`
+    );
+  });
+
+  // TEST 5: Both navigation buttons exist.
+  it("creates Main Menu and View Levels buttons", async () => {
+    const screen = await createTestScreen();
+    const layer = screen.stage.getLayers()[0];
+
+    expect(findButton(layer, "Main Menu")).toBeDefined();
+    expect(findButton(layer, "View Levels")).toBeDefined();
+  });
+});
