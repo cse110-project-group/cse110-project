@@ -6,6 +6,9 @@ import Action from './entities/action/action.ts';
 import { ActionType } from './entities/action/action.ts';
 import ActionManager from './systems/actionManager.ts';
 import Slope from './entities/slope/slope.ts';
+import { checkLevelClear } from './systems/collision.ts';
+import type { Level } from './levels/level.ts';
+import { loadLevel } from './scenes/gameScene.ts';
 
 /**
  * Top-level game object. Creates the Konva stage, owns the shared
@@ -21,7 +24,6 @@ import Slope from './entities/slope/slope.ts';
 export default class Game {
 	/** Side length for a unit grid in a level */
 	public static readonly GRID_UNIT = 30;
-
 	/**
 	 * Longest frame the game will simulate, in seconds. When the tab is in the
 	 * background `requestAnimationFrame` pauses, so the first frame back would
@@ -34,6 +36,8 @@ export default class Game {
 	private gameLayer: kv.Layer;
 	private player: Player;
 	private actionManager: ActionManager;
+	private levels: Level[];
+	private currentLevelIndex = 0;
 	/** Timestamp of the previous frame, in milliseconds. */
 	private lastTime = 0;
 
@@ -49,6 +53,12 @@ export default class Game {
 		this.gameLayer = new kv.Layer();
 		this.stage.add(this.gameLayer);
 
+		const unit = Game.GRID_UNIT; // 30
+		const snap = (val: number) => Math.floor(val / unit) * unit;
+
+		const gridWidth = snap(this.stage.width());
+		const centerX = snap(this.stage.width() / 2);
+		const floorTop = snap(this.stage.height() - 60);
 
 		// below are the test platforms so u can test movement, delete when we have levels
 		// START TEST PLATFORMS
@@ -62,51 +72,83 @@ export default class Game {
 		});
 		this.gameLayer.add(floor);
 
-		// Temporary test platforms, placed relative to the screen center and
-		// the floor's top. Each step rises 110px (under JUMP_HEIGHT) so every
-		// one is reachable, and none overlap the player's spawn point.
-		const centerX = this.stage.width() / 2;
-		const floorTop = floor.y();
 		const platforms = [
-			{ x: centerX + 100, rise: 110 },
-			{ x: centerX + 300, rise: 220 },
-			{ x: centerX + 100, rise: 330 },
-			{ x: centerX - 250, rise: 110 },
-			{ x: centerX - 450, rise: 220 },
+			{ x: centerX + 90, rise: 120 },
+			{ x: centerX + 300, rise: 210 },
+			{ x: centerX + 90, rise: 330 },
+			{ x: centerX - 240, rise: 120 },
+			{ x: centerX - 450, rise: 210 },
 		];
-		for (const { x, rise } of platforms) {
-			this.gameLayer.add(new kv.Rect({
-				x: x,
-				y: floorTop - rise,
-				width: 150,
-				height: 20,
-				fill: '#555',
-				name: 'solid'
-			}));
-		}
+
+		const tempLevel1: Level = {
+			levelId: 1,
+			spawnPoint: { x: this.stage.width() / 2, y: this.stage.height() / 2 },
+			platforms: [
+				{
+					upperLeft: { x: 0, y: floorTop },
+					width: gridWidth,
+					height: 60
+				},
+				// Temporary test platforms, placed relative to the screen center and
+				// the floor's top. Each step rises 120px (under JUMP_HEIGHT) so every
+				// one is reachable, and none overlap the player's spawn point.
+				...platforms.map(({ x, rise }) => ({
+					upperLeft: { x, y: floorTop - rise },
+					width: 150,
+					height: 30
+				}))
+			],
+			walls: [],
+			slopes: [],
+			spikes: [],
+			actions: []
+		};
+
+		const tempLevel2: Level = {
+			levelId: 2,
+			spawnPoint: { x: 100, y: floorTop - 120 },
+			platforms: [
+				{
+					upperLeft: { x: 0, y: floorTop },
+					width: gridWidth,
+					height: 60
+				},
+				{ upperLeft: { x: 210, y: floorTop - 90 }, width: 180, height: 30 },
+				{ upperLeft: { x: 450, y: floorTop - 210 }, width: 180, height: 30 },
+				{ upperLeft: { x: 720, y: floorTop - 150 }, width: 180, height: 30 },
+				{ upperLeft: { x: 990, y: floorTop - 240 }, width: 180, height: 30 },
+			],
+			walls: [],
+			slopes: [],
+			spikes: [],
+			actions: []
+		};
 		// END TEST PLATFORMS
 
 		this.input = new Input(this.stage.container());
 		this.player = new Player(
-			this.input, this.stage.width()/2, this.stage.height()/2
+			this.input, this.stage.width() / 2, this.stage.height() / 2
 		);
 
 		this.actionManager = new ActionManager(this.input, this.player);
 
 		// SLOPES AND ACTIONS TEST
-		let cosAction = new Action(this.input, this.actionManager, ActionType.COS, this.stage.width() / 2 - 150, this.stage.height() - 50);
-		let sinAction = new Action(this.input, this.actionManager, ActionType.SIN, this.stage.width() / 2 + 150, this.stage.height() - 50);
-		this.gameLayer.add(cosAction.getSprite());
-		this.gameLayer.add(sinAction.getSprite());
+		// let cosAction = new Action(this.input, this.actionManager, ActionType.COS, this.stage.width() / 2 - 150, this.stage.height() - 50);
+		// let sinAction = new Action(this.input, this.actionManager, ActionType.SIN, this.stage.width() / 2 + 150, this.stage.height() - 50);
+		// this.gameLayer.add(cosAction.getSprite());
+		// this.gameLayer.add(sinAction.getSprite());
 
-		let slope1 = new Slope(this.input, 1080, 510, 300, -90);
-		let slope2 = new Slope(this.input, 120, 540, 300, 0);
-		this.slopeArray = [slope1, slope2];
-		this.gameLayer.add(slope1.getSprite());
-		this.gameLayer.add(slope2.getSprite());
+		// let slope1 = new Slope(this.input, 1080, 510, 300, -90);
+		// let slope2 = new Slope(this.input, 120, 540, 300, 0);
+		// this.slopeArray = [slope1, slope2];
+		// this.gameLayer.add(slope1.getSprite());
+		// this.gameLayer.add(slope2.getSprite());
 		// SLOPES AND ACTIONS TEST END
 		
 		this.gameLayer.add(this.player.getSprite());
+
+		this.levels = [tempLevel1, tempLevel2];
+		loadLevel(this.levels[this.currentLevelIndex], this.gameLayer, this.player);
 
 		this.gameLayer.draw();
 	}
@@ -130,6 +172,20 @@ export default class Game {
 
 		this.player.update(deltaTime, this.gameLayer.getChildren(), this.slopeArray);
 		this.actionManager.update(this.slopeArray);
+
+		const playerBox = this.player.getSprite().getClientRect({
+			relativeTo: this.gameLayer
+		});
+
+		if (checkLevelClear(playerBox, this.stage.width())) {
+			if (this.currentLevelIndex + 1 < this.levels.length) {
+				this.currentLevelIndex += 1;
+				loadLevel(this.levels[this.currentLevelIndex], this.gameLayer, this.player);
+			} else {
+				window.location.reload();
+				return;
+			}
+		}
 
 		requestAnimationFrame(this.gameLoop);
 	}
