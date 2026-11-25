@@ -24,6 +24,10 @@ import { loadLevel } from './scenes/gameScene.ts';
 export default class Game {
 	/** Side length for a unit grid in a level */
 	public static readonly GRID_UNIT = 30;
+
+	public static readonly ACTION_SEPARATION = 300;
+	public static readonly ACTION_Y_OFFSET = 50;
+
 	/**
 	 * Longest frame the game will simulate, in seconds. When the tab is in the
 	 * background `requestAnimationFrame` pauses, so the first frame back would
@@ -58,7 +62,7 @@ export default class Game {
 
 		const gridWidth = snap(this.stage.width());
 		const centerX = snap(this.stage.width() / 2);
-		const floorTop = snap(this.stage.height() - 60);
+		const floorTop = snap(this.stage.height() - 90);
 
 		// below are the test platforms so u can test movement, delete when we have levels
 		// START TEST PLATFORMS
@@ -87,7 +91,7 @@ export default class Game {
 				{
 					upperLeft: { x: 0, y: floorTop },
 					width: gridWidth,
-					height: 60
+					height: 120
 				},
 				// Temporary test platforms, placed relative to the screen center and
 				// the floor's top. Each step rises 120px (under JUMP_HEIGHT) so every
@@ -99,9 +103,12 @@ export default class Game {
 				}))
 			],
 			walls: [],
-			slopes: [],
+			slopes: [
+					{startPoint: {x: 1080, y: 460}, xComponent: 300, yComponent: -90},
+					{startPoint: {x: 120, y: 540}, xComponent: 300, yComponent: 0}
+			],
 			spikes: [],
-			actions: []
+			actions: [ActionType.COS, ActionType.SIN]
 		};
 
 		const tempLevel2: Level = {
@@ -111,7 +118,7 @@ export default class Game {
 				{
 					upperLeft: { x: 0, y: floorTop },
 					width: gridWidth,
-					height: 60
+					height: 120
 				},
 				{ upperLeft: { x: 210, y: floorTop - 90 }, width: 180, height: 30 },
 				{ upperLeft: { x: 450, y: floorTop - 210 }, width: 180, height: 30 },
@@ -130,8 +137,6 @@ export default class Game {
 			this.input, this.stage.width() / 2, this.stage.height() / 2
 		);
 
-		this.actionManager = new ActionManager(this.input, this.player);
-
 		// SLOPES AND ACTIONS TEST
 		// let cosAction = new Action(this.input, this.actionManager, ActionType.COS, this.stage.width() / 2 - 150, this.stage.height() - 50);
 		// let sinAction = new Action(this.input, this.actionManager, ActionType.SIN, this.stage.width() / 2 + 150, this.stage.height() - 50);
@@ -148,7 +153,7 @@ export default class Game {
 		this.gameLayer.add(this.player.getSprite());
 
 		this.levels = [tempLevel1, tempLevel2];
-		loadLevel(this.levels[this.currentLevelIndex], this.gameLayer, this.player);
+		[this.slopeArray, this.actionManager] = loadLevel(this.levels[this.currentLevelIndex], this.gameLayer, this.player);
 
 		this.gameLayer.draw();
 	}
@@ -180,7 +185,7 @@ export default class Game {
 		if (checkLevelClear(playerBox, this.stage.width())) {
 			if (this.currentLevelIndex + 1 < this.levels.length) {
 				this.currentLevelIndex += 1;
-				loadLevel(this.levels[this.currentLevelIndex], this.gameLayer, this.player);
+				[this.slopeArray, this.actionManager] = loadLevel(this.levels[this.currentLevelIndex], this.gameLayer, this.player);
 			} else {
 				window.location.reload();
 				return;

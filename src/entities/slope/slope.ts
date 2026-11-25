@@ -1,6 +1,5 @@
 import SlopeModel from './slopeModel.ts';
 import SlopeController from './slopeController.ts';
-import Input from '../../systems/input.ts';
 import { BoundingBox } from '../../systems/collision.ts';
 
 /**
@@ -28,7 +27,6 @@ export default class Slope {
     AABB: BoundingBox = {x: -1, y: -1, width: -1, height: -1};
 
     /**
-     * @param input - Shared input tracker the controller polls.
      * @param x - X position of one of the slope's endpoints, in pixels.
      * @param y - Y position of one of the slope's endpoints, in pixels.
      * @param width - Width of the slope (i.e. y difference between two 
@@ -36,7 +34,7 @@ export default class Slope {
      * @param height - Height of the slope (i.e. y difference between two 
      * endpoints), in pixels.
      */ 
-    constructor(input: Input, x: number, y: number, 
+    constructor(x: number, y: number, 
                 width: number, height: number) {
 
         if (width == 0 && height == 0){
@@ -44,7 +42,7 @@ export default class Slope {
         }
 
         this.model = new SlopeModel(x, y, width, height);
-        this.controller = new SlopeController(input, this.model);
+        this.controller = new SlopeController(this.model);
 
         if(width == 0 || height == 0){
             this.stabilized = true;

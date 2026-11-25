@@ -408,4 +408,9 @@ export default class PlayerController {
 	private isRespawn(){
 		return this.input.isKeyDown('KeyR');
 	}
+
+	/** Getter for the linked input object. */
+	public getInput(){
+		return this.input;
+	}
 }

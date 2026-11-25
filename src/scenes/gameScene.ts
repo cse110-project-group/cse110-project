@@ -3,18 +3,26 @@ import Player from '../entities/player/player.ts';
 import Platform from '../entities/platform/platform.ts';
 import SpikesModel from '../entities/spikes/spikesModel.ts';
 import type { Level } from '../levels/level.ts';
+import Slope from '../entities/slope/slope.ts';
+import Action from '../entities/action/action.ts';
+import ActionManager from '../systems/actionManager.ts';
+import Game from '../game.ts';
 
 export function loadLevel(
 	level: Level,
 	gameLayer: kv.Layer,
 	player: Player
-): void {
+): [Slope[], ActionManager] {
 	gameLayer.find('.solid').forEach((node) => node.destroy());
 	gameLayer.find('.slope').forEach((node) => node.destroy());
 	gameLayer.find('.spikes').forEach((node) => node.destroy());
+	gameLayer.find('.action').forEach((node) => node.destroy());
 
 	const stageWidth = gameLayer.getStage()?.width() ?? 1280;
 	const stageHeight = gameLayer.getStage()?.height() ?? 720;
+
+	let slopeList: Slope[] = [];
+	let actionManager = new ActionManager(player.controller.getInput(), player);
 
 	// Invisible left-edge boundary wall (x: -40..0) spanning full screen height
 	// Stops the player's leftmost edge flush at x = 0 so the sprite never clips off-screen
@@ -44,19 +52,13 @@ export function loadLevel(
 		gameLayer.add(platform.getSprite());
 	}
 
-	// Holder for slopes until implemented
 	for (const slope of level.slopes) {
-		gameLayer.add(new kv.Line({
-			points: [
-				slope.startPoint.x,
-				slope.startPoint.y,
-				slope.startPoint.x + slope.xComponent,
-				slope.startPoint.y + slope.yComponent
-			],
-			stroke: '#e4cece',
-			strokeWidth: 4,
-			name: 'slope'
-		}));
+		let slopeObject = new Slope(slope.startPoint.x,
+									slope.startPoint.y,
+									slope.xComponent,
+									slope.yComponent);
+		slopeList.push(slopeObject);
+		gameLayer.add(slopeObject.getSprite());
 	}
 
 	for (const row of level.spikes) {
@@ -64,9 +66,19 @@ export function loadLevel(
 		gameLayer.add(spikes.getSprite());
 	}
 
+	const actionCount = level.actions.length;
+	for (let a = 0; a < actionCount; ++a){
+		let x = a * Game.ACTION_SEPARATION - Math.max(0, actionCount / 2.0 - 0.5) * Game.ACTION_SEPARATION;
+		let actionObject = new Action(player.controller.getInput(), actionManager, level.actions[a], stageWidth / 2 + x, stageHeight - Game.ACTION_Y_OFFSET);
+		console.log(actionObject);
+		gameLayer.add(actionObject.getSprite());
+	}
+
 	player.controller.setSpawn(level.spawnPoint.x, level.spawnPoint.y);
 	player.controller.respawn();
 
 	player.getSprite().moveToTop();
 	gameLayer.batchDraw();
+
+	return [slopeList, actionManager];
 }

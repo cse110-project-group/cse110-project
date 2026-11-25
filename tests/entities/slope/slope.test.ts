@@ -11,7 +11,7 @@ import { LineConfig } from 'konva/lib/shapes/Line';
 
 describe('Slope', () => {
     it("gets instantiated and shows sprite correctly", () => {
-        const slope = new Slope(new Input(), 100, 100, 600, 300);
+        const slope = new Slope(100, 100, 600, 300);
         expect(slope.getSprite().x()).toBe(0);
         expect(slope.getSprite().y()).toBe(0);
         let endpoints = slope.getSprite().getChildren(function(node){
