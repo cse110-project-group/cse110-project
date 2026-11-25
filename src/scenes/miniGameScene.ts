@@ -136,3 +136,14 @@ export async function initMiniGameScene(
  };
  
 }
+
+// Preload assets before transitioning to this screen.
+export async function preloadMiniGameAssets(): Promise<boolean> {
+ try {
+   await loadMiniGameAssets();
+   return true;
+ } catch (err) {
+   console.error(err);
+   return false;
+ }
+}
