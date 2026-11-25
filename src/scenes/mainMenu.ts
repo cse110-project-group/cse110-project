@@ -53,7 +53,11 @@ export interface MainMenu {
 export { fitStageToWindow } from "../scenes/sceneUtils";
 
 // onStart runs when Start Game is clicked.
-export async function init(onStart: () => void, onLevels: () => void): Promise<MainMenu | undefined> {
+export async function init(
+  onStart: () => void,
+  onLevels: () => void,
+  onMiniGames: () => void
+): Promise<MainMenu | undefined> {
   let bgImg: HTMLImageElement;
   let playImg: HTMLImageElement;
 
@@ -75,12 +79,13 @@ catch (err) {
   const btnW = 50 * 5;
   const btnH = 15 * 5;
   const buttonX = WIDTH / 2 - 190;
-  const startY = 330;
-  const gap = 110;
+  const startY = 260;
+  const gap = 100;
 
   const buttons = [
     { label: "Start Game", onClick: onStart },
     { label: "Levels", onClick: onLevels },
+    { label: "Mini Games", onClick: onMiniGames },
     { label: "Options", onClick: () => console.log("Options clicked") },
   ];
 
