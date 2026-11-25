@@ -56,7 +56,6 @@ export { fitStageToWindow } from "../scenes/sceneUtils";
 export async function init(
   onStart: () => void,
   onLevels: () => void,
-  onMiniGames: () => void
 ): Promise<MainMenu | undefined> {
   let bgImg: HTMLImageElement;
   let playImg: HTMLImageElement;
@@ -85,7 +84,6 @@ catch (err) {
   const buttons = [
     { label: "Start Game", onClick: onStart },
     { label: "Levels", onClick: onLevels },
-    { label: "Mini Games", onClick: onMiniGames },
     { label: "Options", onClick: () => console.log("Options clicked") },
   ];
 
