@@ -387,6 +387,16 @@ export default class ActionManager {
 
     /** Helper to clear all variables related to current selection. */
     private clearCurrentSelections(){
+        if(this.prevSlope != undefined){
+            this.prevSlope.model.unglow();
+            if(this.prevEndpoint != undefined){
+                this.prevSlope.model.getSprite().getChildren(function(node){
+                    return node.getClassName() === 'Group';
+                })[this.prevEndpoint].setAttrs({"opacity": 0.0});
+            }
+        } 
+        
+        this.prevPointer = false;
         this.currParams = undefined;
         this.currSelection = SelectionMode.SLOPES;
         if(this.selectedEndpoints.length != 0) this.clearEndpoints();
