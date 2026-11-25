@@ -113,5 +113,43 @@ describe("Mini Games Selection Screen", () => {
     expect(screen.stage.getLayers()).toHaveLength(1);
   });
 
-  
+  // TEST 2: Creates background and title.
+  it("creates a background and title", async () => {
+    const screen = await createTestScreen();
+    const layer = screen.stage.getLayers()[0];
+
+    const images = layer.find<Konva.Image>("Image");
+    expect(images.length).toBeGreaterThan(0);
+
+    const title = layer.find<Konva.Text>("Text").find(
+      (node) => node.text() === "MINI GAMES"
+    );
+
+    expect(title).toBeDefined();
+  });
+
+  // TEST 3: Creates both Mini Game choices.
+  it("creates both Mini Game buttons", async () => {
+    const screen = await createTestScreen();
+    const layer = screen.stage.getLayers()[0];
+
+    expect(findButton(layer, "Mini Game 1")).toBeDefined();
+    expect(findButton(layer, "Mini Game 2")).toBeDefined();
+  });
+
+  // TEST 4: Mini Game 1 invokes the correct callback.
+  it("selects Mini Game 1 when clicked", async () => {
+    const onSelectMiniGame = vi.fn();
+    const screen = await createTestScreen(
+      vi.fn(),
+      onSelectMiniGame
+    );
+
+    const layer = screen.stage.getLayers()[0];
+    findButton(layer, "Mini Game 1").fire("click");
+
+    expect(onSelectMiniGame).toHaveBeenCalledTimes(1);
+    expect(onSelectMiniGame).toHaveBeenCalledWith(1);
+  });
+
 });
