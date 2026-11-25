@@ -3,13 +3,18 @@ import { init, preloadMainMenuAssets } from './scenes/mainMenu.ts'
 import type { MainMenu } from './scenes/mainMenu.ts'
 import { initLevelSelect, preloadLevelAssets } from './scenes/levelScene.ts'
 import type { LevelSelect } from './scenes/levelScene.ts'
-import { initCompletionScene } from "./scenes/completeScene.ts";
-import type { CompletionScene } from "./scenes/completeScene.ts";
+import {
+  initCompletionScene,
+  preloadCompletionAssets,
+  type CompletionScene,
+} from "./scenes/completeScene.ts";
 
 async function main() {
 	let menu: MainMenu | undefined;
 
 	let levelScreen: LevelSelect | undefined;
+
+    let completionScreen: CompletionScene | undefined;
 
     let transitioning = false;
 
@@ -25,41 +30,19 @@ async function showMainMenu() {
         levelScreen?.destroy();
         levelScreen = undefined;
 
+        completionScreen?.destroy();
+        completionScreen = undefined;
         const newMenu = await init(
             () => {
-                // TEMPORARY: Preview the completion screen.
+                // Start the actual game.
                 if (transitioning) return;
                 transitioning = true;
 
+                menu?.destroy();
+                menu = undefined;
 
-                // Keep the main menu visible while assets load.
-                void (async () => {
-                    try {
-                        const completion = await initCompletionScene(
-                            () => {
-                                // Main Menu button.
-                                completion?.destroy();
-                                void showMainMenu();
-                            },
-                            () => {
-                                // View Levels button.
-                                completion?.destroy();
-                                void showLevelScreen();
-                            }
-                        );
-
-
-                        if (!completion) return;
-
-
-                        menu?.destroy();
-                        menu = undefined;
-                    } catch (err) {
-                        console.error("Failed to preview completion screen:", err);
-                    } finally {
-                        transitioning = false;
-                    }
-                })();
+                const game = new Game();
+                game.start();
             },
 
             () => {
@@ -67,6 +50,10 @@ async function showMainMenu() {
                 void showLevelScreen();
             }
         );
+        () => {
+            // Open the Level Selection screen.
+            void showLevelScreen();
+        }
 
         if (!newMenu) {
             console.error("Main menu failed to initialize.");
@@ -95,6 +82,9 @@ async function showLevelScreen() {
         menu?.destroy();
         menu = undefined;
 
+        completionScreen?.destroy();
+        completionScreen = undefined;
+
         const newLevelScreen = await initLevelSelect(() => {
             // Return to the Main Menu when Back is clicked.
             void showMainMenu();
@@ -115,8 +105,50 @@ async function showLevelScreen() {
     }
 }
 
+async function showCompletionScreen() {
+  if (transitioning) return;
+  transitioning = true;
 
-    await showMainMenu();
+  try {
+    // Load the image before removing the Main Menu.
+    const loaded = await preloadCompletionAssets();
+    if (!loaded) return;
+
+    // Destroy the Main Menu.
+    menu?.destroy();
+    menu = undefined;
+
+    // Create the Completion Screen.
+    const newScreen = await initCompletionScene(
+      () => void showMainMenu(),
+      () => void showLevelScreen()
+    );
+
+    if (!newScreen) {
+      console.error("Failed to initialize Completion Screen.");
+      return;
+    }
+
+    completionScreen = newScreen;
+  } catch (err) {
+    console.error("Failed to open Completion Screen:", err);
+  } finally {
+    transitioning = false;
+  }
+}
+
+// TEMPORARY: Press C on the Main Menu to preview completion.
+window.addEventListener("keydown", (event) => {
+  if (
+    event.key.toLowerCase() === "c" &&
+    menu &&
+    !transitioning
+  ) {
+    void showCompletionScreen();
+  }
+});
+
+await showMainMenu();
 }
 
 main();

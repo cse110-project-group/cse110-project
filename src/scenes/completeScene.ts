@@ -9,6 +9,17 @@ export interface CompletionScene {
   destroy: () => void;
 }
 
+// Preload the Completion Screen assets before switching scenes.
+export async function preloadCompletionAssets(): Promise<boolean> {
+  try {
+    await loadCachedImage("/assets/button.png");
+    return true;
+  } catch (err) {
+    console.error(err);
+    return false;
+  }
+}
+
 // Creates the completion screen after all levels are finished.
 export async function initCompletionScene(
   onMainMenu: () => void,
