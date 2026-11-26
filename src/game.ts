@@ -1,7 +1,6 @@
 import Input from './systems/input.ts';
 import kv from 'konva';
 import Player from './entities/player/player.ts';
-import { NodeConfig } from 'konva/lib/Node';
 import Action from './entities/action/action.ts';
 import { ActionType } from './entities/action/action.ts';
 import ActionManager from './systems/actionManager.ts';
@@ -24,10 +23,6 @@ import { loadLevel } from './scenes/gameScene.ts';
 export default class Game {
 	/** Side length for a unit grid in a level */
 	public static readonly GRID_UNIT = 30;
-
-	public static readonly ACTION_SEPARATION = 300;
-	public static readonly ACTION_Y_OFFSET = 50;
-
 	/**
 	 * Longest frame the game will simulate, in seconds. When the tab is in the
 	 * background `requestAnimationFrame` pauses, so the first frame back would
@@ -104,7 +99,8 @@ export default class Game {
 			],
 			walls: [],
 			slopes: [
-					{startPoint: {x: 1080, y: 460}, xComponent: 300, yComponent: -90},
+					{startPoint: {x: 1380, y: 360}, xComponent: 300, yComponent: -90},
+					{startPoint: {x: 1080, y: 450}, xComponent: 300, yComponent: -90},
 					{startPoint: {x: 120, y: 540}, xComponent: 300, yComponent: 0}
 			],
 			spikes: [],

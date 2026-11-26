@@ -59,7 +59,6 @@ export default class ActionManager {
             this.clearCurrentSelections();
             this.currentAction = action;
         }
-        console.log(action);
     }
 
     /**
@@ -73,7 +72,10 @@ export default class ActionManager {
             let stabilize = this.stabilizeList[i]
             if(checkAABBCollision(this.player.model.getBoundingBox(), 
                 createAABB(stabilize.second.x, stabilize.second.y,
-                    stabilize.second.width, stabilize.second.height))) continue;
+                    stabilize.second.width, stabilize.second.height))){
+                this.stabilizeList.splice(i, 1);
+                continue;
+            }
             stabilize.first.updateParams(undefined, undefined, 
                                         undefined, undefined, stabilize.second);
             this.stabilizeList.splice(i, 1);
@@ -95,23 +97,18 @@ export default class ActionManager {
 
         switch(this.currSelection){
             case SelectionMode.SLOPES:
-                // Get minimum distance and corresponding index.
-                let minSlopeDist, minSlopeIndex;
-                [minSlopeDist, minSlopeIndex] = this.getMinDist(position, slopes);
-                if(minSlopeDist == Number.MAX_VALUE && minSlopeIndex == -1){
+                if(slopes.length == 0){
                     this.currentAction = undefined;
                     return;
                 }
 
+                // Get minimum distance and corresponding index.
+                let minSlopeDist, minSlopeIndex;
+                [minSlopeDist, minSlopeIndex] = this.getMinDist(position, slopes);
+
                 // Check if closest slope is within detection threshold
                 if(minSlopeDist < SlopeModel.SLOPE_STROKE_WIDTH / 2
-                                + ActionManager.SLOPE_DETECTION_THRESHOLD
-                    && this.inRange(position[0] - slopes[minSlopeIndex].x, 
-                                    Math.min(0, slopes[minSlopeIndex].width), 
-                                    Math.max(0, slopes[minSlopeIndex].width))
-                    && this.inRange(position[1] - slopes[minSlopeIndex].y, 
-                                    Math.min(0, slopes[minSlopeIndex].height), 
-                                    Math.max(0, slopes[minSlopeIndex].height))){
+                                + ActionManager.SLOPE_DETECTION_THRESHOLD){
                     // Make closest slope glow and previous slope unglow
                     let minSlope = slopes[minSlopeIndex];
                     if(!this.selectedSlopes.includes(minSlope)) minSlope.model.glow();
@@ -282,6 +279,12 @@ export default class ActionManager {
         for(let i = 0; i < slopes.length; ++i){
             // If the current action does not act on stabilized slopes, continue.
             if(this.excludeStabilized(this.currentAction) && slopes[i].stabilized) continue;
+            if(!(this.inRange(position[0] - slopes[i].x, 
+                              Math.min(0, slopes[i].width), 
+                              Math.max(0, slopes[i].width))
+                && this.inRange(position[1] - slopes[i].y, 
+                                Math.min(0, slopes[i].height), 
+                                Math.max(0, slopes[i].height)))) continue;
             let dir = slopes[i].getDirection();
             let endpoint = slopes[i].getAnchorEndpoint();
             let slopeLen = vecNorm(dir);

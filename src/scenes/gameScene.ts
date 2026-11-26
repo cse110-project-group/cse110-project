@@ -6,7 +6,6 @@ import type { Level } from '../levels/level.ts';
 import Slope from '../entities/slope/slope.ts';
 import Action from '../entities/action/action.ts';
 import ActionManager from '../systems/actionManager.ts';
-import Game from '../game.ts';
 
 export function loadLevel(
 	level: Level,
@@ -20,6 +19,9 @@ export function loadLevel(
 
 	const stageWidth = gameLayer.getStage()?.width() ?? 1280;
 	const stageHeight = gameLayer.getStage()?.height() ?? 720;
+
+	const actionSeparation: number = 300;
+	const actionYOffset: number = 50;
 
 	let slopeList: Slope[] = [];
 	let actionManager = new ActionManager(player.controller.getInput(), player);
@@ -70,14 +72,13 @@ export function loadLevel(
 
 	const actionCount = level.actions.length;
 	for (let a = 0; a < actionCount; ++a){
-		let x = a * Game.ACTION_SEPARATION - 
-				Math.max(0, actionCount / 2.0 - 0.5) * Game.ACTION_SEPARATION;
+		let x = a * actionSeparation - 
+				Math.max(0, actionCount / 2.0 - 0.5) * actionSeparation;
 		let actionObject = new Action(player.controller.getInput(), 
 									  actionManager, 
 									  level.actions[a], 
 									  stageWidth / 2 + x, 
-									  stageHeight - Game.ACTION_Y_OFFSET);
-		console.log(actionObject);
+									  stageHeight - actionYOffset);
 		gameLayer.add(actionObject.getSprite());
 	}
 

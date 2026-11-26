@@ -52,9 +52,6 @@ export default class ActionModel {
             width: ActionModel.BUTTON_WIDTH, 
             height: ActionModel.BUTTON_HEIGHT
         });
-
-        //this.image = loadCachedImage('assets/button.png').then((v) => {return v;});
-        
         this.sprite = createButton({
             image: this.image,
             label: type,
