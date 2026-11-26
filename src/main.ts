@@ -1,10 +1,6 @@
 import Game from './game.ts'
 import { init, preloadMainMenuAssets } from './scenes/mainMenu.ts'
 import { initLevelSelect, preloadLevelAssets } from './scenes/levelScene.ts'
-import {
-  initCompletionScene,
-  preloadCompletionAssets,
-} from "./scenes/completeScene.ts";
 
 async function main() {
 	let currentScreen: { destroy: () => void } | undefined;
@@ -52,13 +48,21 @@ async function showMainMenu() {
             () => {
                 // Start the actual game.
                 if (transitioning) return;
+
                 transitioning = true;
 
-                currentScreen?.destroy();
-                currentScreen = undefined;
+                try {
+                    const game = new Game();
 
-                const game = new Game();
-                game.start();
+                    currentScreen?.destroy();
+                    currentScreen = undefined;
+
+                    game.start();
+                } catch (err) {
+                    console.error("Failed to start game:", err);
+                } finally {
+                    transitioning = false;
+                }
             },
             () => {
                 // Open the Level Selection screen.
@@ -75,16 +79,6 @@ async function showLevelScreen() {
             // Return to the Main Menu when Back is clicked.
             void showMainMenu();
         })
-    );
-}
-
-async function showCompletionScreen() {
-    await switchTo(
-        preloadCompletionAssets,
-        () => initCompletionScene(
-            () => void showMainMenu(),
-            () => void showLevelScreen()
-        )
     );
 }
 
