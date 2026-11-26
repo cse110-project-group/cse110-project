@@ -165,4 +165,132 @@ describe("Completion Screen", () => {
     expect(findButton(layer, "Main Menu")).toBeDefined();
     expect(findButton(layer, "View Levels")).toBeDefined();
   });
+
+  // TEST 6: Main Menu button calls its callback.
+  it("calls onMainMenu when Main Menu is clicked", async () => {
+    const onMainMenu = vi.fn();
+    const onLevels = vi.fn();
+
+    const screen = await createTestScreen(
+      onMainMenu,
+      onLevels
+    );
+
+    const layer = screen.stage.getLayers()[0];
+
+    findButton(layer, "Main Menu").fire("click");
+
+    expect(onMainMenu).toHaveBeenCalledTimes(1);
+    expect(onLevels).not.toHaveBeenCalled();
+  });
+
+  // TEST 7: View Levels button calls its callback.
+  it("calls onLevels when View Levels is clicked", async () => {
+    const onMainMenu = vi.fn();
+    const onLevels = vi.fn();
+
+    const screen = await createTestScreen(
+      onMainMenu,
+      onLevels
+    );
+
+    const layer = screen.stage.getLayers()[0];
+
+    findButton(layer, "View Levels").fire("click");
+
+    expect(onLevels).toHaveBeenCalledTimes(1);
+    expect(onMainMenu).not.toHaveBeenCalled();
+  });
+
+  // TEST 8: Stage scales correctly on resize.
+  it("scales the Stage when the window is resized", async () => {
+    const screen = await createTestScreen();
+
+    setWindowSize(640, 360);
+    window.dispatchEvent(new Event("resize"));
+
+    expect(screen.stage.width()).toBe(640);
+    expect(screen.stage.height()).toBe(360);
+    expect(screen.stage.scaleX()).toBe(0.5);
+    expect(screen.stage.scaleY()).toBe(0.5);
+  });
+
+  // TEST 9: Failed image loading prevents scene creation.
+  it("handles image loading failure", async () => {
+    vi.mocked(loadImage).mockRejectedValueOnce(
+      new Error("Failed to load image")
+    );
+
+    const errorSpy = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+
+    const stagesBefore = Konva.stages.length;
+
+    const screen = await initCompletionScene(
+      vi.fn(),
+      vi.fn()
+    );
+
+    expect(screen).toBeUndefined();
+    expect(errorSpy).toHaveBeenCalled();
+    expect(Konva.stages.length).toBe(stagesBefore);
+  });
+
+  // TEST 10: Destroy cleans up the scene.
+  it("destroys the Stage when leaving", async () => {
+    const screen = await createTestScreen();
+    const stage = screen.stage;
+
+    const destroySpy = vi.spyOn(stage, "destroy");
+    const removeSpy = vi.spyOn(window, "removeEventListener");
+
+    screen.destroy();
+
+    expect(destroySpy).toHaveBeenCalledTimes(1);
+    expect(Konva.stages).not.toContain(stage);
+    expect(removeSpy).toHaveBeenCalledWith(
+      "resize",
+      expect.any(Function)
+    );
+  });
+
+  // TEST 11: Preloading loads the asset without a Stage.
+  it("preloads assets without creating a Stage", async () => {
+    const stagesBefore = Konva.stages.length;
+
+    const loaded = await preloadCompletionAssets();
+
+    expect(loaded).toBe(true);
+    expect(loadImage).toHaveBeenCalledTimes(1);
+    expect(Konva.stages.length).toBe(stagesBefore);
+  });
+
+  // TEST 12: Failed preloading returns false.
+  it("returns false when preloading fails", async () => {
+    vi.mocked(loadImage).mockRejectedValueOnce(
+      new Error("Failed to load image")
+    );
+
+    const errorSpy = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+
+    const loaded = await preloadCompletionAssets();
+
+    expect(loaded).toBe(false);
+    expect(errorSpy).toHaveBeenCalled();
+  });
+
+  // TEST 13: Preloaded image is reused.
+  it("reuses preloaded assets when initializing", async () => {
+    const loaded = await preloadCompletionAssets();
+
+    expect(loaded).toBe(true);
+
+    await createTestScreen();
+
+    // button.png should only be loaded once.
+    expect(loadImage).toHaveBeenCalledTimes(1);
+  });
 });
