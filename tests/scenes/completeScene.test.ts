@@ -1,19 +1,8 @@
 // @vitest-environment jsdom
-import {
-  describe,
-  it,
-  expect,
-  vi,
-  beforeEach,
-  afterEach,
-} from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach,} from "vitest";
 import Konva from "konva";
 import "../helpers/canvasStub";
-import {
-  initCompletionScene,
-  preloadCompletionAssets,
-  type CompletionScene,
-} from "../../src/scenes/completeScene";
+import { initCompletionScene, preloadCompletionAssets, type CompletionScene, } from "../../src/scenes/completeScene";
 import { TOTAL_LEVELS } from "../../src/scenes/levelScene";
 import { loadImage } from "../../src/systems/loadImage";
 import { resetImageCache } from "../../src/systems/imageCache";
@@ -59,6 +48,8 @@ function findButton(
 describe("Completion Screen", () => {
   const screens: CompletionScene[] = [];
 
+  let stagesBeforeTest: Set<Konva.Stage>;
+
   // Create a screen and track it for cleanup.
   async function createTestScreen(
     onMainMenu = vi.fn(),
@@ -69,13 +60,13 @@ describe("Completion Screen", () => {
       onLevels
     );
 
-    expect(screen).toBeDefined();
-
     if (!screen) {
       throw new Error("Completion Screen failed to initialize");
     }
 
+    // Register cleanup before returning to the test.
     screens.push(screen);
+
     return screen;
   }
 
@@ -83,6 +74,8 @@ describe("Completion Screen", () => {
     // Reset the cache and mocked image loading.
     resetImageCache();
     vi.mocked(loadImage).mockReset();
+
+    stagesBeforeTest = new Set(Konva.stages);
 
     vi.mocked(loadImage).mockResolvedValue(
       document.createElement("canvas") as unknown as HTMLImageElement
@@ -96,15 +89,24 @@ describe("Completion Screen", () => {
   });
 
   afterEach(() => {
-    // Properly clean up scenes and resize listeners.
-    screens.splice(0).forEach((screen) => screen.destroy());
+    // Destroy all successfully tracked Completion Screens.
+    for (const screen of screens.splice(0)) {
+      screen.destroy();
+    }
 
-    // Remove any remaining Konva Stages.
-    [...Konva.stages].forEach((stage) => stage.destroy());
+    // Also clean up Stages that were created but never tracked,
+    // such as when a test fails before saving its screen.
+    for (const stage of [...Konva.stages]) {
+      if (!stagesBeforeTest.has(stage)) {
+        stage.destroy();
+      }
+    }
 
-    document.body.style.cursor = "default";
+    // Restore the DOM and cursor.
     document.body.innerHTML = "";
+    document.body.style.cursor = "default";
 
+    // Restore spies and mocked implementations.
     vi.restoreAllMocks();
   });
 
@@ -246,6 +248,9 @@ describe("Completion Screen", () => {
     const removeSpy = vi.spyOn(window, "removeEventListener");
 
     screen.destroy();
+
+    // Remove the already-destroyed screen from cleanup tracking.
+    screens.splice(screens.indexOf(screen), 1);
 
     expect(destroySpy).toHaveBeenCalledTimes(1);
     expect(Konva.stages).not.toContain(stage);

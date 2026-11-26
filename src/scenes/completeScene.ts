@@ -39,85 +39,93 @@ export async function initCompletionScene(
   // Create the Stage and Layer.
   const { stage, layer, destroy } = createScene();
 
-  // Add the background.
-  layer.add(
-    new Konva.Rect({
-      width: WIDTH,
-      height: HEIGHT,
-      fill: "#111536",
-    })
-  );
+  try {
+    // Add the background.
+    layer.add(
+      new Konva.Rect({
+        width: WIDTH,
+        height: HEIGHT,
+        fill: "#111536",
+      })
+    );
 
-  // Add the completion title.
-  layer.add(
-    new Konva.Text({
-      text: "CONGRATULATIONS!",
-      x: 0,
-      y: 100,
-      width: WIDTH,
-      align: "center",
-      fontSize: 58,
-      fontStyle: "bold",
-      fill: "#FFE18A",
-    })
-  );
+    // Add the completion title.
+    layer.add(
+      new Konva.Text({
+        text: "CONGRATULATIONS!",
+        x: 0,
+        y: 100,
+        width: WIDTH,
+        align: "center",
+        fontSize: 58,
+        fontStyle: "bold",
+        fill: "#FFE18A",
+      })
+    );
 
-  // Add the completion message.
-  layer.add(
-    new Konva.Text({
-      text: `You completed all ${TOTAL_LEVELS} levels!`,
-      x: 0,
-      y: 220,
-      width: WIDTH,
-      align: "center",
-      fontSize: 36,
-      fill: "white",
-    })
-  );
+    // Add the completion message.
+    layer.add(
+      new Konva.Text({
+        text: `You completed all ${TOTAL_LEVELS} levels!`,
+        x: 0,
+        y: 220,
+        width: WIDTH,
+        align: "center",
+        fontSize: 36,
+        fill: "white",
+      })
+    );
 
-  // Add achievement text.
-  layer.add(
-    new Konva.Text({
-      text: `${TOTAL_LEVELS} / ${TOTAL_LEVELS} LEVELS COMPLETED`,
-      x: 0,
-      y: 315,
-      width: WIDTH,
-      align: "center",
-      fontSize: 30,
-      fontStyle: "bold",
-      fill: "#FCD56B",
-    })
-  );
+    // Add achievement text.
+    layer.add(
+      new Konva.Text({
+        text: `${TOTAL_LEVELS} / ${TOTAL_LEVELS} LEVELS COMPLETED`,
+        x: 0,
+        y: 315,
+        width: WIDTH,
+        align: "center",
+        fontSize: 30,
+        fontStyle: "bold",
+        fill: "#FCD56B",
+      })
+    );
 
-  // Add Main Menu button.
-  layer.add(
-    createButton({
-      image: buttonImg,
-      label: "Main Menu",
-      x: WIDTH / 2,
-      y: 455,
-      width: 260,
-      height: 80,
-      onClick: onMainMenu,
-    })
-  );
+    // Add Main Menu button.
+    layer.add(
+      createButton({
+        image: buttonImg,
+        label: "Main Menu",
+        x: WIDTH / 2,
+        y: 455,
+        width: 260,
+        height: 80,
+        onClick: onMainMenu,
+      })
+    );
 
-  // Add View Levels button.
-  layer.add(
-    createButton({
-      image: buttonImg,
-      label: "View Levels",
-      x: WIDTH / 2,
-      y: 565,
-      width: 260,
-      height: 80,
-      onClick: onLevels,
-    })
-  );
+    // Add View Levels button.
+    layer.add(
+      createButton({
+        image: buttonImg,
+        label: "View Levels",
+        x: WIDTH / 2,
+        y: 565,
+        width: 260,
+        height: 80,
+        onClick: onLevels,
+      })
+    );
 
-  // Return the Stage and cleanup function.
-  return {
-    stage,
-    destroy,
-  };
-}
+        // Return the Stage and cleanup function.
+      return {
+        stage,
+        destroy,
+      };
+    } 
+  catch (err) {
+      // The Stage was created, so clean it up if building the UI fails.
+      destroy();
+      console.error("Failed to build Completion Screen:", err);
+      return undefined;
+    }
+  }
