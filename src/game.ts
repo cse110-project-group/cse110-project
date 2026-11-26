@@ -153,7 +153,9 @@ export default class Game {
 		this.gameLayer.add(this.player.getSprite());
 
 		this.levels = [tempLevel1, tempLevel2];
-		[this.slopeArray, this.actionManager] = loadLevel(this.levels[this.currentLevelIndex], this.gameLayer, this.player);
+		[this.slopeArray, this.actionManager] = 
+				loadLevel(this.levels[this.currentLevelIndex], 
+						  this.gameLayer, this.player);
 
 		this.gameLayer.draw();
 	}
@@ -185,7 +187,9 @@ export default class Game {
 		if (checkLevelClear(playerBox, this.stage.width())) {
 			if (this.currentLevelIndex + 1 < this.levels.length) {
 				this.currentLevelIndex += 1;
-				[this.slopeArray, this.actionManager] = loadLevel(this.levels[this.currentLevelIndex], this.gameLayer, this.player);
+				[this.slopeArray, this.actionManager] = 
+						loadLevel(this.levels[this.currentLevelIndex], 
+								  this.gameLayer, this.player);
 			} else {
 				window.location.reload();
 				return;

@@ -62,14 +62,21 @@ export function loadLevel(
 	}
 
 	for (const row of level.spikes) {
-		const spikes = new SpikesModel(row.upperLeft.x, row.upperLeft.y, row.width);
+		const spikes = new SpikesModel(row.upperLeft.x, 
+									   row.upperLeft.y, 
+									   row.width);
 		gameLayer.add(spikes.getSprite());
 	}
 
 	const actionCount = level.actions.length;
 	for (let a = 0; a < actionCount; ++a){
-		let x = a * Game.ACTION_SEPARATION - Math.max(0, actionCount / 2.0 - 0.5) * Game.ACTION_SEPARATION;
-		let actionObject = new Action(player.controller.getInput(), actionManager, level.actions[a], stageWidth / 2 + x, stageHeight - Game.ACTION_Y_OFFSET);
+		let x = a * Game.ACTION_SEPARATION - 
+				Math.max(0, actionCount / 2.0 - 0.5) * Game.ACTION_SEPARATION;
+		let actionObject = new Action(player.controller.getInput(), 
+									  actionManager, 
+									  level.actions[a], 
+									  stageWidth / 2 + x, 
+									  stageHeight - Game.ACTION_Y_OFFSET);
 		console.log(actionObject);
 		gameLayer.add(actionObject.getSprite());
 	}
