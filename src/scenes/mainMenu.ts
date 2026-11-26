@@ -1,6 +1,7 @@
 // src/mainMenu.ts
 import Konva from "konva";
-import { loadCachedImage, resetImageCache } from "../systems/imageCache";
+import { resetImageCache } from "../systems/imageCache";
+import { loadSceneImages } from "../systems/loadSceneImages";
 import { createButton } from "../UI/createButton";
 import { createScene, WIDTH, HEIGHT } from "./sceneUtils";
 
@@ -18,10 +19,11 @@ export function resetMainMenuAssets(): void {
 // Load images once and reuse them when returning to the menu.
 function loadMainMenuAssets() {
   if (!mainMenuAssetsPromise) {
-    mainMenuAssetsPromise = Promise.all([
-      loadCachedImage("/assets/background2.png"),
-      loadCachedImage("/assets/button.png"),
-    ]).catch((err) => {
+    mainMenuAssetsPromise = loadSceneImages([
+      "/assets/background2.png",
+      "/assets/button.png",
+    ]).then((images) => [images[0], images[1]] as [HTMLImageElement, HTMLImageElement])
+      .catch((err) => {
       mainMenuAssetsPromise = undefined;
       throw err;
     });
@@ -53,7 +55,11 @@ export interface MainMenu {
 export { fitStageToWindow } from "../scenes/sceneUtils";
 
 // onStart runs when Start Game is clicked.
-export async function init(onStart: () => void, onLevels: () => void): Promise<MainMenu | undefined> {
+export async function init(
+  onStart: () => void,
+  onLevels: () => void,
+  onMiniGames: () => void
+): Promise<MainMenu | undefined> {
   let bgImg: HTMLImageElement;
   let playImg: HTMLImageElement;
 
@@ -75,12 +81,13 @@ catch (err) {
   const btnW = 50 * 5;
   const btnH = 15 * 5;
   const buttonX = WIDTH / 2 - 190;
-  const startY = 330;
-  const gap = 110;
+  const startY = 270;
+  const gap = 100;
 
   const buttons = [
     { label: "Start Game", onClick: onStart },
     { label: "Levels", onClick: onLevels },
+    { label: "Mini Games", onClick: onMiniGames },
     { label: "Options", onClick: () => console.log("Options clicked") },
   ];
 
@@ -97,8 +104,6 @@ catch (err) {
       })
     );
   });
-
-  stage.add(menuLayer);
 
   return {
     stage,

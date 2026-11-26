@@ -67,17 +67,19 @@ describe("fitStageToWindow", () => {
 });
 
 describe("init", () => {
-  it("builds a menu layer with three buttons", async () => {
-    const menu = await init(vi.fn(), vi.fn());
-    const [menuLayer] = menu!.stage.getLayers();
+  it("builds a menu layer with four buttons", async () => {
+  const menu = await init(vi.fn(), vi.fn(), vi.fn());
+  const [menuLayer] = menu!.stage.getLayers();
 
-    expect(menuLayer.find("Group")).toHaveLength(3);
-  });
+  expect(menuLayer.find("Group")).toHaveLength(4);
+
+  menu!.destroy();
+});
 
   it("calls onStart when Start Game is clicked", async () => {
     const onStart = vi.fn();
     const onLevels = vi.fn();
-    const menu = await init(onStart, onLevels);
+    const menu = await init(onStart, onLevels, vi.fn());
     const [menuLayer] = menu!.stage.getLayers();
 
     findButton(menuLayer, "Start Game").fire("click");
@@ -89,7 +91,7 @@ describe("init", () => {
     const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
     vi.mocked(loadImage).mockRejectedValueOnce(new Error("Failed to load"));
 
-    const menu = await init(vi.fn(), vi.fn());
+    const menu = await init(vi.fn(), vi.fn(), vi.fn());
 
     expect(menu).toBeUndefined();
     expect(Konva.stages).toHaveLength(0); // no blank canvas left behind
@@ -100,7 +102,7 @@ describe("init", () => {
     const onStart = vi.fn();
     const onLevels = vi.fn();
 
-    const menu = await init(onStart, onLevels);
+    const menu = await init(onStart, onLevels, vi.fn());
 
     expect(menu).toBeDefined();
 
@@ -116,7 +118,7 @@ describe("init", () => {
 
   it("destroy removes the stage and resize listener and resets the cursor", async () => {
     const removeSpy = vi.spyOn(window, "removeEventListener");
-    const menu = await init(vi.fn(), vi.fn());
+    const menu = await init(vi.fn(), vi.fn(), vi.fn());
     document.body.style.cursor = "pointer";
 
     menu!.destroy();
@@ -128,14 +130,14 @@ describe("init", () => {
 
 
   it("reuses cached images when reopening the main menu", async () => {
-    const firstMenu = await init(vi.fn(), vi.fn());
+    const firstMenu = await init(vi.fn(), vi.fn(), vi.fn());
 
     expect(firstMenu).toBeDefined();
     expect(loadImage).toHaveBeenCalledTimes(2);
 
     firstMenu!.destroy();
 
-    const secondMenu = await init(vi.fn(), vi.fn());
+    const secondMenu = await init(vi.fn(), vi.fn(), vi.fn());
 
     expect(secondMenu).toBeDefined();
 
@@ -152,14 +154,14 @@ describe("init", () => {
       new Error("Image failed to load")
     );
 
-    const failedMenu = await init(vi.fn(), vi.fn());
+    const failedMenu = await init(vi.fn(), vi.fn(), vi.fn());
 
     expect(failedMenu).toBeUndefined();
     expect(Konva.stages).toHaveLength(0);
     expect(errorSpy).toHaveBeenCalled();
 
     // The failed image should be retried successfully.
-    const recoveredMenu = await init(vi.fn(), vi.fn());
+    const recoveredMenu = await init(vi.fn(), vi.fn(), vi.fn());
 
     expect(recoveredMenu).toBeDefined();
     expect(recoveredMenu!.stage.getLayers()).toHaveLength(1);
@@ -179,12 +181,33 @@ describe("init", () => {
     // Image preloading should not create a Konva stage.
     expect(Konva.stages).toHaveLength(0);
 
-    const menu = await init(vi.fn(), vi.fn());
+    const menu = await init(vi.fn(), vi.fn(), vi.fn());
 
     expect(menu).toBeDefined();
 
     // init() should reuse the preloaded images.
     expect(loadImage).toHaveBeenCalledTimes(2);
+
+    menu!.destroy();
+  });
+
+  it("calls onMiniGames when Mini Games is clicked", async () => {
+    const onStart = vi.fn();
+    const onLevels = vi.fn();
+    const onMiniGames = vi.fn();
+
+    const menu = await init(onStart, onLevels, onMiniGames);
+
+    expect(menu).toBeDefined();
+
+    const layer = menu!.stage.getLayers()[0];
+    const miniGamesButton = findButton(layer, "Mini Games");
+
+    miniGamesButton.fire("click");
+
+    expect(onMiniGames).toHaveBeenCalledTimes(1);
+    expect(onStart).not.toHaveBeenCalled();
+    expect(onLevels).not.toHaveBeenCalled();
 
     menu!.destroy();
   });
