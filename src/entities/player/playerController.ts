@@ -115,6 +115,13 @@ export default class PlayerController {
 		const sprite = this.model.getSprite();
 		const parent = sprite.getParent() ?? undefined;
 
+		if (this.isLeft() && !this.isRight()) {
+			sprite.scaleX(-1);
+		}
+		else if (this.isRight() && !this.isLeft()) {
+			sprite.scaleX(1);
+		}
+
 		for (const node of obstacles) {
 			if (node === sprite) continue;
 			if (node.hasName('spikes')){

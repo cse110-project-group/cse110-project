@@ -29,7 +29,7 @@ describe('Game', () => {
 	}
 
 	function playerSprite(): kv.Shape {
-		return kv.stages[0].findOne('.player') as kv.Shape;
+		return kv.stages[0].findOne('Image') as kv.Shape;
 	}
 
 	it('creates a stage sized to the window', () => {
