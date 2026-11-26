@@ -1,6 +1,10 @@
 import Input from './systems/input.ts';
 import kv from 'konva';
 import Player from './entities/player/player.ts';
+import Action from './entities/action/action.ts';
+import { ActionType } from './entities/action/action.ts';
+import ActionManager from './systems/actionManager.ts';
+import Slope from './entities/slope/slope.ts';
 import { checkLevelClear } from './systems/collision.ts';
 import type { Level } from './levels/level.ts';
 import { loadLevel } from './scenes/gameScene.ts';
@@ -30,10 +34,13 @@ export default class Game {
 	private stage: kv.Stage;
 	private gameLayer: kv.Layer;
 	private player: Player;
+	private actionManager: ActionManager;
 	private levels: Level[];
 	private currentLevelIndex = 0;
 	/** Timestamp of the previous frame, in milliseconds. */
 	private lastTime = 0;
+
+	slopeArray: Slope[] = [];
 
 	/** Builds the stage and layer and places the player at the center. */
 	constructor() {
@@ -45,14 +52,24 @@ export default class Game {
 		this.gameLayer = new kv.Layer();
 		this.stage.add(this.gameLayer);
 
-		// below are the test platforms so u can test movement, delete when we have levels
-		// START TEST PLATFORMS
 		const unit = Game.GRID_UNIT; // 30
 		const snap = (val: number) => Math.floor(val / unit) * unit;
 
 		const gridWidth = snap(this.stage.width());
 		const centerX = snap(this.stage.width() / 2);
-		const floorTop = snap(this.stage.height() - 60);
+		const floorTop = snap(this.stage.height() - 90);
+
+		// below are the test platforms so u can test movement, delete when we have levels
+		// START TEST PLATFORMS
+		const floor = new kv.Rect({
+			x: 0,
+			y: this.stage.height() - 100,
+			width: this.stage.width(),
+			height: 100,
+			fill: '#555',
+			name: 'solid'
+		});
+		this.gameLayer.add(floor);
 
 		const platforms = [
 			{ x: centerX + 90, rise: 120 },
@@ -69,7 +86,7 @@ export default class Game {
 				{
 					upperLeft: { x: 0, y: floorTop },
 					width: gridWidth,
-					height: 60
+					height: 120
 				},
 				// Temporary test platforms, placed relative to the screen center and
 				// the floor's top. Each step rises 120px (under JUMP_HEIGHT) so every
@@ -81,9 +98,13 @@ export default class Game {
 				}))
 			],
 			walls: [],
-			slopes: [],
+			slopes: [
+					{startPoint: {x: 1380, y: 360}, xComponent: 300, yComponent: -90},
+					{startPoint: {x: 1080, y: 450}, xComponent: 300, yComponent: -90},
+					{startPoint: {x: 120, y: 540}, xComponent: 300, yComponent: 0}
+			],
 			spikes: [],
-			actions: []
+			actions: [ActionType.COS, ActionType.SIN]
 		};
 
 		const tempLevel2: Level = {
@@ -93,7 +114,7 @@ export default class Game {
 				{
 					upperLeft: { x: 0, y: floorTop },
 					width: gridWidth,
-					height: 60
+					height: 120
 				},
 				{ upperLeft: { x: 210, y: floorTop - 90 }, width: 180, height: 30 },
 				{ upperLeft: { x: 450, y: floorTop - 210 }, width: 180, height: 30 },
@@ -112,10 +133,25 @@ export default class Game {
 			this.input, this.stage.width() / 2, this.stage.height() / 2
 		);
 
+		// SLOPES AND ACTIONS TEST
+		// let cosAction = new Action(this.input, this.actionManager, ActionType.COS, this.stage.width() / 2 - 150, this.stage.height() - 50);
+		// let sinAction = new Action(this.input, this.actionManager, ActionType.SIN, this.stage.width() / 2 + 150, this.stage.height() - 50);
+		// this.gameLayer.add(cosAction.getSprite());
+		// this.gameLayer.add(sinAction.getSprite());
+
+		// let slope1 = new Slope(this.input, 1080, 510, 300, -90);
+		// let slope2 = new Slope(this.input, 120, 540, 300, 0);
+		// this.slopeArray = [slope1, slope2];
+		// this.gameLayer.add(slope1.getSprite());
+		// this.gameLayer.add(slope2.getSprite());
+		// SLOPES AND ACTIONS TEST END
+		
 		this.gameLayer.add(this.player.getSprite());
 
 		this.levels = [tempLevel1, tempLevel2];
-		loadLevel(this.levels[this.currentLevelIndex], this.gameLayer, this.player);
+		[this.slopeArray, this.actionManager] = 
+				loadLevel(this.levels[this.currentLevelIndex], 
+						  this.gameLayer, this.player);
 
 		this.gameLayer.draw();
 	}
@@ -135,7 +171,10 @@ export default class Game {
 		);
 		this.lastTime = time;
 
-		this.player.update(deltaTime, this.gameLayer.getChildren());
+		/** Remember to populate slopeArray with array containing level slopes */
+
+		this.player.update(deltaTime, this.gameLayer.getChildren(), this.slopeArray);
+		this.actionManager.update(this.slopeArray);
 
 		const playerBox = this.player.getSprite().getClientRect({
 			relativeTo: this.gameLayer
@@ -144,7 +183,9 @@ export default class Game {
 		if (checkLevelClear(playerBox, this.stage.width())) {
 			if (this.currentLevelIndex + 1 < this.levels.length) {
 				this.currentLevelIndex += 1;
-				loadLevel(this.levels[this.currentLevelIndex], this.gameLayer, this.player);
+				[this.slopeArray, this.actionManager] = 
+						loadLevel(this.levels[this.currentLevelIndex], 
+								  this.gameLayer, this.player);
 			} else {
 				window.location.reload();
 				return;
@@ -153,6 +194,8 @@ export default class Game {
 
 		requestAnimationFrame(this.gameLoop);
 	}
+
+	public getPlayer() { return this.player; }
 
 	/** Starts the game loop. Call once after constructing the game. */
 	public start() {

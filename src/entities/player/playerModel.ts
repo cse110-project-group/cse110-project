@@ -33,6 +33,7 @@ export default class PlayerModel {
 			offsetY: height / 2,
 			fill: image ? undefined : 'gray',
 			image: image,
+			name: 'player'
 		});
 
 		if (!image) {

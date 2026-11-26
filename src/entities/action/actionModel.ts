@@ -1,7 +1,10 @@
 import kv from 'konva';
-import { loadImage } from '../../systems/loadImage.ts';
+import { loadCachedImage } from '../../systems/imageCache.ts';
 import { createButton } from '../../UI/createButton.ts'
 import { ActionType } from './action.ts'
+import { Image } from 'konva/lib/shapes/Image';
+import ActionManager from '../../systems/actionManager.ts';
+import Konva from 'konva';
 
 /**
  * Holds the action's visual state: the Konva shape drawn on the game layer.
@@ -11,19 +14,16 @@ import { ActionType } from './action.ts'
  */
 export default class ActionModel {
     /** Konva shape representing the sprite. */
-    private sprite: kv.Group;
+    private sprite: kv.Group = new kv.Group();
 
-    private buttonImage: HTMLImageElement;
 
-    private static readonly PLAT_STROKE_COLOR: string = "#3a271c";
-    private static readonly PLAT_STROKE_WIDTH: number = 15;
-    private static readonly PLAT_FILL: string = "#645c50";
-    private static readonly PLAT_CORNER_RADIUS: number = 1;
+    private static readonly BUTTON_WIDTH: number = 250;
+    private static readonly BUTTON_HEIGHT: number = 75;
 
     /**
-     * Note: Should be a button (hence the createButton() import), haven't 
-     * written yet.
+     * Creates a button that corresponds to the specified action type.
      * 
+     * @param manager - Shared manager between all actions.
      * @param type - The type of the action (i.e. how it will modify a slope),
      * typed using the ActionType enum.
      * @param x - X position of the action button's upper left corner, 
@@ -31,35 +31,28 @@ export default class ActionModel {
      * @param y - Y position of the action button's upper left corner, 
      * in pixels.
      */
-    constructor(type: ActionType, x: number, y: number) {
-        this.buttonImage = new Image();
+    constructor(manager: ActionManager, type: ActionType, x: number, y: number) {
         this.sprite = createButton({
-            image: new Image(),
+            image: <HTMLImageElement> document.createElement("img"),
             label: type,
             x: x,
             y: y,
-            width: 0,
-            height: 0,
-            onClick: () => {} //replace with callback
+            width: ActionModel.BUTTON_WIDTH,
+            height: ActionModel.BUTTON_HEIGHT,
+            onClick: () => {manager.switchAction(type)}
         });
-        //this.initImage();
-    }
 
-    // /** Helper for loading image in constructor */
-    // private async initImage(){
-    //     let buttonImage: HTMLImageElement;
-    //     try{
-    //         [buttonImage] = 
-    //             await Promise.all([loadImage("assets/button.png")]);
-    //     }
-    //     catch (e){
-    //         console.log(e);
-    //         buttonImage =  new HTMLImageElement;
-    //     }
-    //     this.buttonImage = buttonImage;
-    //     this.sprite.setAttr("image", this.buttonImage);
-    //     console.log(this.sprite);
-    // }
+        loadCachedImage('/assets/button.png')
+            .then((loadedImg) => {
+                let image = this.sprite.getChildren(function(node){
+                    return node.getClassName() === 'Image';
+                })[0];
+                image.getAttrs()["image"] = loadedImg;
+            })
+            .catch((err) => {
+                console.error('Failed to load button sprite:', err);
+            });
+    }
 
     /** Returns the Konva group so it can be added to a layer or moved. */
     public getSprite(): kv.Group {
