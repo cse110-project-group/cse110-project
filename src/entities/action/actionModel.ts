@@ -43,16 +43,15 @@ export default class ActionModel {
         });
 
         loadCachedImage('/assets/button.png')
-				.then((loadedImg) => {
-                    let image = this.sprite.getChildren(function(node){
-                        return node.getClassName() === 'Image';
-                    })[0];
-                    image.getAttrs()["image"] = loadedImg;
-                })
-				.catch((err) => {
-					console.error('Failed to load button sprite:', err);
-				});
-        
+            .then((loadedImg) => {
+                let image = this.sprite.getChildren(function(node){
+                    return node.getClassName() === 'Image';
+                })[0];
+                image.getAttrs()["image"] = loadedImg;
+            })
+            .catch((err) => {
+                console.error('Failed to load button sprite:', err);
+            });
     }
 
     /** Returns the Konva group so it can be added to a layer or moved. */
