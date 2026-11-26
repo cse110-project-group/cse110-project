@@ -1,152 +1,92 @@
 import Game from './game.ts'
 import { init, preloadMainMenuAssets } from './scenes/mainMenu.ts'
-import type { MainMenu } from './scenes/mainMenu.ts'
 import { initLevelSelect, preloadLevelAssets } from './scenes/levelScene.ts'
-import type { LevelSelect } from './scenes/levelScene.ts'
 import {
   initCompletionScene,
   preloadCompletionAssets,
-  type CompletionScene,
 } from "./scenes/completeScene.ts";
 
 async function main() {
-	let menu: MainMenu | undefined;
+	let currentScreen: { destroy: () => void } | undefined;
 
-	let levelScreen: LevelSelect | undefined;
+  let transitioning = false;
 
-    let completionScreen: CompletionScene | undefined;
-
-    let transitioning = false;
-
-async function showMainMenu() {
-    if (transitioning) return;
+  async function switchTo(
+    preload: () => Promise<boolean>,
+    create: () => Promise<{ destroy: () => void } | undefined>
+  ): Promise<boolean> {
+    if (transitioning) return false;
     transitioning = true;
 
     try {
-        // Load assets before destroying the level screen.
-        const loaded = await preloadMainMenuAssets();
-        if (!loaded) return;
+        // Load all assets before switching.
+        const loaded = await preload();
+        if (!loaded) return false;
 
-        levelScreen?.destroy();
-        levelScreen = undefined;
+        // Initialize the next screen before destroying the old one.
+        const newScreen = await create();
 
-        completionScreen?.destroy();
-        completionScreen = undefined;
-        const newMenu = await init(
-            () => {
-                // Start the actual game.
-                if (transitioning) return;
-                transitioning = true;
-
-                menu?.destroy();
-                menu = undefined;
-
-                const game = new Game();
-                game.start();
-            },
-
-            () => {
-                // Open the Level Selection screen.
-                void showLevelScreen();
-            }
-        );
-        () => {
-            // Open the Level Selection screen.
-            void showLevelScreen();
+        if (!newScreen) {
+            console.error("Failed to initialize the next screen.");
+            return false;
         }
 
-        if (!newMenu) {
-            console.error("Main menu failed to initialize.");
-            return;
-        }
+        // Switch only after initialization succeeds.
+        const previousScreen = currentScreen;
+        currentScreen = newScreen;
+        previousScreen?.destroy();
 
-        menu = newMenu;
+        return true;
     } catch (err) {
-        console.error("Failed to open main menu:", err);
+        console.error("Failed to switch screens:", err);
+        return false;
     } finally {
         transitioning = false;
     }
 }
 
+async function showMainMenu() {
+    await switchTo(
+        preloadMainMenuAssets,
+        () => init(
+            () => {
+                // Start the actual game.
+                if (transitioning) return;
+                transitioning = true;
 
-	
+                currentScreen?.destroy();
+                currentScreen = undefined;
+
+                const game = new Game();
+                game.start();
+            },
+            () => {
+                // Open the Level Selection screen.
+                void showLevelScreen();
+            }
+        )
+    );
+}
+
 async function showLevelScreen() {
-    if (transitioning) return;
-    transitioning = true;
-
-    try {
-        // Load assets before destroying the main menu.
-        const loaded = await preloadLevelAssets();
-        if (!loaded) return;
-
-        menu?.destroy();
-        menu = undefined;
-
-        completionScreen?.destroy();
-        completionScreen = undefined;
-
-        const newLevelScreen = await initLevelSelect(() => {
+    await switchTo(
+        preloadLevelAssets,
+        () => initLevelSelect(() => {
             // Return to the Main Menu when Back is clicked.
             void showMainMenu();
-        });
-
-        if (!newLevelScreen) {
-            console.error("Level screen failed to initialize.");
-            return;
-        }
-
-        levelScreen = newLevelScreen;
-    } 
-    catch (err) {
-        console.error("Failed to open level screen:", err);
-    } 
-    finally {
-        transitioning = false;
-    }
+        })
+    );
 }
 
 async function showCompletionScreen() {
-  if (transitioning) return;
-  transitioning = true;
-
-  try {
-    // Load the image before removing the Main Menu.
-    const loaded = await preloadCompletionAssets();
-    if (!loaded) return;
-
-    // Destroy the Main Menu.
-    menu?.destroy();
-    menu = undefined;
-
-    // Create the Completion Screen.
-    const newScreen = await initCompletionScene(
-      () => void showMainMenu(),
-      () => void showLevelScreen()
+    await switchTo(
+        preloadCompletionAssets,
+        () => initCompletionScene(
+            () => void showMainMenu(),
+            () => void showLevelScreen()
+        )
     );
-
-    if (!newScreen) {
-      console.error("Failed to initialize Completion Screen.");
-      return;
-    }
-
-    completionScreen = newScreen;
-  } catch (err) {
-    console.error("Failed to open Completion Screen:", err);
-  } finally {
-    transitioning = false;
-  }
 }
-
-// TEMPORARY: Press C on the Main Menu to preview completion.
-window.addEventListener("keydown", (event) => {
-  if (
-    event.key.toLowerCase() === "c" &&
-    menu &&
-    !transitioning
-  ) {
-    void showCompletionScreen();
-  }
-});
 
 await showMainMenu();
 }

@@ -2,6 +2,7 @@ import Konva from "konva";
 import { createScene, WIDTH, HEIGHT } from "./sceneUtils";
 import { createButton } from "../UI/createButton";
 import { loadCachedImage } from "../systems/imageCache";
+import { TOTAL_LEVELS } from "./levelScene";
 
 // The running completion screen and its cleanup function.
 export interface CompletionScene {
@@ -64,7 +65,7 @@ export async function initCompletionScene(
   // Add the completion message.
   layer.add(
     new Konva.Text({
-      text: "You completed all 12 levels!",
+      text: `You completed all ${TOTAL_LEVELS} levels!`,
       x: 0,
       y: 220,
       width: WIDTH,
@@ -77,7 +78,7 @@ export async function initCompletionScene(
   // Add achievement text.
   layer.add(
     new Konva.Text({
-      text: "12 / 12 LEVELS COMPLETED",
+      text: `${TOTAL_LEVELS} / ${TOTAL_LEVELS} LEVELS COMPLETED`,
       x: 0,
       y: 315,
       width: WIDTH,
