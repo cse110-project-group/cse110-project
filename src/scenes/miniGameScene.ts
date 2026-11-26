@@ -93,19 +93,20 @@ export async function initMiniGameScene(
  ];
 
 
- const btnW = 260;
- const btnH = 100;
+ const btnW = 250;
+ const btnH = 75;
  const gapX = 340;
- const startX = WIDTH / 2 - gapX / 2;
- const buttonY = 350;
+ const buttonX = WIDTH / 2 - 190;
+ const startY = 270;
+ const gap = 100;
 
 
  miniGames.forEach((game, index) => {
    const miniGameButton = createButton({
      image: buttonImg,
      label: game.label,
-     x: startX + index * gapX,
-     y: buttonY,
+     x: buttonX,
+     y: startY + index * gap,
      width: btnW,
      height: btnH,
      onClick: () => onSelectMiniGame(game.id),
