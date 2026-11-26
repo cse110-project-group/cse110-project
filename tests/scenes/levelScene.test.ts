@@ -117,7 +117,7 @@ describe('Level Selection Screen', () => {
   });
 
   // TEST 4: Level buttons respond to clicks.
-  it('allows clicking a level button', async () => {
+  it('disables interactions with locked level buttons', async () => {
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
     const screen = await initLevelSelect(vi.fn());

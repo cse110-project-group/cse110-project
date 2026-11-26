@@ -1,95 +1,88 @@
 import Game from './game.ts'
 import { init, preloadMainMenuAssets } from './scenes/mainMenu.ts'
-import type { MainMenu } from './scenes/mainMenu.ts'
 import { initLevelSelect, preloadLevelAssets } from './scenes/levelScene.ts'
-import type { LevelSelect } from './scenes/levelScene.ts'
 
 async function main() {
-	let menu: MainMenu | undefined;
+	let currentScreen: { destroy: () => void } | undefined;
 
-	let levelScreen: LevelSelect | undefined;
+  let transitioning = false;
 
-    let transitioning = false;
-
-async function showMainMenu() {
-    if (transitioning) return;
+  async function switchTo(
+    preload: () => Promise<boolean>,
+    create: () => Promise<{ destroy: () => void } | undefined>
+  ): Promise<boolean> {
+    if (transitioning) return false;
     transitioning = true;
 
     try {
-        // Load assets before destroying the level screen.
-        const loaded = await preloadMainMenuAssets();
-        if (!loaded) return;
+        // Load all assets before switching.
+        const loaded = await preload();
+        if (!loaded) return false;
 
-        levelScreen?.destroy();
-        levelScreen = undefined;
+        // Initialize the next screen before destroying the old one.
+        const newScreen = await create();
 
-        const newMenu = await init(
-            () => {
-                // EXISTING: Start Game behavior.
-                if (transitioning) return;
-                transitioning = true;
-
-                menu?.destroy();
-                menu = undefined;
-
-                const game = new Game();
-                game.start();
-            },
-            () => {
-                // Open the Level Selection screen.
-                void showLevelScreen();
-            }
-        );
-
-        if (!newMenu) {
-            console.error("Main menu failed to initialize.");
-            return;
+        if (!newScreen) {
+            console.error("Failed to initialize the next screen.");
+            return false;
         }
 
-        menu = newMenu;
+        // Switch only after initialization succeeds.
+        const previousScreen = currentScreen;
+        currentScreen = newScreen;
+        previousScreen?.destroy();
+
+        return true;
     } catch (err) {
-        console.error("Failed to open main menu:", err);
+        console.error("Failed to switch screens:", err);
+        return false;
     } finally {
         transitioning = false;
     }
 }
 
+async function showMainMenu() {
+    await switchTo(
+        preloadMainMenuAssets,
+        () => init(
+            () => {
+                // Start the actual game.
+                if (transitioning) return;
 
-	
-async function showLevelScreen() {
-    if (transitioning) return;
-    transitioning = true;
+                transitioning = true;
 
-    try {
-        // Load assets before destroying the main menu.
-        const loaded = await preloadLevelAssets();
-        if (!loaded) return;
+                try {
+                    const game = new Game();
 
-        menu?.destroy();
-        menu = undefined;
+                    currentScreen?.destroy();
+                    currentScreen = undefined;
 
-        const newLevelScreen = await initLevelSelect(() => {
-            // Return to the Main Menu when Back is clicked.
-            void showMainMenu();
-        });
-
-        if (!newLevelScreen) {
-            console.error("Level screen failed to initialize.");
-            return;
-        }
-
-        levelScreen = newLevelScreen;
-    } 
-    catch (err) {
-        console.error("Failed to open level screen:", err);
-    } 
-    finally {
-        transitioning = false;
-    }
+                    game.start();
+                } catch (err) {
+                    console.error("Failed to start game:", err);
+                } finally {
+                    transitioning = false;
+                }
+            },
+            () => {
+                // Open the Level Selection screen.
+                void showLevelScreen();
+            }
+        )
+    );
 }
 
+async function showLevelScreen() {
+    await switchTo(
+        preloadLevelAssets,
+        () => initLevelSelect(() => {
+            // Return to the Main Menu when Back is clicked.
+            void showMainMenu();
+        })
+    );
+}
 
-    await showMainMenu();
+await showMainMenu();
 }
 
 main();
