@@ -1,4 +1,5 @@
 import kv from 'konva';
+import { loadCachedImage } from '../../systems/imageCache.ts';
 
 /**
  * Holds the player's visual state: the Konva shape drawn on the game layer.
@@ -8,32 +9,52 @@ import kv from 'konva';
  */
 export default class PlayerModel {
 	/** Konva shape representing the player. Its position is the player's position. */
-	private sprite: kv.Ellipse;
+	private sprite: kv.Image;
 
-	public static readonly SPRITE_RADIUS_X = 25;
+	/** Matches player-sprite.png's 555x1173 aspect ratio so the art isn't stretched. */
+	public static readonly SPRITE_RADIUS_X = 23.5;
 	public static readonly SPRITE_RADIUS_Y = 50;
 
 	/**
 	 * @param x - Initial x position of the sprite's center, in pixels.
 	 * @param y - Initial y position of the sprite's center, in pixels.
+	 * @param image - Image for the sprite.
 	 */
-	constructor(x: number, y: number) {
-		this.sprite = new kv.Ellipse({
+	constructor(x: number, y: number, image?: HTMLImageElement) {
+		const width = PlayerModel.SPRITE_RADIUS_X * 2;
+		const height = PlayerModel.SPRITE_RADIUS_Y * 2;
+
+		this.sprite = new kv.Image({
 			x: x,
 			y: y,
-			radiusX: PlayerModel.SPRITE_RADIUS_X,
-			radiusY: PlayerModel.SPRITE_RADIUS_Y,
-			fill: 'gray',
+			width: width,
+			height: height,
+			offsetX: width / 2,
+			offsetY: height / 2,
+			fill: image ? undefined : 'gray',
+			image: image,
 		});
+
+		if (!image) {
+			loadCachedImage('/assets/player-sprite.png')
+				.then((loadedImg) => {
+					this.sprite.fill(undefined);
+					this.sprite.image(loadedImg);
+					this.sprite.getLayer()?.batchDraw();
+				})
+				.catch((err) => {
+					console.error('Failed to load player sprite:', err);
+				});
+		}
 	}
 
 	/** Returns the Konva shape so it can be added to a layer or moved. */
-	public getSprite(): kv.Ellipse {
+	public getSprite(): kv.Image {
 		return this.sprite;
 	}
 
 	/** Returns the sprite's bounding box to be used for collision detection. */
-	public getBoundingBox(): kv.IRect{
+	public getBoundingBox(): kv.IRect {
 		return this.sprite.getClientRect();
 	}
 }
