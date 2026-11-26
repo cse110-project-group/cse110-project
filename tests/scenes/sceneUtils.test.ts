@@ -2,98 +2,110 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import "../helpers/canvasStub";
 import Konva from "konva";
-import {
-  createScene,
-  fitStageToWindow,
-  WIDTH,
-  HEIGHT,
-} from "../../src/scenes/sceneUtils";
+import { createScene, WIDTH, HEIGHT,} from "../../src/scenes/sceneUtils";
 
 function setWindowSize(width: number, height: number) {
-  Object.defineProperty(window, "innerWidth", {
-    configurable: true,
-    value: width,
-  });
+    Object.defineProperty(window, "innerWidth", {
+        configurable: true,
+        value: width,
+    });
 
-  Object.defineProperty(window, "innerHeight", {
-    configurable: true,
-    value: height,
-  });
+    Object.defineProperty(window, "innerHeight", {
+        configurable: true,
+        value: height,
+    });
 }
 
 describe("sceneUtils", () => {
-  let container: HTMLDivElement;
+    let container: HTMLDivElement;
 
-  beforeEach(() => {
-    container = document.createElement("div");
-    container.id = "container";
-    document.body.appendChild(container);
+    const createdScenes: ReturnType<typeof createScene>[] = [];
 
-    setWindowSize(1280, 720);
-  });
+    function makeScene() {
+        const scene = createScene();
+        createdScenes.push(scene);
+        return scene;
+    }
 
-  afterEach(() => {
-    container.remove();
-    vi.restoreAllMocks();
-  });
+    beforeEach(() => {
+        container = document.createElement("div");
+        container.id = "container";
+        document.body.appendChild(container);
 
-  it("creates a stage and layer", () => {
-    const scene = createScene();
+        setWindowSize(1280, 720);
+    });
 
-    expect(scene.stage).toBeInstanceOf(Konva.Stage);
-    expect(scene.layer).toBeInstanceOf(Konva.Layer);
-    expect(scene.stage.getLayers().length).toBe(1);
-    expect(scene.stage.getLayers()[0]).toBe(scene.layer);
+    afterEach(() => {
+        [...Konva.stages].forEach((s) => s.destroy());
+        createdScenes.length = 0;
 
-    scene.destroy();
-  });
+        Konva.stages.forEach((stage) => stage.destroy());
+        container.remove();
+        vi.restoreAllMocks();
+    });
 
-  it("scales the stage while preserving aspect ratio", () => {
-    setWindowSize(640, 360);
+    it("creates a stage and layer", () => {
+        const scene = makeScene();
 
-    const scene = createScene();
+        expect(scene.stage).toBeInstanceOf(Konva.Stage);
+        expect(scene.layer).toBeInstanceOf(Konva.Layer);
+        expect(scene.stage.getLayers().length).toBe(1);
+        expect(scene.stage.getLayers()[0]).toBe(scene.layer);
+    });
 
-    expect(scene.stage.width()).toBe(640);
-    expect(scene.stage.height()).toBe(360);
-    expect(scene.stage.scaleX()).toBe(0.5);
-    expect(scene.stage.scaleY()).toBe(0.5);
+    it("scales the stage while preserving aspect ratio", () => {
+        setWindowSize(640, 360);
 
-    scene.destroy();
-  });
+        const scene = makeScene();
 
-  it("updates the stage when the window is resized", () => {
-    const scene = createScene();
+        expect(scene.stage.width()).toBe(640);
+        expect(scene.stage.height()).toBe(360);
+        expect(scene.stage.scaleX()).toBe(0.5);
+        expect(scene.stage.scaleY()).toBe(0.5);
+    });
 
-    setWindowSize(960, 540);
-    window.dispatchEvent(new Event("resize"));
+    it("updates the stage when the window is resized", () => {
+        const scene = makeScene();
 
-    const expectedScale = Math.min(
-      960 / WIDTH,
-      540 / HEIGHT
-    );
+        setWindowSize(960, 720);
+        window.dispatchEvent(new Event("resize"));
 
-    expect(scene.stage.scaleX()).toBe(expectedScale);
-    expect(scene.stage.scaleY()).toBe(expectedScale);
-    expect(scene.stage.width()).toBe(WIDTH * expectedScale);
-    expect(scene.stage.height()).toBe(HEIGHT * expectedScale);
+        const expectedScale = 0.75;
 
-    scene.destroy();
-  });
+        expect(scene.stage.scaleX()).toBe(expectedScale);
+        expect(scene.stage.scaleY()).toBe(expectedScale);
+        expect(scene.stage.width()).toBe(WIDTH * expectedScale);
+        expect(scene.stage.height()).toBe(HEIGHT * expectedScale);
+    });
 
-  it("removes the resize listener and destroys the stage", () => {
-    const removeSpy = vi.spyOn(window, "removeEventListener");
-    const scene = createScene();
-    const destroySpy = vi.spyOn(scene.stage, "destroy");
+    it("removes the original resize listener and destroys the stage", () => {
+        const addSpy = vi.spyOn(window, "addEventListener");
+        const removeSpy = vi.spyOn(window, "removeEventListener");
 
-    document.body.style.cursor = "pointer";
+        const scene = makeScene();
+        const destroySpy = vi.spyOn(scene.stage, "destroy");
 
-    scene.destroy();
+        const resizeCall = addSpy.mock.calls.find(
+            ([event]) => event === "resize"
+        );
 
-    expect(destroySpy).toHaveBeenCalledTimes(1);
-    expect(removeSpy).toHaveBeenCalledWith(
-      "resize",
-      expect.any(Function)
-    );
-    expect(document.body.style.cursor).toBe("default");
-  });
+        expect(resizeCall).toBeDefined();
+
+        const originalHandler = resizeCall![1];
+
+        document.body.style.cursor = "pointer";
+
+        scene.destroy();
+        createdScenes.splice(createdScenes.indexOf(scene), 1);
+
+        expect(destroySpy).toHaveBeenCalledTimes(1);
+
+        // Must remove the exact handler originally registered.
+        expect(removeSpy).toHaveBeenCalledWith(
+            "resize",
+            originalHandler
+        );
+
+        expect(document.body.style.cursor).toBe("default");
+    });
 });

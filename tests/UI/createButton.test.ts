@@ -4,6 +4,9 @@ import "../helpers/canvasStub.ts";
 import Konva from "konva";
 import { createButton } from "../../src/UI/createButton.ts";
 
+// Tracks buttons so each test can clean up its Konva nodes.
+const createdButtons: Konva.Group[] = [];
+
 // Creates a button with default properties so each test only needs
 // to override the values relevant to what it is testing.
 // Partial<> allows individual properties to be optional.
@@ -27,6 +30,9 @@ function makeButton(overrides: Partial<Parameters<typeof createButton>[0]> = {})
     ...overrides,
   });
 
+  // Track this button for cleanup after the test.
+  createdButtons.push(button);
+
   // Returns the button and callback so tests can inspect both.
   return { button, onClick };
 }
@@ -43,7 +49,9 @@ describe("createButton", () => {
   // Restores Vitest spies and resets the cursor after each test
   // to prevent one test from affecting another.
   afterEach(() => {
-    vi.restoreAllMocks();
+    createdButtons.forEach((button) => button.destroy());
+    createdButtons.length = 0;
+
     document.body.style.cursor = "default";
   });
 
@@ -118,7 +126,8 @@ describe("createButton", () => {
     const text = button.findOne<Konva.Text>("Text");
 
     expect(text).toBeDefined();
-    expect(text!.y() + text!.height()).toBeLessThanOrEqual(0);
+    expect(text!.x()).toBe(0);
+    expect(text!.y()).toBe(-44);
   });
 
   // Verifies that the default label position is inside
@@ -142,8 +151,14 @@ describe("createButton", () => {
 
     expect(text).toBeDefined();
     expect(background).toBeDefined();
-    expect(background!.y()).toBeLessThanOrEqual(text!.y());
-    expect(background!.height()).toBeGreaterThanOrEqual(text!.height());
+
+    expect(background!.x()).toBe(text!.x());
+    expect(background!.y()).toBe(text!.y());
+    expect(background!.width()).toBe(text!.width());
+    expect(background!.height()).toBe(text!.height());
+
+    // Background must appear behind the text.
+    expect(background!.zIndex()).toBeLessThan(text!.zIndex());
   });
 
   // Verifies that no background rectangle is added
@@ -154,17 +169,35 @@ describe("createButton", () => {
     expect(button.findOne<Konva.Rect>("Rect")).toBeUndefined();
   });
 
-  // Verifies that textOffsetY changes the vertical
-  // position of the label by the specified amount.
-  it("applies a custom text Y-offset", () => {
+  // Verifies that textOffsetY changes the vertical position
+  // of the label when using the default centered position.
+  it("applies a custom text Y-offset in the default position", () => {
     const { button: defaultButton } = makeButton();
-    const { button: offsetButton } = makeButton({ textOffsetY: 15 });
+    const { button: offsetButton } = makeButton({
+      textOffsetY: 15,
+    });
 
     const defaultText = defaultButton.findOne<Konva.Text>("Text");
     const offsetText = offsetButton.findOne<Konva.Text>("Text");
 
     expect(defaultText).toBeDefined();
     expect(offsetText).toBeDefined();
+
     expect(offsetText!.y() - defaultText!.y()).toBe(15);
+});
+
+  // Verifies that textOffsetY is ignored when labelPosition
+  // is "above", preserving the fixed label position.
+  it("ignores textOffsetY when labelPosition is above", () => {
+    const { button } = makeButton({
+      labelPosition: "above",
+      textOffsetY: 20,
+    });
+
+    const text = button.findOne<Konva.Text>("Text");
+
+    expect(text).toBeDefined();
+    expect(text!.x()).toBe(0);
+    expect(text!.y()).toBe(-44);
   });
 });

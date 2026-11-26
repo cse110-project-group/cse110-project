@@ -15,7 +15,7 @@ npm run preview  # preview the production build
 
 ## Controls
 
-The game opens on a main menu. Click **Start Game** to enter the game (the **Levels** and **Options** buttons are placeholders for now).
+The game opens on a main menu. Click **Start Game** to enter the game, or **Levels** to open the level select screen (the **Options** button is a placeholder for now).
 
 | Key | Action |
 | --- | --- |
@@ -23,37 +23,51 @@ The game opens on a main menu. Click **Start Game** to enter the game (the **Lev
 | `D` / `→` | Move right |
 | `Space` / `W` / `↑` | Jump (while standing on something) |
 
-The player accelerates up to a top speed and decelerates when no direction (or both directions) is held. Gravity pulls the player down onto solid obstacles. Releasing jump early gives a shorter jump, and a jump still works briefly after walking off a ledge (coyote time) or when pressed just before landing (jump buffering).
+The player accelerates up to a top speed and decelerates when no direction (or both directions) is held, and the sprite flips to face the direction of movement. Gravity pulls the player down onto solid obstacles. Releasing jump early gives a shorter jump, and a jump still works briefly after walking off a ledge (coyote time) or when pressed just before landing (jump buffering).
+
+Touching spikes (including the strip along the bottom of the screen) sends the player back to the level's spawn point. Walking off the right edge of the screen clears the level and loads the next one; clearing the last level returns to the main menu.
 
 ## Project structure
 
 ```
 index.html                page shell with the #container div Konva draws into
-public/assets/            images (menu background, button sprite, placeholders)
+public/assets/            images (menu background, button sprite, player-sprite.png, Locked_Level.png, placeholders)
 src/
   main.ts                 entry point: shows the main menu, starts the Game on "Start Game"
-  game.ts                 Konva stage + layer, owns entities, runs the game loop
+  game.ts                 Konva stage + layer, owns entities and levels, runs the game loop
   entities/
     player/
       player.ts           player entity: ties the model and controller together
-      playerModel.ts      the player's Konva shape (what is drawn)
-      playerController.ts moves the model from keyboard input each frame, with collisions
+      playerModel.ts      the player's sprite image (what is drawn)
+      playerController.ts moves the model from keyboard input each frame, with collisions and respawning
+    platform/             solid, grid-snapped rectangles the player stands on (also used for walls)
+    spikes/               row of triangle spikes that respawn the player on contact
+    slope/                line between two endpoints, to be modified by actions (WIP)
+    action/               COS / SIN action buttons that will modify slopes (WIP)
   scenes/
     mainMenu.ts           main menu: background, buttons, scales to fit the window
-    levelScene.ts         level select screen (work in progress)
-    gameScene.ts          (empty, reserved)
+    levelScene.ts         level select screen: 4x3 grid of level buttons plus a back button
+    sceneUtils.ts         shared stage creation, scaling, and cleanup
+    gameScene.ts          loadLevel(): clears the layer and builds a Level's entities
   UI/
-    createButton.ts       reusable image button with hover/press animations
+    createButton.ts       reusable image button with animations and label positioning
+  levels/
+    level.ts              Level interface: the structure of a level's data
+    levelParser.ts        LevelParser: converts level JSON strings to Level objects and back
   save/
     saveState.ts          SaveState shape and createInitialSaveState()
+    saveSerializer.ts     serializeSaveState() / deserializeSaveState(): JSON conversion, validation, schema version fallback
+    saveManager.ts        SaveManager: loads, updates, and persists player progress
     storageAdapter.ts     StorageAdapter interface (read/write/remove by key)
     browserStorageAdapter.ts StorageAdapter backed by localStorage
   systems/
     input.ts              tracks which keys are held down
-    collision.ts          AABB overlap checks and per-axis movement resolution
+    collision.ts          AABB overlap checks, per-axis movement resolution, level-clear check
     loadImage.ts          Promise-based image loader
+    imageCache.ts         shared image caching across scenes
     trigGenerator.ts      trig question sources built on RandMatQuGeA
     physics.ts            gravity constants and applyGravity()
+    actionManager.ts      (placeholder) will manage actions on slopes
 tests/                    mirrors src/ (e.g. tests/systems/input.test.ts)
   helpers/
     canvasStub.ts         stubs canvas for Konva in jsdom tests
@@ -65,9 +79,11 @@ Entities follow a model/controller split: the **model** holds the Konva shape an
 
 `Game.start()` runs a `requestAnimationFrame` loop. Each frame it computes `deltaTime`, the **seconds** since the previous frame (capped at 0.1s so returning to a backgrounded tab doesn't make things jump), and passes it to each entity's `update`. Scale movement by `deltaTime` (e.g. `speed * deltaTime` with `speed` in pixels per second) so the game runs at the same speed on 60 Hz and 144 Hz displays. Konva redraws the layer automatically when shapes change.
 
+After updating the player, the loop calls `checkLevelClear()`. Once the player's box is fully past the right edge of the stage, it loads the next level with `loadLevel()`, or reloads the page (back to the main menu) after the last level. The levels are currently two temporary test levels defined in `game.ts`.
+
 ### Collisions
 
-Each frame the game passes the game layer's children to `player.update(deltaTime, obstacles)`. Any Konva node given the name `solid` (e.g. `new Konva.Rect({ ..., name: 'solid' })`) blocks the player's movement; other nodes are ignored. `systems/collision.ts` sweeps the player's bounding box along its movement on each axis (via `resolveMovement`) and clamps it against solid boxes, and the controller resets the player's speed when it hits one.
+Each frame the game passes the game layer's children to `player.update(deltaTime, obstacles)`. Any Konva node given the name `solid` (e.g. `new Konva.Rect({ ..., name: 'solid' })`) blocks the player's movement. Any node named `spikes` kills the player on overlap: the controller calls `respawn()`, which moves the player back to its spawn point (set with `setSpawn()`) and resets its speed and jump state. Other nodes are ignored. `systems/collision.ts` sweeps the player's bounding box along its movement on each axis (via `resolveMovement`) and clamps it against solid boxes, and the controller resets the player's speed when it hits one.
 
 #### Intended Designs
 
@@ -76,7 +92,29 @@ Each frame the game passes the game layer's children to `player.update(deltaTime
 
 ### Scenes and UI
 
-The main menu (`scenes/mainMenu.ts`) lays itself out in a fixed 1280×720 virtual resolution and scales the stage to fit the window while keeping the aspect ratio. `init(onStart)` loads its images with `loadImage`, builds the buttons with `createButton`, and returns a `MainMenu` whose `destroy()` removes the stage and its resize listener. `createButton` returns a Konva group that is not yet added to a layer, so any scene can reuse it.
+The main menu (`scenes/mainMenu.ts`) lays itself out in a fixed 1280×720 virtual resolution and scales the stage to fit the window while keeping the aspect ratio. `init(onStart)` loads its images with `loadImage`, builds the buttons with `createButton`, and returns a `MainMenu` whose `destroy()` removes the stage and its resize listener. `createButton` returns a Konva group that is not yet added to a layer, so any scene can reuse it. It accepts an optional y offset for the label (`offsetY`) to nudge the text and avoid overlapping any text baked into the button image.
+
+The level select scene (`scenes/levelScene.ts`) shows a 4×3 grid of 12 level buttons and a button that returns to the main menu. Like the main menu, it loads its images with `loadImage`, builds its buttons with `createButton`, and exposes a `destroy()` that cleans the scene up when switching screens so nothing leaks. Locked levels use the `public/assets/Locked_Level.png` image and have pointer interactions disabled.
+
+To reduce duplicated code, `sceneUtils.ts` provides a reusable `createScene()` helper for Konva stage and layer creation, window resizing, and cleanup. The shared `imageCache.ts` utility caches loaded assets across scenes. Scene transitions preload required assets before destroying the current scene and use a transition lock to prevent overlapping transitions. The `createButton()` helper also supports label positioning and backgrounds.
+
+### Levels
+
+`levels/level.ts` defines the `Level` interface, which stores the structure of a level's data: its `levelId`, the player's `spawnPoint`, the `actions` available (`ActionType.COS` / `ActionType.SIN`), and its `platforms`, `walls`, `spikes`, and `slopes`. Platforms and walls are rectangles (`upperLeft`, `width`, `height`), spikes are a row (`upperLeft`, `width`), and slopes run from `startPoint` to `startPoint + (xComponent, yComponent)`.
+
+`levels/levelParser.ts` defines `LevelParser`, which converts JSON strings into `Level` objects (`unserialize`) and back (`serialize`). `unserialize` validates every field and throws an `Error` naming the bad field (e.g. `level.platforms[0].width must be greater than 0`).
+
+```ts
+const parser = new LevelParser();
+const level = parser.unserialize(json); // json: JSON string with level data
+const string = parser.serialize(level); // back to a JSON string
+```
+
+`scenes/gameScene.ts` turns a `Level` into entities with `loadLevel(level, gameLayer, player)`. It removes the previous level's nodes, adds an invisible wall at the left edge and a spike strip along the bottom of the screen, builds the platforms, walls, spikes, and slopes, then moves the player to the level's spawn point.
+
+#### Entities and the grid
+
+Levels are laid out on a grid of `Game.GRID_UNIT` (30px) squares. `Platform` and `Spikes` throw if their position or size is not a multiple of the grid unit (or the size is not positive), which usually points to a calculation error. Spikes are always one grid unit tall. Slopes and actions are still in progress: `loadLevel` draws slopes as plain lines for now, and the action buttons are not yet wired up.
 
 ### Trig questions
 
@@ -87,7 +125,17 @@ The main menu (`scenes/mainMenu.ts`) lays itself out in a fixed 1280×720 virtua
 
 ### Saving
 
-`save/saveState.ts` defines the `SaveState` (current, unlocked, and completed levels, minigame progress, claimed rewards) and `createInitialSaveState(startingLevelId)`. Saves are stored through the `StorageAdapter` interface; `BrowserStorageAdapter` implements it with `localStorage`, prefixing keys with `cse110-game-saves:`. Saves are not yet wired into the game.
+`save/saveState.ts` defines the `SaveState` (current, unlocked, and completed levels, minigame progress, claimed rewards) and `createInitialSaveState(startingLevelId)`. Saves are stored through the `StorageAdapter` interface; `BrowserStorageAdapter` implements it with `localStorage`, prefixing keys with `cse110-game-saves:`.
+
+`save/saveSerializer.ts` converts a `SaveState` to and from JSON with `serializeSaveState()` and `deserializeSaveState()`. When loading, it validates the data and its schema version. If the data is corrupted, incomplete, or from an unsupported version, it returns a fresh default save and leaves the stored data untouched.
+
+`save/saveManager.ts` provides `SaveManager`, which handles progress through the adapter and serializer:
+
+- `load()`: restores an existing save, or starts default progress.
+- `completeLevel()`: records a completed level (no duplicates) and unlocks new ones.
+- `completeMinigame()`: records completion status, attempts, and best score.
+
+Updates made through the manager are saved automatically. Saves are not yet wired into the game.
 
 ## Testing
 

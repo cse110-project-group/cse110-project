@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import "../helpers/canvasStub.ts";
 import Konva from "konva";
 import { loadImage } from "../../src/systems/loadImage.ts";
-import { init, fitStageToWindow, preloadMainMenuAssets, resetMainMenuAssets,} from "../../src/scenes/mainMenu.ts";
+import { init, fitStageToWindow, preloadMainMenuAssets, resetMainMenuAssets, } from "../../src/scenes/mainMenu.ts";
 
 // Replace the real image loader so no files are needed. A canvas element
 // stands in for an image.
@@ -27,10 +27,7 @@ function findButton(layer: Konva.Layer, label: string): Konva.Group {
 }
 
 beforeEach(() => {
-  vi.mocked(loadImage).mockReset();
-  vi.mocked(loadImage).mockImplementation(() =>
-    Promise.resolve(document.createElement("canvas") as unknown as HTMLImageElement)
-  );
+  vi.mocked(loadImage).mockClear();
 
   document.body.innerHTML = '<div id="container"></div>';
   setWindowSize(1280, 720);
@@ -38,7 +35,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-  Konva.stages.forEach((s) => s.destroy());
+  [...Konva.stages].forEach((s) => s.destroy());
   vi.restoreAllMocks();
   document.body.innerHTML = "";
 });
@@ -167,6 +164,9 @@ describe("init", () => {
     expect(recoveredMenu).toBeDefined();
     expect(recoveredMenu!.stage.getLayers()).toHaveLength(1);
 
+    // Two initial loads, then only the failed image is retried.
+    expect(loadImage).toHaveBeenCalledTimes(3);
+
     recoveredMenu!.destroy();
   });
 
@@ -188,5 +188,4 @@ describe("init", () => {
 
     menu!.destroy();
   });
-
 });
