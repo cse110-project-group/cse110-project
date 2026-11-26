@@ -1,21 +1,10 @@
 // @vitest-environment jsdom
-import {
-  describe,
-  it,
-  expect,
-  vi,
-  beforeEach,
-  afterEach,
-} from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach, } from "vitest";
 import Konva from "konva";
 import "../helpers/canvasStub";
-import {
-  initMiniGameScene,
-  preloadMiniGameAssets,
-  resetMiniGameAssets,
-  type MiniGameScene,
-} from "../../src/scenes/miniGameScene";
+import { initMiniGameScene, preloadMiniGameAssets, resetMiniGameAssets, type MiniGameScene, } from "../../src/scenes/miniGameScene";
 import { loadImage } from "../../src/systems/loadImage";
+import { resetImageCache } from "../../src/systems/imageCache";
 
 // Mock actual image loading.
 vi.mock("../../src/systems/loadImage", () => ({
@@ -80,6 +69,7 @@ describe("Mini Games Selection Screen", () => {
 
   beforeEach(() => {
     resetMiniGameAssets();
+    resetImageCache();
 
     document.body.innerHTML = '<div id="container"></div>';
     document.body.style.cursor = "default";

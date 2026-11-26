@@ -1,5 +1,5 @@
 import Konva from "konva";
-import { loadCachedImage, resetImageCache } from "../systems/imageCache";
+import { loadSceneImages } from "../systems/loadSceneImages";
 import { createButton } from "../UI/createButton";
 import { createScene, WIDTH, HEIGHT } from "./sceneUtils";
 
@@ -12,18 +12,18 @@ let miniGameAssetsPromise:
 
 // Reset cached assets between tests.
 export function resetMiniGameAssets(): void {
- miniGameAssetsPromise = undefined;
- resetImageCache();
+  miniGameAssetsPromise = undefined;
 }
 
 
 // Load images used by the Mini Games screen.
 function loadMiniGameAssets() {
  if (!miniGameAssetsPromise) {
-   miniGameAssetsPromise = Promise.all([
-     loadCachedImage("/assets/background2.png"),
-     loadCachedImage("/assets/button.png"),
-   ]).catch((err) => {
+    miniGameAssetsPromise = loadSceneImages([
+    "/assets/background2.png",
+    "/assets/button.png",
+  ]).then((images) => [images[0], images[1]] as [HTMLImageElement, HTMLImageElement])
+    .catch((err) => {
      miniGameAssetsPromise = undefined;
      throw err;
    });
